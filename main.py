@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from pFindPleskHostByDomain import resolve_a_record, RecordNotFoundError
+from dns_resolver import *
 
 app = FastAPI()
 
@@ -13,6 +13,6 @@ async def root():
 async def get_a_record(domain: str):
     try:
         a_records = resolve_a_record(domain)
-        return {"domain": domain, "A_records": a_records}
+        return {"domain": domain, "value": a_records}
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
