@@ -1,5 +1,4 @@
-from dns import resolver, reversename
-from typing import List
+from dns import resolver, reversename, rdatatype
 
 
 class RecordNotFoundError(Exception):
@@ -7,25 +6,19 @@ class RecordNotFoundError(Exception):
         super().__init__(message)
 
 
-def resolve_a_record(domain: str) -> List[str]:
+def resolve_record(record: str, type: str):
     try:
-        return [ipval.to_text() for ipval in resolver.resolve(domain, "A")]
+        match type:
+            case "A":
+                return [ipval.to_text() for ipval in resolver.resolve(record, type)]
+            case "PTR":
+                addr_record = reversename.from_address(record)
+                return str(resolver.resolve(addr_record, type)[0])
+            case "MX":
+                return "".join(
+                    [ipval.to_text() for ipval in resolver.resolve(record, "MX")]
+                ).split(" ")[1]
+            case _:
+                raise rdatatype.UnknownRdatatype
     except (resolver.NoAnswer, resolver.NXDOMAIN, resolver.NoNameservers) as exc:
-        raise RecordNotFoundError(f"A record not found for {domain}") from exc
-
-
-def resolve_ptr_record(ip: str) -> str:
-    try:
-        addr_record = reversename.from_address(ip)
-        return str(resolver.resolve(addr_record, "PTR")[0])
-    except (resolver.NoAnswer, resolver.NXDOMAIN) as exc:
-        raise RecordNotFoundError(f"PTR record not found for {ip}") from exc
-
-
-def resolve_mx_record(domain) -> List[str]:
-    try:
-        return "".join(
-            [ipval.to_text() for ipval in resolver.resolve(domain, "MX")]
-        ).split(" ")[1]
-    except (resolver.NoAnswer, resolver.NXDOMAIN, resolver.NoNameservers) as exc:
-        raise RecordNotFoundError(f"MX record not found for {domain}") from exc
+        raise RecordNotFoundError(f"{type} record not found for {record}") from exc
