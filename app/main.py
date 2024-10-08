@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from app.dns_resolver import resolve_record, RecordNotFoundError
+import uvicorn
 
 app = FastAPI()
 
@@ -21,8 +22,9 @@ async def get_a_record(domain: str):
 @app.get("/resolve-ptr/{ip}")
 async def get_ptr_record(ip: str):
     try:
-        ptr_records = resolve_record(ip, "PTR")
-        return {"domain": ip, "value": ptr_records}
+        print(f"IP {ip}")
+        ptr_records = resolve_record(str(ip), "PTR")
+        return {"ip": ip, "value": ptr_records}
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -34,3 +36,6 @@ async def get_mx_record(domain: str):
         return {"domain": domain, "value": mx_records}
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    
+if __name__ == "__main__":
+    uvicorn.run(app, host="IP_PLACEHOLDER", port=5000, log_level="debug")
