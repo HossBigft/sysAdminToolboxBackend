@@ -18,7 +18,7 @@ async def root():
 
 @app.get("/resolve-a/{domain}")
 async def get_a_record(
-    domain: Annotated[str, Path(max_length=63, regex=DOMAIN_REGEX_PATTERN)],
+    domain: Annotated[str, Path(max_length=63, pattern=DOMAIN_REGEX_PATTERN)],
 ):
     try:
         a_records = resolve_record(domain, "A")
@@ -40,7 +40,7 @@ async def get_ptr_record(
 
 @app.get("/resolve-mx/{domain}")
 async def get_mx_record(
-    domain: Annotated[str, Path(max_length=63, regex=DOMAIN_REGEX_PATTERN)],
+    domain: Annotated[str, Path(max_length=63, pattern=DOMAIN_REGEX_PATTERN)],
 ):
     try:
         mx_records = resolve_record(domain, "MX")
