@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 from .main import app
 
-DOMAIN_WITH_EXISTING_A_RECORD = "google.com"
+example.com
 MALFORMED_DOMAIN = "googlecom."
 
 
