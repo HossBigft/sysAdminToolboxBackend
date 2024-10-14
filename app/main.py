@@ -3,6 +3,8 @@ from app.dns_resolver import resolve_record, RecordNotFoundError
 import uvicorn
 from typing import Annotated
 from pydantic.networks import IPvAnyAddress
+from app.plesk_queries import send_hello
+
 
 DOMAIN_REGEX_PATTERN = (
     r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$"
@@ -46,6 +48,15 @@ async def get_mx_record(
         mx_records = resolve_record(domain, "MX")
         return {"domain": domain, "value": mx_records}
     except RecordNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.get("/plesk/greet")
+async def get_answers_from_plesk_servers():
+    try:
+        return await send_hello()
+
+    except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
 
 
