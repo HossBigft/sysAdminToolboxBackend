@@ -60,5 +60,12 @@ async def get_answers_from_plesk_servers():
         raise HTTPException(status_code=404, detail=str(e))
 
 
+@app.get("/resolve/zonemaster/{domain}")
+async def get_zone_master_from_dns_servers(
+    domain: Annotated[str, Path(min_length=3,max_length=63, pattern=DOMAIN_REGEX_PATTERN)],
+):
+    return "success"
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="IP_PLACEHOLDER", port=5000, log_level="debug")

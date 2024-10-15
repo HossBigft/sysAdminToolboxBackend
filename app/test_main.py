@@ -1,5 +1,7 @@
 from fastapi.testclient import TestClient
 from .main import app
+from .command_injection_list import COMMAND_INJECTION_LIST
+import pytest
 
 example.com
 MALFORMED_DOMAIN = "googlecom."
@@ -36,3 +38,10 @@ def test_ssh_connection():
     response = client.get("/plesk/greet")
     assert response.status_code == 200
     assert correct_response_from_ssh in response.json() 
+
+@pytest.mark.parametrize('command', COMMAND_INJECTION_LIST) 
+def test_command_injection_security(command):
+    response = client.get(f"/resolve/zonemaster/{command}")
+    assert response.status_code == 422
+    
+    
