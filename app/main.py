@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Path
+from fastapi import FastAPI, HTTPException, Path, Query
 from app.dns_resolver import resolve_record, RecordNotFoundError
 import uvicorn
 from typing import Annotated
@@ -60,9 +60,9 @@ async def get_answers_from_plesk_servers():
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.get("/resolve/zonemaster/{domain}")
+@app.get("/resolve/zonemaster/")
 async def get_zone_master_from_dns_servers(
-    domain: Annotated[str, Path(min_length=3,max_length=63, pattern=DOMAIN_REGEX_PATTERN)],
+    domain: Annotated[str, Query(min_length=3,max_length=63, pattern=DOMAIN_REGEX_PATTERN)],
 ):
     return "success"
 

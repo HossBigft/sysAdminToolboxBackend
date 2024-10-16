@@ -41,7 +41,7 @@ def test_ssh_connection():
 
 @pytest.mark.parametrize('command', COMMAND_INJECTION_LIST) 
 def test_command_injection_security(command):
-    response = client.get(f"/resolve/zonemaster/{command}")
+    response = client.get(f"/resolve/zonemaster/?domain={command}")
     assert response.status_code == 422
     
     
