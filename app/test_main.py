@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 from .main import app
-from .command_injection_list import COMMAND_INJECTION_LIST
+from .data_command_injection_list import COMMAND_INJECTION_LIST
 import pytest
 
 example.com
@@ -40,7 +40,7 @@ def test_ssh_connection():
     assert correct_response_from_ssh in response.json() 
 
 @pytest.mark.parametrize('command', COMMAND_INJECTION_LIST) 
-def test_command_injection_security(command):
+def test_invalid_commands_trigger_422_error(command):
     response = client.get(f"/resolve/zonemaster/?domain={command}")
     assert response.status_code == 422
     
