@@ -1,4 +1,4 @@
-from app.async_ssh_executor import batch_ssh_command_prepare
+from app.ssh_async_executor import batch_ssh_command_prepare
 from app.host_lists import TEST_SERVER_LIST
 from typing import List
 
