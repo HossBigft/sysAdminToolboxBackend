@@ -7,7 +7,7 @@ async def _run_command_over_ssh(host, command, verbose: bool):
     sanitized_command = shlex.quote(command)
 
     ssh_command = (
-        f'ssh  -o PasswordAuthentication=no  {sanitized_host} "{sanitized_command}"'
+        f"ssh  -o PasswordAuthentication=no  {sanitized_host} {sanitized_command}"
     )
     process = await asyncio.create_subprocess_shell(
         ssh_command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE

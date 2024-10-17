@@ -1,5 +1,5 @@
-from host_lists import DNS_SERVER_LIST
-import app.ssh_async_executor as ase
+from .host_lists import DNS_SERVER_LIST
+from .ssh_async_executor import batch_ssh_command_result
 import re
 
 DOMAIN_REGEX_PATTERN = (
@@ -19,7 +19,7 @@ def getDomainZoneMaster(domain_name: str, verbosity_flag=True, debug_flag=False)
 
     getZoneMasterCmd = f"cat /var/opt/isc/scls/isc-bind/zones/_default.nzf| grep '\\\"{''.join(domain_name)}\\\"' | grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\\b){{4}}' | head -n1"
     dnsAnswers = []
-    dnsAnswers = ase.batch_ssh_command_result(
+    dnsAnswers = batch_ssh_command_result(
         server_list=DNS_SERVER_LIST,
         command=getZoneMasterCmd,
         verbose=debug_flag,
