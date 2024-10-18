@@ -17,7 +17,7 @@ def test_read_main():
 
 
 def test_a_record_resolution_with_correct_domain_name():
-    response = client.get(f"/resolve-a/{DOMAIN_WITH_EXISTING_A_RECORD}")
+    response = client.get(f"/resolve/a/?domain={DOMAIN_WITH_EXISTING_A_RECORD}")
     assert response.status_code == 200
     assert response.json() == {
         "domain": DOMAIN_WITH_EXISTING_A_RECORD,
@@ -26,7 +26,7 @@ def test_a_record_resolution_with_correct_domain_name():
 
 
 def test_a_record_resolution_with_malformed_domain_name():
-    response = client.get(f"/resolve-a/{MALFORMED_DOMAIN}")
+    response = client.get(f"/resolve/a/?domain={MALFORMED_DOMAIN}")
     assert response.status_code == 422
 
 

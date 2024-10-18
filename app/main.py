@@ -19,9 +19,9 @@ async def root():
     return {"message": "Hello World"}
 
 
-@app.get("/resolve-a/{domain}")
+@app.get("/resolve/a/")
 async def get_a_record(
-    domain: Annotated[str, Path(max_length=63, pattern=DOMAIN_REGEX_PATTERN)],
+    domain: Annotated[str, Query(max_length=63, pattern=DOMAIN_REGEX_PATTERN)],
 ):
     try:
         a_records = resolve_record(domain, "A")
