@@ -45,13 +45,15 @@ async def get_ptr_record(
 
 @app.get("/resolve/mx/")
 async def get_mx_record(
-    domain: Annotated[str, Query(max_length=63, pattern=DOMAIN_REGEX_PATTERN)],
+    domain: Annotated[
+        str, Query(min_length=3, max_length=63, pattern=DOMAIN_REGEX_PATTERN)
+    ],
 ):
     try:
         mx_records = resolve_record(domain, "MX")
         return {"domain": domain, "value": mx_records}
     except RecordNotFoundError as e:
-        raise HTTPException(min_length=3, status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @app.get("/plesk/greet")
