@@ -8,6 +8,8 @@ google.com
 google.com
 MALFORMED_DOMAIN = "googlecom."
 IP_WITHOUT_PTR = "IP_PLACEHOLDER"
+IP_WITH_PTR = "IP_PLACEHOLDER"
+
 
 client = TestClient(app)
 
@@ -75,3 +77,11 @@ def test_a_record_resolution_with_nonexistant_domain_name():
 def test_ptr_record_resolution_with_nonexistant_ptr_record():
     response = client.get(f"/resolve/ptr/?ip={IP_WITHOUT_PTR}")
     assert response.status_code == 404
+
+
+def test_ptr_record_resolution():
+    response = client.get(f"/resolve/ptr/?ip={IP_WITH_PTR}")
+    assert response.json() == {
+        "ip": IP_WITH_PTR,
+example.com
+    }
