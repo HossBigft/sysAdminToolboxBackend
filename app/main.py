@@ -30,7 +30,7 @@ async def get_a_record(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.get("/resolve-ptr/{ip}")
+@app.get("/resolve/ptr/")
 async def get_ptr_record(
     ip: IPvAnyAddress,
 ):
@@ -41,9 +41,9 @@ async def get_ptr_record(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.get("/resolve-mx/{domain}")
+@app.get("/resolve-mx/")
 async def get_mx_record(
-    domain: Annotated[str, Path(max_length=63, pattern=DOMAIN_REGEX_PATTERN)],
+    domain: Annotated[str, Query(max_length=63, pattern=DOMAIN_REGEX_PATTERN)],
 ):
     try:
         mx_records = resolve_record(domain, "MX")
