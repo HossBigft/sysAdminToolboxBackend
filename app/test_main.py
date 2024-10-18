@@ -4,6 +4,7 @@ from .data_command_injection_list import COMMAND_INJECTION_LIST
 import pytest
 
 example.com
+google.com
 MALFORMED_DOMAIN = "googlecom."
 
 
@@ -44,4 +45,14 @@ def test_invalid_commands_trigger_422_error(command):
     response = client.get(f"/resolve/zonemaster/?domain={command}")
     assert response.status_code == 422
     
+def test_mx_record_resolution_with_correct_domain_name():
+    response = client.get(f"/resolve/mx/?domain={DOMAIN_WITH_EXISTING_MX_RECORD}")
+    assert response.status_code == 200
+    assert response.json() == {
+        "domain": DOMAIN_WITH_EXISTING_MX_RECORD,
+google.com
+    }
     
+def test_mx_record_resolution_with_malformed_domain_name():
+    response = client.get(f"/resolve/mx/?domain={MALFORMED_DOMAIN}")
+    assert response.status_code == 422
