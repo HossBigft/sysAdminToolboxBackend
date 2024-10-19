@@ -3,7 +3,7 @@ from app.dns_resolver import resolve_record, RecordNotFoundError
 import uvicorn
 from typing import Annotated
 from pydantic.networks import IPvAnyAddress
-from app import getDomainZoneMaster
+from app import getDomainZoneMasterAsync
 from .plesk_queries import send_hello
 
 
@@ -67,12 +67,12 @@ async def get_answers_from_plesk_servers():
 
 @app.get("/resolve/zonemaster/")
 async def get_zone_master_from_dns_servers(
-    domain_name: Annotated[
+    domain: Annotated[
         str, Query(min_length=3, max_length=63, pattern=DOMAIN_REGEX_PATTERN)
     ],
 ):
     try:
-        zone_masters_dict = getDomainZoneMaster(domain_name)
+        zone_masters_dict = await getDomainZoneMasterAsync(domain)
         return zone_masters_dict
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))

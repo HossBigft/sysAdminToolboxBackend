@@ -1,5 +1,5 @@
 from .host_lists import DNS_SERVER_LIST
-from .ssh_async_executor import batch_ssh_command_result
+from .ssh_async_executor import batch_ssh_command_result, batch_ssh_command_prepare
 import re
 
 DOMAIN_REGEX_PATTERN = (
@@ -13,13 +13,16 @@ def is_valid_domain(domain_name: str) -> bool:
     )
 
 
-def getDomainZoneMaster(domain_name: str, verbosity_flag=True, debug_flag=False):
+
+async def getDomainZoneMasterAsync(
+    domain_name: str, verbosity_flag=True, debug_flag=False
+):
     if not is_valid_domain(domain_name):
         raise ValueError("Input string should be a valid domain name.")
 
     getZoneMasterCmd = f"cat /var/opt/isc/scls/isc-bind/zones/_default.nzf| grep '\\\"{''.join(domain_name)}\\\"' | grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\\b){{4}}' | head -n1"
     dnsAnswers = []
-    dnsAnswers = batch_ssh_command_result(
+    dnsAnswers = await batch_ssh_command_prepare(
         server_list=DNS_SERVER_LIST,
         command=getZoneMasterCmd,
         verbose=debug_flag,
@@ -28,7 +31,7 @@ def getDomainZoneMaster(domain_name: str, verbosity_flag=True, debug_flag=False)
         return {"domain": f"{domain_name}", "answers": dnsAnswers}
 
     unique_zone_masters = list(set(answer["stdout"] for answer in dnsAnswers))
-    return {
+    return  {
         "domain": domain_name,
         "zone_master": unique_zone_masters,
     }
