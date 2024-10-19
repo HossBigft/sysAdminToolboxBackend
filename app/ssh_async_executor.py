@@ -1,14 +1,8 @@
 import asyncio
-import shlex
 
 
 async def _run_command_over_ssh(host, command, verbose: bool):
-    sanitized_host = shlex.quote(host)
-    sanitized_command = shlex.quote(command)
-
-    ssh_command = (
-        f"ssh  -o PasswordAuthentication=no  {sanitized_host} {sanitized_command}"
-    )
+    ssh_command = f'ssh  -o PasswordAuthentication=no  {host} "{command}"'
     process = await asyncio.create_subprocess_shell(
         ssh_command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
     )
@@ -27,7 +21,7 @@ async def _run_command_over_ssh(host, command, verbose: bool):
     return (host, stdout.decode().strip(), stderr.decode().strip(), process.returncode)
 
 
-async def batch_ssh_command_prepare(server_list, command, verbose=False):
+async def batch_ssh_command_prepare(server_list, command, verbose: bool):
     tasks = [_run_command_over_ssh(host, command, verbose) for host in server_list]
     results = await asyncio.gather(*tasks)
     return [
