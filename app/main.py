@@ -1,9 +1,10 @@
 from fastapi import FastAPI, HTTPException, Query, Depends
-from app.dns_resolver import resolve_record, RecordNotFoundError
+from .dns_resolver import resolve_record, RecordNotFoundError
 import uvicorn
 from typing import Annotated
 from pydantic.networks import IPvAnyAddress
-from app import getDomainZoneMasterAsync, query_domain_info
+from .ssh_zone_master import getDomainZoneMasterAsync
+from .ssh_plesk_subscription_info_retriever import query_domain_info
 from .plesk_queries import send_hello
 
 
