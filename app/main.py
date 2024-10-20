@@ -75,7 +75,7 @@ async def get_zone_master_from_dns_servers(domain: str = Depends(validate_domain
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.get("/plesk/find/subscription/")
+@app.get("/plesk/get/subscription/")
 async def find_plesk_subscription_by_domain(
     domain: str = Depends(validate_domain_name),
 ):

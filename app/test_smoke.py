@@ -87,5 +87,5 @@ example.com
     }
     
 def test_subscription_query_with_malformed_domain_name():
-    response = client.get(f"/plesk/find/subscription/?domain={MALFORMED_DOMAIN}")
+    response = client.get(f"/plesk/get/subscription/?domain={MALFORMED_DOMAIN}")
     assert response.status_code == 422
