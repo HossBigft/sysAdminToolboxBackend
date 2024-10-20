@@ -13,7 +13,7 @@ DOMAIN_REGEX_PATTERN = (
 )
 
 
-def validate_domain_name(
+async def validate_domain_name(
     domain: Annotated[
         str, Query(min_length=3, max_length=63, pattern=DOMAIN_REGEX_PATTERN)
     ],
