@@ -3,7 +3,7 @@ from app.dns_resolver import resolve_record, RecordNotFoundError
 import uvicorn
 from typing import Annotated
 from pydantic.networks import IPvAnyAddress
-from app import getDomainZoneMasterAsync
+from app import getDomainZoneMasterAsync, query_domain_info
 from .plesk_queries import send_hello
 
 
@@ -71,6 +71,17 @@ async def get_zone_master_from_dns_servers(domain: str = Depends(validate_domain
     try:
         zone_masters_dict = await getDomainZoneMasterAsync(domain)
         return zone_masters_dict
+    except RecordNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.get("/plesk/find/subscription/")
+async def find_plesk_subscription_by_domain(
+    domain: str = Depends(validate_domain_name),
+):
+    try:
+        subscriptions = await query_domain_info(domain)
+        return subscriptions
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
