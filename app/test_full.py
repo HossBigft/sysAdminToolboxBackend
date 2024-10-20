@@ -1,6 +1,13 @@
 from fastapi.testclient import TestClient
 from .main import app
 from .data_command_injection_list import COMMAND_INJECTION_LIST
+from .sql_injection_lists import (
+    AUTH_BYPASS_SQL_QUERY_LIST,
+    GENERIC_INJECTION_SQL_QUERY_LIST,
+    GENERIC_ERRORBASED_SQL_QUERY_LIST,
+    GENERIC_TIMEBASED_INJECTION_SQL_QUERY_LIST,
+)
+
 import pytest
 
 example.com
@@ -85,3 +92,29 @@ def test_ptr_record_resolution():
         "ip": IP_WITH_PTR,
 example.com
     }
+
+
+@pytest.mark.parametrize("injection_query", AUTH_BYPASS_SQL_QUERY_LIST)
+def test_subscription_query_against_authentification_bypass_sql_injection(
+    injection_query,
+):
+    response = client.get(f"/plesk/get/subscription/?domain={injection_query}")
+    assert response.status_code == 422
+
+
+@pytest.mark.parametrize("injection_query", GENERIC_INJECTION_SQL_QUERY_LIST)
+def test_subscription_query_against_generic_sql_injection(injection_query):
+    response = client.get(f"/plesk/get/subscription/?domain={injection_query}")
+    assert response.status_code == 422
+
+
+@pytest.mark.parametrize("injection_query", GENERIC_ERRORBASED_SQL_QUERY_LIST)
+def test_subscription_query_against_generic_errorbased_sql_injection(injection_query):
+    response = client.get(f"/plesk/get/subscription/?domain={injection_query}")
+    assert response.status_code == 422
+
+
+@pytest.mark.parametrize("injection_query", GENERIC_TIMEBASED_INJECTION_SQL_QUERY_LIST)
+def test_subscription_query_against_generic_timebased_sql_injection(injection_query):
+    response = client.get(f"/plesk/get/subscription/?domain={injection_query}")
+    assert response.status_code == 422
