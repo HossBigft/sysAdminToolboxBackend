@@ -1,5 +1,5 @@
 from .host_lists import DNS_SERVER_LIST
-from .ssh_async_executor import batch_ssh_command_result, batch_ssh_command_prepare
+from .ssh_async_executor import batch_ssh_command_prepare
 import re
 import shlex
 
