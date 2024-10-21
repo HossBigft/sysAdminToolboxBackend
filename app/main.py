@@ -6,6 +6,7 @@ from pydantic.networks import IPvAnyAddress
 from .ssh_zone_master import getDomainZoneMasterAsync
 from .ssh_plesk_subscription_info_retriever import query_domain_info
 from .plesk_queries import send_hello
+from fastapi.security import OAuth2PasswordBearer
 
 
 DOMAIN_REGEX_PATTERN = (
@@ -20,6 +21,8 @@ async def validate_domain_name(
 ):
     return domain
 
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 app = FastAPI()
 
@@ -85,6 +88,11 @@ async def find_plesk_subscription_by_domain(
         return subscriptions
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.get("/items/")
+async def read_items(token: Annotated[str, Depends(oauth2_scheme)]):
+    return {"token": token}
 
 
 if __name__ == "__main__":
