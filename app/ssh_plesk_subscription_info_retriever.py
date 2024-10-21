@@ -35,7 +35,7 @@ def parse_answer(answer) -> dict:
     }
 
 
-async def query_domain_info(domain_name: str, verbose_flag=True, partial_search=False):
+async def query_domain_info(domain_name: str, verbose_flag=False, partial_search=False):
     if not is_valid_domain(domain_name):
         raise ValueError("Input string should be a valid domain name.")
 
