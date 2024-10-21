@@ -8,5 +8,6 @@ dependencies = [
     "fastapi[standard]>=0.115.0",
     "pip>=24.2",
     "pydantic>=2.9.2",
+    "pyjwt>=2.9.0",
     "pytest>=8.3.3",
 ]
