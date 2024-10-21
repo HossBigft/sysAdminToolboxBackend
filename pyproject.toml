@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "fastapi[standard]>=0.115.0",
+    "passlib[bcrypt]>=1.7.4",
     "pip>=24.2",
     "pydantic>=2.9.2",
     "pyjwt>=2.9.0",
