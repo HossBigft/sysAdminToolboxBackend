@@ -16,11 +16,11 @@ def is_valid_domain(domain_name: str) -> bool:
 def build_query(domain_to_find: str) -> str:
     return (
         "SELECT CASE WHEN webspace_id = 0 THEN id ELSE webspace_id END AS result "
-        "FROM domains WHERE name LIKE %s; "
-        "SELECT name FROM domains WHERE id=(SELECT CASE WHEN webspace_id = 0 THEN id ELSE webspace_id END AS result FROM domains WHERE name LIKE %s); "
-        "SELECT pname, login FROM clients WHERE id=(SELECT cl_id FROM domains WHERE name LIKE %s); "
-        "SELECT name FROM domains WHERE webspace_id=(SELECT CASE WHEN webspace_id = 0 THEN id ELSE webspace_id END AS result FROM domains WHERE name LIKE %s);"
-    ), (domain_to_find, domain_to_find, domain_to_find, domain_to_find)
+        "FROM domains WHERE name LIKE '{0}'; "
+        "SELECT name FROM domains WHERE id=(SELECT CASE WHEN webspace_id = 0 THEN id ELSE webspace_id END AS result FROM domains WHERE name LIKE '{0}'); "
+        "SELECT pname, login FROM clients WHERE id=(SELECT cl_id FROM domains WHERE name LIKE '{0}'); "
+        "SELECT name FROM domains WHERE webspace_id=(SELECT CASE WHEN webspace_id = 0 THEN id ELSE webspace_id END AS result FROM domains WHERE name LIKE '{0}');"
+    ).format(domain_to_find)
 
 
 def parse_answer(answer) -> dict:
