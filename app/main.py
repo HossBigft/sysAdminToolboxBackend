@@ -54,15 +54,6 @@ async def get_ptr_record(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.get("/resolve/mx/")
-async def get_mx_record(domain: str = Depends(validate_domain_name)):
-    try:
-        mx_records = resolve_record(domain, "MX")
-        return {"domain": domain, "value": mx_records}
-    except RecordNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
-
 @app.get("/plesk/greet")
 async def get_answers_from_plesk_servers():
     try:
@@ -88,6 +79,24 @@ async def find_plesk_subscription_by_domain(
     try:
         subscriptions = await query_domain_info(domain)
         return subscriptions
+    except RecordNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.get("/resolve/mx/")
+async def get_mx_record(domain: str = Depends(validate_domain_name)):
+    try:
+        mx_records = resolve_record(domain, "MX")
+        return {"domain": domain, "value": mx_records}
+    except RecordNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.get("/resolve/ns/")
+async def get_ns_records(domain: str = Depends(validate_domain_name)):
+    try:
+        ns_records = resolve_record(domain, "NS")
+        return {"domain": domain, "value": ns_records}
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
