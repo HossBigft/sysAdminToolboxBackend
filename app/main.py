@@ -38,7 +38,7 @@ async def root():
 async def get_a_record(domain: str = Depends(validate_domain_name)):
     try:
         a_records = resolve_record(domain, "A")
-        return {"domain": domain, "value": a_records}
+        return {"domain": domain, "records": a_records}
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -49,7 +49,7 @@ async def get_ptr_record(
 ):
     try:
         ptr_records = resolve_record(str(ip), "PTR")
-        return {"ip": ip, "value": ptr_records}
+        return {"ip": ip, "records": ptr_records}
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -87,7 +87,7 @@ async def find_plesk_subscription_by_domain(
 async def get_mx_record(domain: str = Depends(validate_domain_name)):
     try:
         mx_records = resolve_record(domain, "MX")
-        return {"domain": domain, "value": mx_records}
+        return {"domain": domain, "records": mx_records}
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -96,7 +96,7 @@ async def get_mx_record(domain: str = Depends(validate_domain_name)):
 async def get_ns_records(domain: str = Depends(validate_domain_name)):
     try:
         ns_records = resolve_record(domain, "NS")
-        return {"domain": domain, "value": ns_records}
+        return {"domain": domain, "records": ns_records}
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 

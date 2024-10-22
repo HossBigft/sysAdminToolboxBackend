@@ -26,7 +26,7 @@ def test_a_record_resolution_with_correct_domain_name():
     assert response.status_code == 200
     assert response.json() == {
         "domain": DOMAIN_WITH_EXISTING_A_RECORD,
-        "value": ["IP_PLACEHOLDER"],
+        "records": ["IP_PLACEHOLDER"],
     }
 
 
@@ -58,7 +58,7 @@ def test_mx_record_resolution_with_correct_domain_name(
     assert response.status_code == 200
     assert response.json() == {
         "domain": domain,
-        "value": f"mail.{domain}.",
+        "records": f"mail.{domain}.",
     }
 
 
