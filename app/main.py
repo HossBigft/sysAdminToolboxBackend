@@ -34,7 +34,7 @@ async def root():
     return {"message": "Hello World"}
 
 
-@app.get("/resolve/a/")
+@app.get("/dns/resolve/a/")
 async def get_a_record(domain: str = Depends(validate_domain_name)):
     try:
         a_records = resolve_record(domain, "A")
@@ -43,7 +43,7 @@ async def get_a_record(domain: str = Depends(validate_domain_name)):
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.get("/resolve/ptr/")
+@app.get("/dns/resolve/ptr/")
 async def get_ptr_record(
     ip: IPvAnyAddress,
 ):
@@ -63,7 +63,7 @@ async def get_answers_from_plesk_servers():
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.get("/resolve/zonemaster/")
+@app.get("/dns/get/zonemaster/")
 async def get_zone_master_from_dns_servers(domain: str = Depends(validate_domain_name)):
     try:
         zone_masters_dict = await getDomainZoneMasterAsync(domain)
@@ -83,7 +83,7 @@ async def find_plesk_subscription_by_domain(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.get("/resolve/mx/")
+@app.get("/dns/resolve/mx/")
 async def get_mx_record(domain: str = Depends(validate_domain_name)):
     try:
         mx_records = resolve_record(domain, "MX")
@@ -92,7 +92,7 @@ async def get_mx_record(domain: str = Depends(validate_domain_name)):
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.get("/resolve/ns/")
+@app.get("/dns/resolve/ns/")
 async def get_ns_records(domain: str = Depends(validate_domain_name)):
     try:
         ns_records = resolve_record(domain, "NS")
