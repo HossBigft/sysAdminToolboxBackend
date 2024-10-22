@@ -22,7 +22,7 @@ def test_read_main():
 
 
 def test_a_record_resolution_with_correct_domain_name():
-    response = client.get(f"/resolve/a/?domain={DOMAIN_WITH_EXISTING_A_RECORD}")
+    response = client.get(f"/dns/resolve/a/?domain={DOMAIN_WITH_EXISTING_A_RECORD}")
     assert response.status_code == 200
     assert response.json() == {
         "domain": DOMAIN_WITH_EXISTING_A_RECORD,
@@ -31,7 +31,7 @@ def test_a_record_resolution_with_correct_domain_name():
 
 
 def test_a_record_resolution_with_malformed_domain_name():
-    response = client.get(f"/resolve/a/?domain={MALFORMED_DOMAIN}")
+    response = client.get(f"/dns/resolve/a/?domain={MALFORMED_DOMAIN}")
     assert response.status_code == 422
 
 
@@ -47,14 +47,14 @@ def test_ssh_connection():
 
 @pytest.mark.parametrize("command", COMMAND_INJECTION_LIST[:10])
 def test_invalid_commands_trigger_422_error(command):
-    response = client.get(f"/resolve/zonemaster/?domain={command}")
+    response = client.get(f"/dns/get/zonemaster/?domain={command}")
     assert response.status_code == 422
 
 
 def test_mx_record_resolution_with_correct_domain_name(
     domain=DOMAIN_WITH_EXISTING_MX_RECORD,
 ):
-    response = client.get(f"/resolve/mx/?domain={domain}")
+    response = client.get(f"/dns/resolve/mx/?domain={domain}")
     assert response.status_code == 200
     assert response.json() == {
         "domain": domain,
@@ -63,27 +63,27 @@ def test_mx_record_resolution_with_correct_domain_name(
 
 
 def test_mx_record_resolution_with_malformed_domain_name():
-    response = client.get(f"/resolve/mx/?domain={MALFORMED_DOMAIN}")
+    response = client.get(f"/dns/resolve/mx/?domain={MALFORMED_DOMAIN}")
     assert response.status_code == 422
 
 
 def test_mx_record_resolution_with_nonexistant_domain_name():
-    response = client.get(f"/resolve/mx/?domain={DOMAIN_WITHOUT_RECORDS}")
+    response = client.get(f"/dns/resolve/mx/?domain={DOMAIN_WITHOUT_RECORDS}")
     assert response.status_code == 404
 
 
 def test_a_record_resolution_with_nonexistant_domain_name():
-    response = client.get(f"/resolve/a/?domain={DOMAIN_WITHOUT_RECORDS}")
+    response = client.get(f"/dns/resolve/a/?domain={DOMAIN_WITHOUT_RECORDS}")
     assert response.status_code == 404
 
 
 def test_ptr_record_resolution_with_nonexistant_ptr_record():
-    response = client.get(f"/resolve/ptr/?ip={IP_WITHOUT_PTR}")
+    response = client.get(f"/dns/resolve/ptr/?ip={IP_WITHOUT_PTR}")
     assert response.status_code == 404
 
 
 def test_ptr_record_resolution():
-    response = client.get(f"/resolve/ptr/?ip={IP_WITH_PTR}")
+    response = client.get(f"/dns/resolve/ptr/?ip={IP_WITH_PTR}")
     assert response.json() == {
         "ip": IP_WITH_PTR,
 example.com
@@ -96,7 +96,7 @@ def test_subscription_query_with_malformed_domain_name():
 
 
 def test_ns_record_resolution_with_correct_domain_name():
-    response = client.get(f"/resolve/ns/?domain={CORRECT_EXISTING_DOMAIN}")
+    response = client.get(f"/dns/resolve/ns/?domain={CORRECT_EXISTING_DOMAIN}")
     assert response.status_code == 200
     assert response.json() == {
         "domain": CORRECT_EXISTING_DOMAIN,
@@ -105,17 +105,17 @@ example.com
 
 
 def test_ns_record_resolution_with_malformed_domain_name():
-    response = client.get(f"/resolve/ns/?domain={MALFORMED_DOMAIN}")
+    response = client.get(f"/dns/resolve/ns/?domain={MALFORMED_DOMAIN}")
     assert response.status_code == 422
 
 
 def test_ns_record_resolution_with_nonexistant_domain_name():
-    response = client.get(f"/resolve/ns/?domain={DOMAIN_WITHOUT_RECORDS}")
+    response = client.get(f"/dns/resolve/ns/?domain={DOMAIN_WITHOUT_RECORDS}")
     assert response.status_code == 404
 
 
 def test_ns_record_resolution_with_correct_subdomain(domain=CORRECT_EXISTING_SUBDOMAIN):
-    response = client.get(f"/resolve/ns/?domain={domain}")
+    response = client.get(f"/dns/resolve/ns/?domain={domain}")
     assert response.status_code == 200
     assert response.json() == {
         "domain": domain,
