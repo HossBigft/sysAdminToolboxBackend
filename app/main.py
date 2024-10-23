@@ -54,15 +54,6 @@ async def get_ptr_record(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.get("/plesk/greet")
-async def get_answers_from_plesk_servers():
-    try:
-        return await send_hello()
-
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
-
 @app.get("/dns/get/zonemaster/")
 async def get_zone_master_from_dns_servers(domain: str = Depends(validate_domain_name)):
     try:

@@ -35,16 +35,6 @@ def test_a_record_resolution_with_malformed_domain_name():
     assert response.status_code == 422
 
 
-def test_ssh_connection():
-    correct_response_from_ssh = {
-        "host": "vgruzo",
-        "stdout": "Hello",
-    }
-    response = client.get("/plesk/greet")
-    assert response.status_code == 200
-    assert correct_response_from_ssh in response.json()
-
-
 @pytest.mark.parametrize("command", COMMAND_INJECTION_LIST[:10])
 def test_invalid_commands_trigger_422_error(command):
     response = client.get(f"/dns/get/zonemaster/?domain={command}")
