@@ -1,17 +1,18 @@
-from fastapi import FastAPI, HTTPException, Query, Depends, status
+from fastapi import FastAPI, HTTPException, Query, Depends, status, Request, Response
 from .dns_resolver import resolve_record, RecordNotFoundError
 import uvicorn
 from typing import Annotated
 from pydantic.networks import IPvAnyAddress
 from .ssh_zone_master import getDomainZoneMaster
 from .ssh_plesk_subscription_info_retriever import query_domain_info
-from .plesk_queries import send_hello
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from datetime import datetime, timedelta, timezone
 import jwt
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
+import logging
+import time
 
 DOMAIN_REGEX_PATTERN = (
     r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$"
@@ -26,7 +27,36 @@ async def validate_domain_name(
     return domain
 
 
+# Set up logging configuration
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("actions.log"),  # Save logs to app.log
+        logging.StreamHandler(),  # Also log to console
+    ],
+)
+
+logger = logging.getLogger(__name__)
+
 app = FastAPI()
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+
+    # Log request details
+    logger.info(f"Request: {request.method} {request.url}")
+
+    # Process the request
+    response: Response = await call_next(request)
+
+    # Log response details
+    duration = time.time() - start_time
+    logger.info(f"Response: {response.status_code} - Duration: {duration:.4f}s")
+
+    return response
 
 
 @app.get("/")
