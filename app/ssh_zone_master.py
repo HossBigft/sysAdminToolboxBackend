@@ -14,14 +14,12 @@ def is_valid_domain(domain_name: str) -> bool:
     )
 
 
-async def getDomainZoneMasterAsync(
-    domain_name: str, verbosity_flag=True, debug_flag=False
-):
+async def getDomainZoneMaster(domain_name: str, debug_flag=False):
     if not is_valid_domain(domain_name):
         raise ValueError("Input string should be a valid domain name.")
 
     getZoneMasterCmd = "cat /var/opt/isc/scls/isc-bind/zones/_default.nzf| grep {} | grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\\b){{4}}' | head -n1".format(
-        shlex.quote(f"\"{domain_name}\"")
+        shlex.quote(f'"{domain_name}"')
     )
     dnsAnswers = []
     dnsAnswers = await batch_ssh_command_prepare(
@@ -29,11 +27,8 @@ async def getDomainZoneMasterAsync(
         command=getZoneMasterCmd,
         verbose=debug_flag,
     )
-    if verbosity_flag:
-        return {"domain": f"{domain_name}", "answers": dnsAnswers}
-
-    unique_zone_masters = list(set(answer["stdout"] for answer in dnsAnswers))
-    return {
-        "domain": domain_name,
-        "zone_master": unique_zone_masters,
-    }
+    print(dnsAnswers)
+    dnsAnswers = [
+        {"ns": answer["host"], "zone_master": answer["stdout"]} for answer in dnsAnswers
+    ]
+    return {"domain": f"{domain_name}", "answers": dnsAnswers}

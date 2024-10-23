@@ -3,7 +3,7 @@ from .dns_resolver import resolve_record, RecordNotFoundError
 import uvicorn
 from typing import Annotated
 from pydantic.networks import IPvAnyAddress
-from .ssh_zone_master import getDomainZoneMasterAsync
+from .ssh_zone_master import getDomainZoneMaster
 from .ssh_plesk_subscription_info_retriever import query_domain_info
 from .plesk_queries import send_hello
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -66,7 +66,7 @@ async def get_answers_from_plesk_servers():
 @app.get("/dns/get/zonemaster/")
 async def get_zone_master_from_dns_servers(domain: str = Depends(validate_domain_name)):
     try:
-        zone_masters_dict = await getDomainZoneMasterAsync(domain)
+        zone_masters_dict = await getDomainZoneMaster(domain)
         return zone_masters_dict
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
