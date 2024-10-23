@@ -228,4 +228,6 @@ async def read_own_items(
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="IP_PLACEHOLDER", port=5000, log_level="debug")
+    uvicorn.run(
+        "app.main:app", host="IP_PLACEHOLDER", port=5000, log_level="debug", reload=True
+    )
