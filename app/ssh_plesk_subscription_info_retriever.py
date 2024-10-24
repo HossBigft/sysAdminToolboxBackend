@@ -39,10 +39,11 @@ async def query_domain_info(domain_name: str, verbose_flag=False, partial_search
     if not is_valid_domain(domain_name):
         raise ValueError("Input string should be a valid domain name.")
 
+    lowercate_domain_name = domain_name.lower()
     query = (
-        build_query(domain_name)
+        build_query(lowercate_domain_name)
         if not partial_search
-        else build_query(domain_name + "%")
+        else build_query(lowercate_domain_name + "%")
     )
 
     answers = await batch_ssh_command_prepare(

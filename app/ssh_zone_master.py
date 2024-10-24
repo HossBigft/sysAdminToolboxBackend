@@ -17,9 +17,9 @@ def is_valid_domain(domain_name: str) -> bool:
 async def getDomainZoneMaster(domain_name: str, debug_flag=False):
     if not is_valid_domain(domain_name):
         raise ValueError("Input string should be a valid domain name.")
-
-    getZoneMasterCmd = "cat /var/opt/isc/scls/isc-bind/zones/_default.nzf| grep {} | grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\\b){{4}}' | head -n1".format(
-        shlex.quote(f'"{domain_name}"')
+    lowercate_domain_name = domain_name.lower()
+    getZoneMasterCmd = r"cat /var/opt/isc/scls/isc-bind/zones/_default.nzf| grep {} | grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\\b){{4}}' | head -n1".format(
+        shlex.quote(f'"{lowercate_domain_name}"')
     )
     dnsAnswers = []
     dnsAnswers = await batch_ssh_command_prepare(
