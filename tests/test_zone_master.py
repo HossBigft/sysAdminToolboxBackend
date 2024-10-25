@@ -5,7 +5,7 @@ from app.ssh_zone_master import (
 )
 from .test_data.hosts import HostList
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock
 
 
 def test_valid_domain(domain=HostList.CORRECT_EXISTING_SUBDOMAIN):
@@ -36,7 +36,7 @@ def test_basic_domain(domain=HostList.CORRECT_EXISTING_DOMAIN):
     expected = (
         r"cat /var/opt/isc/scls/isc-bind/zones/_default.nzf | "
         f"grep {domain} | "
-        r"grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\\b){{4}}' | "
+        r"grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}' | "
         "head -n1"
     )
     assert build_zone_master_command(domain) == expected
@@ -46,7 +46,7 @@ def test_special_characters(domain=HostList.MALFORMED_DOMAIN):
     expected = (
         r"cat /var/opt/isc/scls/isc-bind/zones/_default.nzf | "
         f"grep {domain} | "
-        r"grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\\b){{4}}' | "
+        r"grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}' | "
         "head -n1"
     )
     assert build_zone_master_command(domain) == expected
@@ -56,27 +56,87 @@ def test_lowercase_conversion(domain=HostList.CORRECT_EXISTING_DOMAIN.upper()):
     expected = (
         r"cat /var/opt/isc/scls/isc-bind/zones/_default.nzf | "
         f"grep {domain.lower()} | "
-        r"grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\\b){{4}}' | "
+        r"grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}' | "
         "head -n1"
     )
     assert build_zone_master_command(domain) == expected
 
 
 @pytest.mark.asyncio
-async def test_get_domain_zone_master_query_on_test_server(domain=HostList.CORRECT_EXISTING_DOMAIN):
-    with patch('app.ssh_zone_master.is_valid_domain', return_value=True):
+async def test_get_domain_zone_master_query_on_test_server(
+    domain=HostList.CORRECT_EXISTING_DOMAIN,
+):
+    with patch("app.ssh_zone_master.is_valid_domain", return_value=True):
         # New DNS server list for the test
         test_dns_servers = ["vtest"]
 
         # Patch DNS_SERVER_LIST
-        with patch('app.ssh_zone_master.DNS_SERVER_LIST', test_dns_servers):
+        with patch("app.ssh_zone_master.DNS_SERVER_LIST", test_dns_servers):
             result = await getDomainZoneMaster(domain, debug_flag=True)
 
             # Assert on the expected result
             expected_result = {
                 "domain": domain,
                 "answers": [
-                    {"ns": "vtest", "zone_master":"IP_PLACEHOLDER"}
-                ]
+                    {"ns": host, "zone_master": "IP_PLACEHOLDER"}
+                    for host in test_dns_servers
+                ],
             }
-            assert result==expected_result
+            assert result == expected_result
+
+
+@pytest.mark.asyncio
+async def test_get_domain_zone_master_with_correct_domain_existing_zone_master(
+    domain=HostList.CORRECT_EXISTING_DOMAIN,
+):
+    mock_response = [
+example.com
+example.com
+example.com
+    ]
+
+    with patch(
+        "app.ssh_zone_master.batch_ssh_command_prepare", new_callable=AsyncMock
+    ) as mock_batch_ssh:
+        mock_batch_ssh.return_value = mock_response
+
+        result = await getDomainZoneMaster(domain, debug_flag=True)
+
+        expected_result = {
+            "domain": domain,
+            "answers": [
+example.com
+example.com
+example.com
+            ],
+        }
+        assert result == expected_result
+        mock_batch_ssh.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_get_domain_zone_master_with_correct_domain_nonexisting_zone_master(
+    domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER,
+):
+    mock_response = [
+example.com
+example.com
+example.com
+    ]
+
+    with patch(
+        "app.ssh_zone_master.batch_ssh_command_prepare", new_callable=AsyncMock
+    ) as mock_batch_ssh:
+        mock_batch_ssh.return_value = mock_response
+        result = await getDomainZoneMaster(domain, debug_flag=True)
+
+        expected_result = {
+            "domain": domain,
+            "answers": [
+example.com
+example.com
+example.com
+            ],
+        }
+        assert result == expected_result
+        mock_batch_ssh.assert_called_once()

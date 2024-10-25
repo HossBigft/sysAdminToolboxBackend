@@ -50,12 +50,12 @@ def test_mx_record_resolution_with_malformed_domain_name(domain=HostList.MALFORM
     assert response.status_code == 422
 
 
-def test_mx_record_resolution_with_nonexistant_domain_name(domain=HostList.DOMAIN_WITHOUT_RECORDS):
+def test_mx_record_resolution_with_nonexistant_domain_name(domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER):
     response = client.get(f"/dns/resolve/mx/?domain={domain}")
     assert response.status_code == 404
 
 
-def test_a_record_resolution_with_nonexistant_domain_name(domain=HostList.DOMAIN_WITHOUT_RECORDS):
+def test_a_record_resolution_with_nonexistant_domain_name(domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER):
     response = client.get(f"/dns/resolve/a/?domain={domain}")
     assert response.status_code == 404
 
@@ -92,7 +92,7 @@ def test_ns_record_resolution_with_malformed_domain_name(domain=HostList.MALFORM
     assert response.status_code == 422
 
 
-def test_ns_record_resolution_with_nonexistant_domain_name(domain=HostList.DOMAIN_WITHOUT_RECORDS):
+def test_ns_record_resolution_with_nonexistant_domain_name(domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER):
     response = client.get(f"/dns/resolve/ns/?domain={domain}")
     assert response.status_code == 404
 
