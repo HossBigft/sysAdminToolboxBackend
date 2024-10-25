@@ -6,6 +6,7 @@ from app.ssh_zone_master import (
 from .test_data.hosts import HostList
 import pytest
 from unittest.mock import patch, AsyncMock
+import shlex
 
 
 def test_valid_domain(domain=HostList.CORRECT_EXISTING_SUBDOMAIN):
@@ -35,7 +36,7 @@ def test_invalid_domain(domain):
 def test_basic_domain(domain=HostList.CORRECT_EXISTING_DOMAIN):
     expected = (
         r"cat /var/opt/isc/scls/isc-bind/zones/_default.nzf | "
-        f"grep {domain} | "
+        f"grep {shlex.quote(domain.lower())} | "
         r"grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}' | "
         "head -n1"
     )
@@ -45,7 +46,7 @@ def test_basic_domain(domain=HostList.CORRECT_EXISTING_DOMAIN):
 def test_special_characters(domain=HostList.MALFORMED_DOMAIN):
     expected = (
         r"cat /var/opt/isc/scls/isc-bind/zones/_default.nzf | "
-        f"grep {domain} | "
+        f"grep {shlex.quote(domain.lower())} | "
         r"grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}' | "
         "head -n1"
     )
@@ -55,7 +56,7 @@ def test_special_characters(domain=HostList.MALFORMED_DOMAIN):
 def test_lowercase_conversion(domain=HostList.CORRECT_EXISTING_DOMAIN.upper()):
     expected = (
         r"cat /var/opt/isc/scls/isc-bind/zones/_default.nzf | "
-        f"grep {domain.lower()} | "
+        f"grep {shlex.quote(domain.lower())} | "
         r"grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}' | "
         "head -n1"
     )
@@ -140,3 +141,15 @@ example.com
         }
         assert result == expected_result
         mock_batch_ssh.assert_called_once()
+
+
+def test_command_injection_sanitization(
+    domain=HostList.CORRECT_EXISTING_DOMAIN + ";echo hello",
+):
+    expected = (
+        r"cat /var/opt/isc/scls/isc-bind/zones/_default.nzf | "
+        f"grep {shlex.quote(domain.lower())} | "
+        r"grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}' | "
+        "head -n1"
+    )
+    assert build_zone_master_command(domain) == expected
