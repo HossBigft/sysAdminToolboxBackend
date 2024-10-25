@@ -1,9 +1,11 @@
 from app.ssh_zone_master import (
     is_valid_domain,
     build_zone_master_command,
+    getDomainZoneMaster,
 )
 from .test_data.hosts import HostList
 import pytest
+from unittest.mock import patch
 
 
 def test_valid_domain(domain=HostList.CORRECT_EXISTING_SUBDOMAIN):
@@ -58,3 +60,23 @@ def test_lowercase_conversion(domain=HostList.CORRECT_EXISTING_DOMAIN.upper()):
         "head -n1"
     )
     assert build_zone_master_command(domain) == expected
+
+
+@pytest.mark.asyncio
+async def test_get_domain_zone_master_query_on_test_server(domain=HostList.CORRECT_EXISTING_DOMAIN):
+    with patch('app.ssh_zone_master.is_valid_domain', return_value=True):
+        # New DNS server list for the test
+        test_dns_servers = ["vtest"]
+
+        # Patch DNS_SERVER_LIST
+        with patch('app.ssh_zone_master.DNS_SERVER_LIST', test_dns_servers):
+            result = await getDomainZoneMaster(domain, debug_flag=True)
+
+            # Assert on the expected result
+            expected_result = {
+                "domain": domain,
+                "answers": [
+                    {"ns": "vtest", "zone_master":"IP_PLACEHOLDER"}
+                ]
+            }
+            assert result==expected_result
