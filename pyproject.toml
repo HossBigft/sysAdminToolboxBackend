@@ -10,6 +10,7 @@ dependencies = [
     "pip>=24.2",
     "pydantic>=2.9.2",
     "pyjwt>=2.9.0",
+    "pytest-asyncio>=0.24.0",
     "pytest>=8.3.3",
     "tldextract>=5.1.2",
 ]
