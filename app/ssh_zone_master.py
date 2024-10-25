@@ -28,7 +28,6 @@ async def getDomainZoneMaster(domain_name: str, debug_flag=False):
     if not is_valid_domain(domain_name):
         raise ValueError("Input string should be a valid domain name.")
     getZoneMasterCmd = build_zone_master_command(domain_name)
-    dnsAnswers = []
     dnsAnswers = await batch_ssh_command_prepare(
         server_list=DNS_SERVER_LIST,
         command=getZoneMasterCmd,
