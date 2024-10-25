@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
-from .main import app
-from .data_command_injection_list import COMMAND_INJECTION_LIST
+from app.main import app
+from .test_data.data_command_injection_list import COMMAND_INJECTION_LIST
 import pytest
 
 example.com

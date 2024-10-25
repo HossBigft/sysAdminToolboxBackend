@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
-from .main import app
-from .data_command_injection_list import COMMAND_INJECTION_LIST
-from .sql_injection_lists import (
+from app.main import app
+from .test_data.data_command_injection_list import COMMAND_INJECTION_LIST
+from .test_data.sql_injection_lists import (
     AUTH_BYPASS_SQL_QUERY_LIST,
     GENERIC_INJECTION_SQL_QUERY_LIST,
     GENERIC_ERRORBASED_SQL_QUERY_LIST,
@@ -9,10 +9,6 @@ from .sql_injection_lists import (
 )
 
 import pytest
-
-
-
-
 client = TestClient(app)
 
 
@@ -20,7 +16,6 @@ client = TestClient(app)
 def test_invalid_commands_trigger_422_error(command):
     response = client.get(f"/dns/get/zonemaster/?domain={command}")
     assert response.status_code == 422
-
 
 
 @pytest.mark.parametrize("injection_query", AUTH_BYPASS_SQL_QUERY_LIST)
