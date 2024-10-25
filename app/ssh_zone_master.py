@@ -27,7 +27,6 @@ async def getDomainZoneMaster(domain_name: str, debug_flag=False):
         command=getZoneMasterCmd,
         verbose=debug_flag,
     )
-    print(dnsAnswers)
     dnsAnswers = [
         {"ns": answer["host"], "zone_master": answer["stdout"]} for answer in dnsAnswers
     ]
