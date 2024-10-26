@@ -3,6 +3,7 @@ from .ssh_async_executor import batch_ssh_command_prepare
 import re
 import shlex
 
+ZONEFILE_PATH = "/var/opt/isc/scls/isc-bind/zones/_default.nzf"
 DOMAIN_REGEX_PATTERN = (
     r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$"
 )
@@ -17,7 +18,7 @@ def is_valid_domain(domain_name: str) -> bool:
 def build_zone_master_command(domain_name: str) -> str:
     escaped_domain = shlex.quote(domain_name.lower())
     return (
-        r"cat /var/opt/isc/scls/isc-bind/zones/_default.nzf | "
+        f"cat {ZONEFILE_PATH} | "
         f"grep {escaped_domain} | "
         r"grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}' | "
         "head -n1"

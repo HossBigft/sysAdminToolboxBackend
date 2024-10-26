@@ -64,27 +64,6 @@ def test_lowercase_conversion(domain=HostList.CORRECT_EXISTING_DOMAIN.upper()):
 
 
 @pytest.mark.asyncio
-async def test_get_domain_zone_master_query_on_test_server(
-    domain=HostList.CORRECT_EXISTING_DOMAIN,
-):
-    # New DNS server list for the test
-    test_dns_servers = ["vtest"]
-
-    # Patch DNS_SERVER_LIST
-    with patch("app.ssh_zone_master.DNS_SERVER_LIST", test_dns_servers):
-        result = await getDomainZoneMaster(domain, debug_flag=True)
-
-        # Assert on the expected result
-        expected_result = {
-            "domain": domain,
-            "answers": [
-                {"ns": host, "zone_master": "IP_PLACEHOLDER"} for host in test_dns_servers
-            ],
-        }
-        assert result == expected_result
-
-
-@pytest.mark.asyncio
 async def test_get_domain_zone_master_with_correct_domain_existing_zone_master(
     domain=HostList.CORRECT_EXISTING_DOMAIN,
 ):

@@ -1,5 +1,5 @@
 import asyncio
-
+from typing import List, Dict
 
 async def _run_command_over_ssh(host, command, verbose: bool):
     ssh_command = f'ssh  -o PasswordAuthentication=no  {host} "{command}"'
@@ -21,7 +21,7 @@ async def _run_command_over_ssh(host, command, verbose: bool):
     return (host, stdout.decode().strip(), stderr.decode().strip(), process.returncode)
 
 
-async def batch_ssh_command_prepare(server_list, command, verbose: bool):
+async def batch_ssh_command_prepare(server_list, command, verbose: bool)-> List[Dict[str, str]]:
     tasks = [_run_command_over_ssh(host, command, verbose) for host in server_list]
     results = await asyncio.gather(*tasks)
     return [
