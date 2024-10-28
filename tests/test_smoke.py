@@ -41,7 +41,7 @@ def test_mx_record_resolution_with_correct_domain_name(
     assert response.status_code == 200
     assert response.json() == {
         "domain": domain,
-        "records": f"mail.{domain}.",
+        "records": [f"mail.{domain}."],
     }
 
 

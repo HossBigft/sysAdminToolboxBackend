@@ -26,11 +26,15 @@ def resolve_record(record: str, type: str, dns_list="hoster"):
                 ]
             case "PTR":
                 addr_record = reversename.from_address(record)
-                return str(custom_resolver.resolve(addr_record, type)[0])
+                return [
+                    ipval.to_text()
+                    for ipval in custom_resolver.resolve(addr_record, type)
+                ]
             case "MX":
-                return "".join(
-                    [ipval.to_text() for ipval in custom_resolver.resolve(record, "MX")]
-                ).split(" ")[1]
+                return [
+                    ipval.to_text().split(" ")[1] for ipval in custom_resolver.resolve(record, "MX")
+                ]
+
             case "NS":
                 custom_resolver.nameservers = ["IP_PLACEHOLDER", "IP_PLACEHOLDER"]
                 top_level_domain = extract(record).registered_domain
