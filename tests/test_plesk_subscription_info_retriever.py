@@ -68,3 +68,46 @@ def test_parse_answer_empty_stdout():
 
     result = parse_answer(sample_input)
     assert result is None
+
+
+def test_parse_correct_answer():
+    sample_input = {
+        "host": "pleskserver.",
+        "stdout": """
+        1187
+google.com
+        FIO\tp-2342343
+google.com
+google.com
+google.com
+google.com
+google.com
+google.com
+google.com
+google.com
+google.com
+        """,
+    }
+
+    expected_output = {
+        "host": "pleskserver.",
+        "id": "1187",
+google.com
+        "username": "FIO",
+        "userlogin": "p-2342343",
+        "domains": [
+google.com
+google.com
+google.com
+google.com
+google.com
+google.com
+google.com
+google.com
+google.com
+        ],
+    }
+
+    result = parse_answer(sample_input)
+
+    assert result == expected_output

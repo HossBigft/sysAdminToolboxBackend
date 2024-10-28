@@ -5,6 +5,7 @@ import re
 DOMAIN_REGEX_PATTERN = (
     r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$"
 )
+PLESK_DB_RUN_CMD = "plesk db -Ne"
 
 
 def is_valid_domain(domain_name: str) -> bool:
@@ -24,17 +25,29 @@ def build_query(domain_to_find: str) -> str:
 
 
 def parse_answer(answer) -> dict:
-    stdout_lines = answer["stdout"].strip().split("\n")
+    stdout_lines = [
+        " ".join(line.split()) for line in answer["stdout"].strip().split("\n")
+    ]
     if len(stdout_lines) == 1:
         return None
-    return {
+
+    if "\t" in stdout_lines[2]:
+        username, userlogin = stdout_lines[2].split("\t")
+    else:
+        username, userlogin = stdout_lines[2].split(" ")
+    answer = {
         "host": answer["host"],
         "id": stdout_lines[0],
         "name": stdout_lines[1],
-        "username": stdout_lines[2].split("\t")[0],
-        "userlogin": stdout_lines[2].split("\t")[1],
+        "username": username,
+        "userlogin": userlogin,
         "domains": stdout_lines[3:],
     }
+    return answer
+
+
+async def build_ssh_command(query: str) -> str:
+    return f'{PLESK_DB_RUN_CMD} \\"{query}\\"'
 
 
 async def query_domain_info(domain_name: str, verbose_flag=False, partial_search=False):
@@ -47,10 +60,10 @@ async def query_domain_info(domain_name: str, verbose_flag=False, partial_search
         if not partial_search
         else build_query(lowercate_domain_name + "%")
     )
-
+    ssh_command = await build_ssh_command(query)
     answers = await batch_ssh_command_prepare(
-        PLESK_SERVER_LIST,
-        f'plesk db -Ne \\"{query}\\"',
+        server_list=PLESK_SERVER_LIST,
+        command=ssh_command,
         verbose=verbose_flag,
     )
 
