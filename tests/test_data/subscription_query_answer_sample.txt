@@ -1,0 +1,31 @@
+pleskserver. answered: 1187
+google.com
+username p-2342343
+google.com
+google.com
+google.com
+google.com
+google.com
+google.com
+google.com
+google.com
+google.com
+
+{
+    "host": "pleskserver.",
+    "id": "1187",
+google.com
+    "username": "username",
+    "userlogin": "p-2342343",
+    "domains": [
+google.com
+google.com
+google.com
+google.com
+google.com
+google.com
+google.com
+google.com
+google.com
+    ]
+}
