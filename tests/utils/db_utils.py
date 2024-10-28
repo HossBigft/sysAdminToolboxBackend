@@ -1,27 +1,27 @@
 from sqlmodel import Field, Session, SQLModel, create_engine, text
 
+_user = "vtest"
+_password = "Guakufooquaek7Houph0"
+_connector = "mariadb+pymysql"
+_host = "IP_PLACEHOLDER"
+
 TEST_DB_NAME = "testdb"
+TEST_DB_CMD = f"mysql -B --disable-column-names -p'{_password}' -D'{TEST_DB_NAME}' -e"
 
 
 # Define the Client model
-class Client(SQLModel, table=True):
+class Clients(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     pname: str = Field(..., max_length=255)  # Use max_length for VARCHAR
     login: str = Field(..., max_length=255)  # Use max_length for VARCHAR
 
 
 # Define the Domain model
-class Domain(SQLModel, table=True):
+class Domains(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     name: str = Field(..., max_length=255)  # Specify length
     webspace_id: int
-    cl_id: int = Field(default=None, foreign_key="client.id")
-
-
-_user = "vtest"
-_password = "Guakufooquaek7Houph0"
-_connector = "mariadb+pymysql"
-_host = "IP_PLACEHOLDER"
+    cl_id: int = Field(default=None, foreign_key="clients.id")
 
 
 def __create_database(db_name: str):
@@ -45,25 +45,47 @@ def __insert_sample_data(db_name: str):
     db_engine = create_engine(f"{_connector}://{_user}:{_password}@{_host}/{db_name}")
     with Session(db_engine) as session:
         # Create sample clients
-        client_a = Client(pname="Client A", login="userA")
-        client_b = Client(pname="Client B", login="userB")
-        client_c = Client(pname="Client C", login="userC")
-
-        session.add(client_a)
+        client_b = Clients(pname="FIO", login="p-2342343")
         session.add(client_b)
-        session.add(client_c)
         session.commit()
 
-        # Create sample domains
-        domain_data = [
-            Domain(name="example.com", webspace_id=0, cl_id=client_a.id),
-            Domain(name="test.com", webspace_id=1, cl_id=client_a.id),
-            Domain(name="another.com", webspace_id=2, cl_id=client_b.id),
-            Domain(name="sample.org", webspace_id=0, cl_id=client_c.id),
-            Domain(name="example.net", webspace_id=2, cl_id=client_b.id),
+        # Create the main domain with a specific ID
+        main_domain = Domains(
+google.com
+        )
+        session.add(main_domain)
+
+        # Create subdomains with specific IDs, all linked to the main domain ID
+        subdomains = [
+            Domains(
+google.com
+            ),
+            Domains(
+google.com
+            ),
+            Domains(
+google.com
+            ),
+            Domains(
+                id=1188,
+google.com
+                webspace_id=1184,
+                cl_id=client_b.id,
+            ),
+google.com
+            Domains(
+google.com
+            ),
+            Domains(
+google.com
+            ),
+google.com
+            Domains(
+google.com
+            ),
         ]
 
-        session.add_all(domain_data)
+        session.add_all(subdomains)
         session.commit()
 
 
@@ -72,11 +94,11 @@ def populate_test_db():
     __create_db_and_tables(TEST_DB_NAME)
     __insert_sample_data(TEST_DB_NAME)
 
+
 def __drop_db_and_tables(db_name: str):
-    db_engine = create_engine(
-        f"{_connector}://{_user}:{_password}@{_host}/{db_name}"
-    )
+    db_engine = create_engine(f"{_connector}://{_user}:{_password}@{_host}/{db_name}")
     SQLModel.metadata.drop_all(db_engine)  # Drop all tables defined in the metadata
-    
+
+
 def cleanup_test_db():
     __drop_db_and_tables(TEST_DB_NAME)  # Drop the test tables
