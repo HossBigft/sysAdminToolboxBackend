@@ -25,25 +25,16 @@ def build_query(domain_to_find: str) -> str:
 
 
 def parse_answer(answer) -> dict:
-    stdout_lines = [
-        " ".join(line.split()) for line in answer["stdout"].strip().split("\n")
-    ]
-    if len(stdout_lines) == 1:
-        return None
-
-    if "\t" in stdout_lines[2]:
-        username, userlogin = stdout_lines[2].split("\t")
-    else:
-        username, userlogin = stdout_lines[2].split(" ")
-    answer = {
+    stdout_lines = answer["stdout"].strip().split("\n")
+    parsed_answer = {
         "host": answer["host"],
         "id": stdout_lines[0],
         "name": stdout_lines[1],
-        "username": username,
-        "userlogin": userlogin,
+        "username": stdout_lines[2].split("\t")[0],
+        "userlogin": stdout_lines[2].split("\t")[1],
         "domains": stdout_lines[3:],
     }
-    return answer
+    return parsed_answer
 
 
 async def build_ssh_command(query: str) -> str:
