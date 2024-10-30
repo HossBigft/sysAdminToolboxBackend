@@ -1,31 +1,44 @@
 import pytest
-from tests.utils.db_utils import populate_test_db, cleanup_test_db, TEST_DB_CMD
-from tests.test_data.hosts import HostList
-from unittest.mock import patch
-from app.ssh_plesk_subscription_info_retriever import query_domain_info
+from app.ssh_plesk_subscription_info_retriever import (
+    build_query,
+    parse_answer,
+)
+from sqlmodel import create_engine
+from testcontainers.mysql import MySqlContainer
+
+# Assuming you have your models and functions from the original code
+from tests.utils.db_utils import (
+    __create_db_and_tables,
+    __insert_sample_data,
+    TEST_DB_CMD,
+)
 
 
-@pytest.fixture(scope="class", autouse=True)
+@pytest.fixture(scope="class")
 def init_test_db():
-    populate_test_db()
-    yield
-    cleanup_test_db()
+    with MySqlContainer("mariadb:latest") as mysql:
+        mariadb_url = mysql.get_connection_url()
+        engine = create_engine(mariadb_url)
+        __create_db_and_tables(engine)
+        __insert_sample_data(engine)
+
+        # Yield the engine and mysql container for use in tests
+        yield engine, mysql
 
 
 @pytest.mark.asyncio
-async def test_get_existing_subscription_info():
-    test_domain = HostList.CORRECT_EXISTING_DOMAIN
-    test_server = [HostList.SSH_TEST_SERVER]
-    with patch(
-        "app.ssh_plesk_subscription_info_retriever.PLESK_SERVER_LIST", test_server
-    ):
-        with patch(
-            "app.ssh_plesk_subscription_info_retriever.PLESK_DB_RUN_CMD", TEST_DB_CMD
-        ):
-            result = await query_domain_info(test_domain, verbose_flag=True)
+async def test_get_existing_subscription_info(init_test_db):
+    engine, mysql = init_test_db  # Unpack the engine and MySQL container
+google.com
+    stdout = mysql.exec(f'{TEST_DB_CMD}"{query}"').output.decode("utf-8")
+    answer = {
+        "host": "test",
+        "stdout": stdout,
+    }
+    result = [parse_answer(answer)]
     expected_output = [
         {
-            "host": HostList.SSH_TEST_SERVER,
+            "host": "test",
             "id": "1184",
 google.com
             "username": "FIO",
@@ -43,4 +56,5 @@ google.com
             ],
         }
     ]
+
     assert result == expected_output
