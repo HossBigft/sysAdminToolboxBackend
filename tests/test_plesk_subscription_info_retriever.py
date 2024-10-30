@@ -73,25 +73,12 @@ def test_parse_answer_empty_stdout():
 def test_parse_correct_answer():
     sample_input = {
         "host": "pleskserver.",
-        "stdout": """
-        1187
 google.com
-        FIO\tp-2342343
-google.com
-google.com
-google.com
-google.com
-google.com
-google.com
-google.com
-google.com
-google.com
-        """,
     }
 
     expected_output = {
         "host": "pleskserver.",
-        "id": "1187",
+        "id": "1184",
 google.com
         "username": "FIO",
         "userlogin": "p-2342343",
