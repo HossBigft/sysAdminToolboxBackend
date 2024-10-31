@@ -34,9 +34,10 @@ def test_invalid_domain(domain):
 
 
 def test_basic_domain(domain=HostList.CORRECT_EXISTING_DOMAIN):
+    expected_grep_pattern =shlex.quote(f'"\\"{domain.lower()}\\""')
     expected = (
         r"cat /var/opt/isc/scls/isc-bind/zones/_default.nzf | "
-        f"grep {shlex.quote(domain.lower())} | "
+        f"grep {expected_grep_pattern} | "
         r"grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}' | "
         "head -n1"
     )
@@ -44,9 +45,10 @@ def test_basic_domain(domain=HostList.CORRECT_EXISTING_DOMAIN):
 
 
 def test_special_characters(domain=HostList.MALFORMED_DOMAIN):
+    expected_grep_pattern =shlex.quote(f'"\\"{domain.lower()}\\""')
     expected = (
         r"cat /var/opt/isc/scls/isc-bind/zones/_default.nzf | "
-        f"grep {shlex.quote(domain.lower())} | "
+        f"grep {expected_grep_pattern} | "
         r"grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}' | "
         "head -n1"
     )
@@ -54,9 +56,10 @@ def test_special_characters(domain=HostList.MALFORMED_DOMAIN):
 
 
 def test_lowercase_conversion(domain=HostList.CORRECT_EXISTING_DOMAIN.upper()):
+    expected_grep_pattern =shlex.quote(f'"\\"{domain.lower()}\\""')
     expected = (
         r"cat /var/opt/isc/scls/isc-bind/zones/_default.nzf | "
-        f"grep {shlex.quote(domain.lower())} | "
+        f"grep {expected_grep_pattern} | "
         r"grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}' | "
         "head -n1"
     )
@@ -123,9 +126,10 @@ example.com
 def test_command_injection_sanitization(
     domain=HostList.CORRECT_EXISTING_DOMAIN + ";echo hello",
 ):
+    expected_grep_pattern =shlex.quote(f'"\\"{domain.lower()}\\""')
     expected = (
         r"cat /var/opt/isc/scls/isc-bind/zones/_default.nzf | "
-        f"grep {shlex.quote(domain.lower())} | "
+        f"grep {expected_grep_pattern} | "
         r"grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}' | "
         "head -n1"
     )
