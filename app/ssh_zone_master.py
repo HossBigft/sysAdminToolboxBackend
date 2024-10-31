@@ -16,7 +16,7 @@ def is_valid_domain(domain_name: str) -> bool:
 
 
 def build_zone_master_command(domain_name: str) -> str:
-    escaped_domain = shlex.quote(domain_name.lower())
+    escaped_domain = shlex.quote(f'"\\"{domain_name.lower()}\\""')
     return (
         f"cat {ZONEFILE_PATH} | "
         f"grep {escaped_domain} | "
