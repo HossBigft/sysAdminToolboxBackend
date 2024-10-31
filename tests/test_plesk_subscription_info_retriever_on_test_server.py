@@ -18,12 +18,8 @@ def test_db():
 @pytest.mark.asyncio
 async def test_get_existing_subscription_info(test_db):
 google.com
-    stdout = test_db.run_query(query)
-    answer = {
-        "host": "test",
-        "stdout": stdout,
-    }
-    result = [parse_answer(answer)]
+    answers = test_db.run_query(query)
+    result = [parse_answer(answer) for answer in answers if answer["stdout"]]
     expected_output = [
         {
             "host": "test",
