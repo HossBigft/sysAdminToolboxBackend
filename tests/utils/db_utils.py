@@ -86,7 +86,14 @@ google.com
         return self
 
     def run_query(self, query: str) -> str:
-        return self.container.exec(f'{TEST_DB_CMD}"{query}"').output.decode("utf-8")
+        return [
+            {
+                "host": "test",
+                "stdout": self.container.exec(f'{TEST_DB_CMD}"{query}"').output.decode(
+                    "utf-8"
+                ),
+            }
+        ]
 
     def cleanup(self):
         self.container.stop()
