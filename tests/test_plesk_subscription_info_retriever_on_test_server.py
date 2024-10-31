@@ -3,34 +3,22 @@ from app.ssh_plesk_subscription_info_retriever import (
     build_query,
     parse_answer,
 )
-from sqlmodel import create_engine
-from testcontainers.mysql import MySqlContainer
+
 
 # Assuming you have your models and functions from the original code
-from tests.utils.db_utils import (
-    __create_db_and_tables,
-    __insert_sample_data,
-    TEST_DB_CMD,
-)
+from tests.utils.db_utils import TestMariadb
 
 
 @pytest.fixture(scope="class")
-def init_test_db():
-    with MySqlContainer("mariadb:latest") as mysql:
-        mariadb_url = mysql.get_connection_url()
-        engine = create_engine(mariadb_url)
-        __create_db_and_tables(engine)
-        __insert_sample_data(engine)
-
-        # Yield the engine and mysql container for use in tests
-        yield engine, mysql
-
+def test_db():
+    testdb = TestMariadb().populate_db()
+    yield testdb
+    testdb.cleanup()
 
 @pytest.mark.asyncio
-async def test_get_existing_subscription_info(init_test_db):
-    engine, mysql = init_test_db  # Unpack the engine and MySQL container
+async def test_get_existing_subscription_info(test_db):
 google.com
-    stdout = mysql.exec(f'{TEST_DB_CMD}"{query}"').output.decode("utf-8")
+    stdout = test_db.run_query(query)
     answer = {
         "host": "test",
         "stdout": stdout,
