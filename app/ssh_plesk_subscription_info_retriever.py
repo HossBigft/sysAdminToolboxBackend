@@ -43,6 +43,14 @@ async def build_ssh_command(query: str) -> str:
     return f'{PLESK_DB_RUN_CMD} \\"{query}\\"'
 
 
+async def batch_ssh_execute(cmd: str):
+    return await batch_ssh_command_prepare(
+        server_list=PLESK_SERVER_LIST,
+        command=cmd,
+        verbose=False,
+    )
+
+
 async def query_domain_info(domain_name: str, verbose_flag=False, partial_search=False):
     if not is_valid_domain(domain_name):
         raise ValueError("Input string should be a valid domain name.")
@@ -54,11 +62,6 @@ async def query_domain_info(domain_name: str, verbose_flag=False, partial_search
         else build_query(lowercate_domain_name + "%")
     )
     ssh_command = await build_ssh_command(query)
-    answers = await batch_ssh_command_prepare(
-        server_list=PLESK_SERVER_LIST,
-        command=ssh_command,
-        verbose=verbose_flag,
-    )
-
+    answers = await batch_ssh_execute(ssh_command)
     results = [parse_answer(answer) for answer in answers if answer["stdout"]]
     return results
