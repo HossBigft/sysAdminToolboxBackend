@@ -86,5 +86,5 @@ google.com
         return self
 
     def run_cmd(self, cmd: str) -> str:
-        cmd_to_exec=f"sh -c \"{cmd}\""
+        cmd_to_exec = f'sh -c "{cmd}"'
         return self.container.exec(cmd_to_exec).output.decode("utf-8")
