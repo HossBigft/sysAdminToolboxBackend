@@ -4,6 +4,7 @@ from tests.utils.container_db_utils import TestMariadb, TEST_DB_CMD
 from tests.test_data.hosts import HostList
 from unittest.mock import patch
 
+
 @pytest.fixture(scope="module")
 def init_test_db():
     testdb = TestMariadb().populate_db()
@@ -12,8 +13,13 @@ def init_test_db():
         stdout = testdb.run_cmd(command)
         return [{"host": "test", "stdout": stdout}]
 
-    with patch("app.ssh_plesk_subscription_info_retriever.PLESK_DB_RUN_CMD", TEST_DB_CMD):
-        with patch("app.ssh_plesk_subscription_info_retriever.batch_ssh_execute", wraps=mock_batch_ssh):
+    with patch(
+        "app.ssh_plesk_subscription_info_retriever.PLESK_DB_RUN_CMD", TEST_DB_CMD
+    ):
+        with patch(
+            "app.ssh_plesk_subscription_info_retriever.batch_ssh_execute",
+            wraps=mock_batch_ssh,
+        ):
             yield testdb  # Yield the test database for use in tests
 
 
