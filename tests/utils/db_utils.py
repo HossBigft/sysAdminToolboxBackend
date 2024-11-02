@@ -85,15 +85,6 @@ google.com
         self.__insert_sample_data()
         return self
 
-    def run_query(self, query: str) -> str:
-        return [
-            {
-                "host": "test",
-                "stdout": self.container.exec(f'{TEST_DB_CMD}"{query}"').output.decode(
-                    "utf-8"
-                ),
-            }
-        ]
-
-    def cleanup(self):
-        self.container.stop()
+    def run_cmd(self, cmd: str) -> str:
+        cmd_to_exec=f"sh -c \"{cmd}\""
+        return self.container.exec(cmd_to_exec).output.decode("utf-8")
