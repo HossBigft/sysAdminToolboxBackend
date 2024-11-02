@@ -1,6 +1,6 @@
 import pytest
 from app.ssh_plesk_subscription_info_retriever import query_domain_info
-from tests.utils.db_utils import TestMariadb, TEST_DB_CMD
+from tests.utils.container_db_utils import TestMariadb, TEST_DB_CMD
 from tests.test_data.hosts import HostList
 from unittest.mock import patch
 
