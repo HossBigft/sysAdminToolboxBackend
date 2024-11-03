@@ -14,7 +14,7 @@ client = TestClient(app)
 
 @pytest.mark.parametrize("command", COMMAND_INJECTION_LIST)
 def test_invalid_commands_trigger_422_error(command):
-    response = client.get(f"/dns/get/zonemaster/?domain={command}")
+    response = client.get(f"/get/zonemaster/?domain={command}")
     assert response.status_code == 422
 
 

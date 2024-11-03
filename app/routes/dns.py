@@ -4,7 +4,7 @@ from app.ssh_zone_master import getDomainZoneMaster
 from app.dns_resolver import resolve_record, RecordNotFoundError
 from app.validators import validate_domain_name
 
-router = APIRouter(prefix="/dns")
+router = APIRouter()
 
 
 @router.get("/resolve/a/")
