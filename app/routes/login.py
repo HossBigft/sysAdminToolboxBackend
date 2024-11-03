@@ -7,7 +7,7 @@ from passlib.context import CryptContext
 from fastapi import status, APIRouter, HTTPException, Depends
 from typing import Annotated
 
-router = APIRouter()
+router = APIRouter(prefix="/login")
 
 fake_users_db = {
     "johndoe": {
