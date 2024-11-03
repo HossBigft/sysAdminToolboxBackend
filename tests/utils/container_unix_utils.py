@@ -1,9 +1,9 @@
 from testcontainers.core.container import DockerContainer
-
+from tests.test_data.hosts import HostList
 TEST_ZONE_FILE_DIRECTORY = "/var/opt/isc/scls/isc-bind/zones/"
 TEST_ZONE_FILE_PATH = "/var/opt/isc/scls/isc-bind/zones/_default.nzf"
 ZONEFILE_MOCK_ENTRIES = [
-google.com
+    {"domain": HostList.CORRECT_EXISTING_DOMAIN, "zonemaster": "IP_PLACEHOLDER"},
 google.com
 google.com
 google.com
