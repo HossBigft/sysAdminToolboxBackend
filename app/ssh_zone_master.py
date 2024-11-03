@@ -39,6 +39,10 @@ async def getDomainZoneMaster(domain_name: str):
     getZoneMasterCmd = build_zone_master_command(domain_name)
     dnsAnswers = await batch_ssh_execute(getZoneMasterCmd)
     dnsAnswers = [
-        {"ns": answer["host"], "zone_master": answer["stdout"]} for answer in dnsAnswers
+        {"ns": answer["host"], "zone_master": answer["stdout"]}
+        for answer in dnsAnswers
+        if answer["stdout"]
     ]
+    if not dnsAnswers:
+        return None
     return {"domain": f"{domain_name}", "answers": dnsAnswers}

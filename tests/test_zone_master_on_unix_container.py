@@ -41,8 +41,4 @@ async def test_get_existing_domain_zone_master_query_on_test_server():
 async def test_get_nonexisting_domain_zone_master_query_on_test_server():
     test_domain = HostList.DOMAIN_WITHOUT_ZONE_MASTER
     result = await getDomainZoneMaster(test_domain)
-    expected_result = {
-        "domain": test_domain,
-        "answers": [{"ns": host, "zone_master": ""} for host in TEST_DNS_HOSTS],
-    }
-    assert result == expected_result
+    assert result is None
