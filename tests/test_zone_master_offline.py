@@ -48,7 +48,7 @@ example.com
     ) as mock_batch_ssh:
         mock_batch_ssh.return_value = mock_response
 
-        result = await getDomainZoneMaster(domain, debug_flag=True)
+        result = await getDomainZoneMaster(domain)
 
         expected_result = {
             "domain": domain,
@@ -76,7 +76,7 @@ example.com
         "app.ssh_zone_master.batch_ssh_command_prepare", new_callable=AsyncMock
     ) as mock_batch_ssh:
         mock_batch_ssh.return_value = mock_response
-        result = await getDomainZoneMaster(domain, debug_flag=True)
+        result = await getDomainZoneMaster(domain)
 
         expected_result = {
             "domain": domain,
