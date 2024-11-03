@@ -59,5 +59,5 @@ app.include_router(login.router, tags=["login"])
 app.include_router(dns.router, tags=["dns"])
 if __name__ == "__main__":
     uvicorn.run(
-        "app.main:app", host="IP_PLACEHOLDER", port=50001, log_level="debug", reload=True
+        "app.main:app", host="IP_PLACEHOLDER", port=5000, log_level="debug", reload=True
     )
