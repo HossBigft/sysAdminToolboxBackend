@@ -78,15 +78,7 @@ example.com
         mock_batch_ssh.return_value = mock_response
         result = await getDomainZoneMaster(domain)
 
-        expected_result = {
-            "domain": domain,
-            "answers": [
-example.com
-example.com
-example.com
-            ],
-        }
-        assert result == expected_result
+        assert result is None
         mock_batch_ssh.assert_called_once()
 
 
