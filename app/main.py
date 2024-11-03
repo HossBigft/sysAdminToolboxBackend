@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query, Depends, Request, Response, APIRouter
+from fastapi import FastAPI, HTTPException, Query, Depends, Request, Response
 from .dns_resolver import resolve_record, RecordNotFoundError
 import uvicorn
 from typing import Annotated
@@ -83,6 +83,8 @@ async def get_ptr_record(
 async def get_zone_master_from_dns_servers(domain: str = Depends(validate_domain_name)):
     try:
         zone_masters_dict = await getDomainZoneMaster(domain)
+        if not zone_masters_dict:
+            return Response(status_code=204)
         return zone_masters_dict
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
