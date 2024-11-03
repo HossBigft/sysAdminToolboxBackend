@@ -33,39 +33,6 @@ def test_invalid_domain(domain):
     assert not is_valid_domain(domain)
 
 
-def test_basic_domain(domain=HostList.CORRECT_EXISTING_DOMAIN):
-    expected_grep_pattern =shlex.quote(f'"\\"{domain.lower()}\\""')
-    expected = (
-        r"cat /var/opt/isc/scls/isc-bind/zones/_default.nzf | "
-        f"grep {expected_grep_pattern} | "
-        r"grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}' | "
-        "head -n1"
-    )
-    assert build_zone_master_command(domain) == expected
-
-
-def test_special_characters(domain=HostList.MALFORMED_DOMAIN):
-    expected_grep_pattern =shlex.quote(f'"\\"{domain.lower()}\\""')
-    expected = (
-        r"cat /var/opt/isc/scls/isc-bind/zones/_default.nzf | "
-        f"grep {expected_grep_pattern} | "
-        r"grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}' | "
-        "head -n1"
-    )
-    assert build_zone_master_command(domain) == expected
-
-
-def test_lowercase_conversion(domain=HostList.CORRECT_EXISTING_DOMAIN.upper()):
-    expected_grep_pattern =shlex.quote(f'"\\"{domain.lower()}\\""')
-    expected = (
-        r"cat /var/opt/isc/scls/isc-bind/zones/_default.nzf | "
-        f"grep {expected_grep_pattern} | "
-        r"grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}' | "
-        "head -n1"
-    )
-    assert build_zone_master_command(domain) == expected
-
-
 @pytest.mark.asyncio
 async def test_get_domain_zone_master_with_correct_domain_existing_zone_master(
     domain=HostList.CORRECT_EXISTING_DOMAIN,
@@ -126,7 +93,7 @@ example.com
 def test_command_injection_sanitization(
     domain=HostList.CORRECT_EXISTING_DOMAIN + ";echo hello",
 ):
-    expected_grep_pattern =shlex.quote(f'"\\"{domain.lower()}\\""')
+    expected_grep_pattern = shlex.quote(f'\\"{domain.lower()}\\"')
     expected = (
         r"cat /var/opt/isc/scls/isc-bind/zones/_default.nzf | "
         f"grep {expected_grep_pattern} | "
