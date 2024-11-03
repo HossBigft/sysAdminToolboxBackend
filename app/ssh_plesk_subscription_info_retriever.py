@@ -64,4 +64,6 @@ async def query_domain_info(domain_name: str, partial_search=False):
     ssh_command = await build_ssh_command(query)
     answers = await batch_ssh_execute(ssh_command)
     results = [parse_answer(answer) for answer in answers if answer["stdout"]]
+    if not results:
+        return None
     return results

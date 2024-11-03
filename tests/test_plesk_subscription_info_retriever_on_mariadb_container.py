@@ -54,7 +54,4 @@ google.com
 @pytest.mark.asyncio
 async def test_get_nonexisting_subscription_info(init_test_db):
     result = await query_domain_info("zless.kz")
-
-    expected_output = []
-
-    assert result == expected_output
+    assert result is None
