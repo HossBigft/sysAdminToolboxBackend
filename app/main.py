@@ -4,7 +4,7 @@ import uvicorn
 from typing import Annotated
 from pydantic.networks import IPvAnyAddress
 from .ssh_zone_master import getDomainZoneMaster
-from .ssh_plesk_subscription_info_retriever import query_domain_info
+from .ssh_plesk_subscription_info_retriever import query_subscription_info_by_domain
 import logging
 import time
 from app.routes import login
@@ -94,12 +94,10 @@ async def get_zone_master_from_dns_servers(domain: str = Depends(validate_domain
 async def find_plesk_subscription_by_domain(
     domain: str = Depends(validate_domain_name),
 ):
-    try:
-        subscriptions = await query_domain_info(domain)
+        subscriptions = await query_subscription_info_by_domain(domain)
+        if not subscriptions:
+            return Response(status_code=204)
         return subscriptions
-    except RecordNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
 
 @app.get("/dns/resolve/mx/")
 async def get_mx_record(domain: str = Depends(validate_domain_name)):

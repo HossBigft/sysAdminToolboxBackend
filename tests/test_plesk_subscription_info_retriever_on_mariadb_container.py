@@ -1,5 +1,5 @@
 import pytest
-from app.ssh_plesk_subscription_info_retriever import query_domain_info
+from app.ssh_plesk_subscription_info_retriever import query_subscription_info_by_domain
 from tests.utils.container_db_utils import TestMariadb, TEST_DB_CMD
 from tests.test_data.hosts import HostList
 from unittest.mock import patch
@@ -25,7 +25,7 @@ def init_test_db():
 
 @pytest.mark.asyncio
 async def test_get_existing_subscription_info(init_test_db):
-    result = await query_domain_info(HostList.CORRECT_EXISTING_DOMAIN)
+    result = await query_subscription_info_by_domain(HostList.CORRECT_EXISTING_DOMAIN)
 
     expected_output = [
         {
@@ -53,5 +53,5 @@ google.com
 
 @pytest.mark.asyncio
 async def test_get_nonexisting_subscription_info(init_test_db):
-    result = await query_domain_info("zless.kz")
+    result = await query_subscription_info_by_domain("zless.kz")
     assert result is None
