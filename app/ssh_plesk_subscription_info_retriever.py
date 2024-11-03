@@ -51,7 +51,7 @@ async def batch_ssh_execute(cmd: str):
     )
 
 
-async def query_domain_info(domain_name: str, verbose_flag=False, partial_search=False):
+async def query_domain_info(domain_name: str, partial_search=False):
     if not is_valid_domain(domain_name):
         raise ValueError("Input string should be a valid domain name.")
 
