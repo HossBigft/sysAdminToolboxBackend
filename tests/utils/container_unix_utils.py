@@ -2,6 +2,14 @@ from testcontainers.core.container import DockerContainer
 
 TEST_ZONE_FILE_DIRECTORY = "/var/opt/isc/scls/isc-bind/zones/"
 TEST_ZONE_FILE_PATH = "/var/opt/isc/scls/isc-bind/zones/_default.nzf"
+ZONEFILE_MOCK_ENTRIES = [
+google.com
+google.com
+google.com
+google.com
+google.com
+google.com
+]
 
 
 class UnixContainer:
@@ -29,8 +37,9 @@ class UnixContainer:
         self.__run_command(command)
 
     def populate_zone_file(self):
-google.com
-        self.__run_command(command)
+        for entry in ZONEFILE_MOCK_ENTRIES:
+            command = f"echo '\"{entry['domain']}\" {entry['zonemaster']}' >> {TEST_ZONE_FILE_PATH}"
+            self.__run_command(command)
 
     def prepare_zonefile(self):
         self.create_zone_file_directory()
