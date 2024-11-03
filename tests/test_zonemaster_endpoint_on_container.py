@@ -29,7 +29,7 @@ def test_zonemaster_resolution_with_nonexisting_domain(
     domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER,
 ):
     response = client.get(f"/dns/get/zonemaster/?domain={domain}")
-    assert response.status_code == 204
+    assert response.status_code == 404
 
 
 def test_zonemaster_resolution_with_existing_domain(

@@ -62,4 +62,4 @@ async def test_subscription_info_retrieval_with_nonexistant_domain(
 ):
     response = client.get(f"/plesk/get/subscription/?domain={domain}")
     print(response)
-    assert response.status_code == 204
+    assert response.status_code == 404

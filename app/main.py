@@ -84,7 +84,9 @@ async def get_zone_master_from_dns_servers(domain: str = Depends(validate_domain
     try:
         zone_masters_dict = await getDomainZoneMaster(domain)
         if not zone_masters_dict:
-            return Response(status_code=204)
+            raise HTTPException(
+                status_code=404, detail=f"Zone master for domain [{domain}] not found."
+            )
         return zone_masters_dict
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -94,10 +96,13 @@ async def get_zone_master_from_dns_servers(domain: str = Depends(validate_domain
 async def find_plesk_subscription_by_domain(
     domain: str = Depends(validate_domain_name),
 ):
-        subscriptions = await query_subscription_info_by_domain(domain)
-        if not subscriptions:
-            return Response(status_code=204)
-        return subscriptions
+    subscriptions = await query_subscription_info_by_domain(domain)
+    if not subscriptions:
+        raise HTTPException(
+            status_code=404, detail=f"Subscription with domain [{domain}] not found."
+        )
+    return subscriptions
+
 
 @app.get("/dns/resolve/mx/")
 async def get_mx_record(domain: str = Depends(validate_domain_name)):
