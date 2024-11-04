@@ -7,7 +7,9 @@ from passlib.context import CryptContext
 from fastapi import status, APIRouter, HTTPException, Depends
 from typing import Annotated
 
-router = APIRouter()
+PREFIX = "/login"
+
+router = APIRouter(prefix=PREFIX)
 
 fake_users_db = {
     "johndoe": {
@@ -27,7 +29,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{PREFIX}/token")
 
 
 class Token(BaseModel):
