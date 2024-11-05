@@ -28,7 +28,7 @@ async def test_container():
 def test_zonemaster_resolution_with_nonexisting_domain(
     domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER,
 ):
-    response = client.get(f"/dns/get/zonemaster/?domain={domain}")
+    response = client.get(f"/dns/hoster/get/zonemaster/?domain={domain}")
     assert response.status_code == 404
 
 
@@ -41,6 +41,6 @@ def test_zonemaster_resolution_with_existing_domain(
             {"ns": host, "zone_master": "IP_PLACEHOLDER"} for host in TEST_DNS_HOSTS
         ],
     }
-    response = client.get(f"/dns/get/zonemaster/?domain={domain}")
+    response = client.get(f"/dns/hoster/get/zonemaster/?domain={domain}")
     assert response.status_code == 200
     assert response.json() == expected_result

@@ -7,7 +7,7 @@ from app.validators import validate_domain_name
 router = APIRouter(prefix="/dns")
 
 
-@router.get("/resolve/a/")
+@router.get("/hoster/resolve/a/")
 async def get_a_record(domain: str = Depends(validate_domain_name)):
     try:
         a_records = resolve_record(domain, "A")
@@ -27,7 +27,7 @@ async def get_ptr_record(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.get("/get/zonemaster/")
+@router.get("/hoster/get/zonemaster/")
 async def get_zone_master_from_dns_servers(domain: str = Depends(validate_domain_name)):
     try:
         zone_masters_dict = await getDomainZoneMaster(domain)
@@ -40,7 +40,7 @@ async def get_zone_master_from_dns_servers(domain: str = Depends(validate_domain
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.get("/resolve/mx/")
+@router.get("/hoster/resolve/mx/")
 async def get_mx_record(domain: str = Depends(validate_domain_name)):
     try:
         mx_records = resolve_record(domain, "MX")

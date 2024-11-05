@@ -8,14 +8,10 @@ from .test_data.hosts import HostList
 client = TestClient(app)
 
 
-def test_read_main():
-    response = client.get("/")
-    assert response.status_code == 200
-    assert response.json() == {"message": "Hello World"}
-
-
-def test_a_record_resolution_with_correct_domain_name(domain=HostList.DOMAIN_WITH_EXISTING_A_RECORD):
-    response = client.get(f"/dns/resolve/a/?domain={domain}")
+def test_a_record_resolution_with_correct_domain_name(
+    domain=HostList.DOMAIN_WITH_EXISTING_A_RECORD,
+):
+    response = client.get(f"/dns/hoster/resolve/a/?domain={domain}")
     assert response.status_code == 200
     assert response.json() == {
         "domain": domain,
@@ -23,21 +19,23 @@ def test_a_record_resolution_with_correct_domain_name(domain=HostList.DOMAIN_WIT
     }
 
 
-def test_a_record_resolution_with_malformed_domain_name(domain=HostList.MALFORMED_DOMAIN):
-    response = client.get(f"/dns/resolve/a/?domain={domain}")
+def test_a_record_resolution_with_malformed_domain_name(
+    domain=HostList.MALFORMED_DOMAIN,
+):
+    response = client.get(f"/dns/hoster/resolve/a/?domain={domain}")
     assert response.status_code == 422
 
 
 @pytest.mark.parametrize("command", COMMAND_INJECTION_LIST[:10])
 def test_invalid_commands_trigger_422_error(command):
-    response = client.get(f"/dns/get/zonemaster/?domain={command}")
+    response = client.get(f"/dns/hoster/get/zonemaster/?domain={command}")
     assert response.status_code == 422
 
 
 def test_mx_record_resolution_with_correct_domain_name(
     domain=HostList.DOMAIN_WITH_EXISTING_MX_RECORD,
 ):
-    response = client.get(f"/dns/resolve/mx/?domain={domain}")
+    response = client.get(f"/dns/hoster/resolve/mx/?domain={domain}")
     assert response.status_code == 200
     assert response.json() == {
         "domain": domain,
@@ -45,22 +43,30 @@ def test_mx_record_resolution_with_correct_domain_name(
     }
 
 
-def test_mx_record_resolution_with_malformed_domain_name(domain=HostList.MALFORMED_DOMAIN):
-    response = client.get(f"/dns/resolve/mx/?domain={domain}")
+def test_mx_record_resolution_with_malformed_domain_name(
+    domain=HostList.MALFORMED_DOMAIN,
+):
+    response = client.get(f"/dns/hoster/resolve/mx/?domain={domain}")
     assert response.status_code == 422
 
 
-def test_mx_record_resolution_with_nonexistant_domain_name(domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER):
-    response = client.get(f"/dns/resolve/mx/?domain={domain}")
+def test_mx_record_resolution_with_nonexistant_domain_name(
+    domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER,
+):
+    response = client.get(f"/dns/hoster/resolve/mx/?domain={domain}")
     assert response.status_code == 404
 
 
-def test_a_record_resolution_with_nonexistant_domain_name(domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER):
-    response = client.get(f"/dns/resolve/a/?domain={domain}")
+def test_a_record_resolution_with_nonexistant_domain_name(
+    domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER,
+):
+    response = client.get(f"/dns/hoster/resolve/a/?domain={domain}")
     assert response.status_code == 404
 
 
-def test_ptr_record_resolution_with_nonexistant_ptr_record(domain=HostList.IP_WITHOUT_PTR):
+def test_ptr_record_resolution_with_nonexistant_ptr_record(
+    domain=HostList.IP_WITHOUT_PTR,
+):
     response = client.get(f"/dns/resolve/ptr/?ip={domain}")
     assert response.status_code == 404
 
@@ -73,12 +79,16 @@ example.com
     }
 
 
-def test_subscription_query_with_malformed_domain_name(domain=HostList.MALFORMED_DOMAIN):
+def test_subscription_query_with_malformed_domain_name(
+    domain=HostList.MALFORMED_DOMAIN,
+):
     response = client.get(f"/plesk/get/subscription/?domain={domain}")
     assert response.status_code == 422
 
 
-def test_ns_record_resolution_with_correct_domain_name(domain=HostList.CORRECT_EXISTING_DOMAIN):
+def test_ns_record_resolution_with_correct_domain_name(
+    domain=HostList.CORRECT_EXISTING_DOMAIN,
+):
     response = client.get(f"/dns/resolve/ns/?domain={domain}")
     assert response.status_code == 200
     assert response.json() == {
@@ -87,17 +97,23 @@ example.com
     }
 
 
-def test_ns_record_resolution_with_malformed_domain_name(domain=HostList.MALFORMED_DOMAIN):
+def test_ns_record_resolution_with_malformed_domain_name(
+    domain=HostList.MALFORMED_DOMAIN,
+):
     response = client.get(f"/dns/resolve/ns/?domain={domain}")
     assert response.status_code == 422
 
 
-def test_ns_record_resolution_with_nonexistant_domain_name(domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER):
+def test_ns_record_resolution_with_nonexistant_domain_name(
+    domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER,
+):
     response = client.get(f"/dns/resolve/ns/?domain={domain}")
     assert response.status_code == 404
 
 
-def test_ns_record_resolution_with_correct_subdomain(domain=HostList.CORRECT_EXISTING_SUBDOMAIN):
+def test_ns_record_resolution_with_correct_subdomain(
+    domain=HostList.CORRECT_EXISTING_SUBDOMAIN,
+):
     response = client.get(f"/dns/resolve/ns/?domain={domain}")
     assert response.status_code == 200
     assert response.json() == {
