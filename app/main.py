@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException, Depends, Request, Response
+from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi.responses import RedirectResponse, Response
 import uvicorn
 from .ssh_plesk_subscription_info_retriever import query_subscription_info_by_domain
 import logging
@@ -38,9 +39,10 @@ async def log_requests(request: Request, call_next):
     return response
 
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
+@app.get("/", include_in_schema=False)
+async def redirect_to_docs():
+    response = RedirectResponse(url="/docs")
+    return response
 
 
 @app.get("/plesk/get/subscription/")
