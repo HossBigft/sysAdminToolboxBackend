@@ -57,6 +57,11 @@ async def find_plesk_subscription_by_domain(
     return subscriptions
 
 
+@app.get("/health-check/")
+async def health_check() -> bool:
+    return True
+
+
 app.include_router(login.router, tags=["login"])
 app.include_router(dns.router, tags=["dns"])
 if __name__ == "__main__":
