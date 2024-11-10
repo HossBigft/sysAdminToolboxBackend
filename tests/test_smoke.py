@@ -3,9 +3,13 @@ from app.main import app
 from .test_data.data_command_injection_list import COMMAND_INJECTION_LIST
 import pytest
 from .test_data.hosts import HostList
-
+from app.core.config import settings
 
 client = TestClient(app)
+client.base_url = str(client.base_url) + settings.API_V1_STR  # adding prefix
+client.base_url = (
+    str(client.base_url).rstrip("/") + "/"
+)  # making sure we have 1 and only 1 `/`
 
 
 def test_a_record_resolution_with_correct_domain_name(

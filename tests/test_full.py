@@ -7,9 +7,12 @@ from .test_data.sql_injection_lists import (
     GENERIC_ERRORBASED_SQL_QUERY_LIST,
     GENERIC_TIMEBASED_INJECTION_SQL_QUERY_LIST,
 )
-
 import pytest
+from app.core.config import settings
+
 client = TestClient(app)
+client.base_url = str(client.base_url) + settings.API_V1_STR  # adding prefix
+client.base_url = str(client.base_url).rstrip("/") + "/"
 
 
 @pytest.mark.parametrize("command", COMMAND_INJECTION_LIST)

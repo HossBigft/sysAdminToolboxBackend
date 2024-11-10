@@ -1,13 +1,20 @@
 from fastapi.testclient import TestClient
 from app.main import app
-from .test_data.hosts import HostList
+from tests.test_data.hosts import HostList
 import pytest
 from unittest.mock import patch
 from tests.utils.container_db_utils import TestMariadb, TEST_DB_CMD
 import pytest_asyncio
+from app.core.config import settings
 
 TEST_HOSTS = ["test"]
+
+
 client = TestClient(app)
+client.base_url = str(client.base_url) + settings.API_V1_STR  # adding prefix
+client.base_url = (
+    str(client.base_url).rstrip("/") + "/"
+)  # making sure we have 1 and only 1 `/`
 
 
 @pytest_asyncio.fixture(scope="module", autouse=True)

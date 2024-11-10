@@ -777,6 +777,19 @@ wheels = [
 ]
 
 [[package]]
+name = "sentry-sdk"
+version = "2.18.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "certifi" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/24/cc/0d87cc8246f52d92228aa6718a24e1988a2893f4abe2f64ec5a8bcba4185/sentry_sdk-2.18.0.tar.gz", hash = "sha256:0dc21febd1ab35c648391c664df96f5f79fb0d92d7d4225cd9832e53a617cafd", size = 293615 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/76/9b/2d512efdb0de203d1f0312fae53433c3009ba70b0078421d25baaedc960a/sentry_sdk-2.18.0-py2.py3-none-any.whl", hash = "sha256:ee70e27d1bbe4cd52a38e1bd28a5fadb9b17bc29d91b5f2b97ae29c0a7610442", size = 317514 },
+]
+
+[[package]]
 name = "shellingham"
 version = "1.5.4"
 source = { registry = "https://pypi.org/simple" }
@@ -878,6 +891,7 @@ dependencies = [
     { name = "pymysql" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "sentry-sdk" },
     { name = "sqlmodel" },
     { name = "testcontainers" },
     { name = "tldextract" },
@@ -894,6 +908,7 @@ requires-dist = [
     { name = "pymysql", specifier = ">=1.1.1" },
     { name = "pytest", specifier = ">=8.3.3" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "sentry-sdk", specifier = ">=2.18.0" },
     { name = "sqlmodel", specifier = ">=0.0.22" },
     { name = "testcontainers", specifier = ">=4.8.2" },
     { name = "tldextract", specifier = ">=5.1.2" },

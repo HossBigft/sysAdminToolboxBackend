@@ -4,10 +4,15 @@ from .test_data.hosts import HostList
 from unittest.mock import patch
 from tests.utils.container_unix_utils import UnixContainer
 import pytest_asyncio
+from app.core.config import settings
 
 TEST_DNS_HOSTS = ["test"]
 
 client = TestClient(app)
+client.base_url = str(client.base_url) + settings.API_V1_STR  # adding prefix
+client.base_url = (
+    str(client.base_url).rstrip("/") + "/"
+)  # making sure we have 1 and only 1 `/`
 
 
 @pytest_asyncio.fixture(scope="module", autouse=True)
