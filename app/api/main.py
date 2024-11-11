@@ -40,12 +40,6 @@ api_router = APIRouter(tags=["main"])
 #     return response
 
 
-@api_router.get("/", include_in_schema=False)
-async def redirect_to_docs():
-    response = RedirectResponse(url="/docs")
-    return response
-
-
 @api_router.get("/plesk/get/subscription/")
 async def find_plesk_subscription_by_domain(
     domain: str = Depends(validate_domain_name),
@@ -58,7 +52,7 @@ async def find_plesk_subscription_by_domain(
     return subscriptions
 
 
-@api_router.get("/health-check/")
+@api_router.get("/utils/health-check/")
 async def health_check() -> bool:
     return True
 
