@@ -1,8 +1,6 @@
-from fastapi import HTTPException, Depends, Request
-from fastapi.responses import RedirectResponse, Response
+from fastapi import HTTPException, Depends
 from app.ssh_plesk_subscription_info_retriever import query_subscription_info_by_domain
 import logging
-import time
 from app.api.routes import login, dns
 from app.validators import validate_domain_name
 from fastapi import APIRouter
