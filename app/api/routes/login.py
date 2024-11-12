@@ -6,6 +6,7 @@ from passlib.context import CryptContext
 from fastapi import status, APIRouter, HTTPException, Depends
 from typing import Annotated
 from app.models import UserInDB, TokenData, User, Token
+from app.core.config import settings
 
 PREFIX = "/login"
 
@@ -29,7 +30,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{PREFIX}/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}{PREFIX}/token")
 
 
 def verify_password(plain_password, hashed_password):
