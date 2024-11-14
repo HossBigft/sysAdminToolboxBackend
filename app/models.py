@@ -5,13 +5,15 @@ from pydantic import EmailStr
 from sqlmodel import Field, SQLModel
 
 
-class Token(BaseModel):
+# JSON payload containing access token
+class Token(SQLModel):
     access_token: str
-    token_type: str
+    token_type: str = "bearer"
 
 
-class TokenData(BaseModel):
-    username: str | None = None
+# Contents of JWT token
+class TokenPayload(SQLModel):
+    sub: str | None = None
 
 
 class User(BaseModel):
@@ -80,18 +82,6 @@ class UsersPublic(SQLModel):
 # Generic message
 class Message(SQLModel):
     message: str
-
-
-# JSON payload containing access token
-# class Token(SQLModel):
-#     access_token: str
-#     token_type: str = "bearer"
-
-
-# Contents of JWT token
-class TokenPayload(SQLModel):
-    sub: str | None = None
-
 
 class NewPassword(SQLModel):
     token: str
