@@ -1,7 +1,7 @@
 from fastapi import HTTPException, Depends
 from app.ssh_plesk_subscription_info_retriever import query_subscription_info_by_domain
 import logging
-from app.api.routes import login, dns
+from app.api.routes import login, dns, users
 from app.validators import validate_domain_name
 from fastapi import APIRouter
 
@@ -57,3 +57,4 @@ async def health_check() -> bool:
 
 api_router.include_router(login.router, tags=["login"])
 api_router.include_router(dns.router, tags=["dns"])
+api_router.include_router(users.router, tags=["users"])
