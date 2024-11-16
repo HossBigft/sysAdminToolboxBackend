@@ -3,6 +3,13 @@ from pydantic import BaseModel
 
 from pydantic import EmailStr
 from sqlmodel import Field, SQLModel
+from enum import Enum
+
+
+class UserRoles(Enum):
+    SUPERUSER = "superuser"
+    ADMIN = "admin"
+    USER = "user"
 
 
 # JSON payload containing access token
@@ -31,9 +38,8 @@ class UserInDB(User):
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
-    is_superuser: bool = False
     full_name: str | None = Field(default=None, max_length=255)
-    admin: bool = False
+    role: UserRoles = Field(default=[UserRoles.USER])
 
 
 # Properties to receive via API on creation
@@ -82,6 +88,7 @@ class UsersPublic(SQLModel):
 # Generic message
 class Message(SQLModel):
     message: str
+
 
 class NewPassword(SQLModel):
     token: str
