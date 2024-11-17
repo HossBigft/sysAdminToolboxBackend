@@ -3,6 +3,8 @@ from pydantic.networks import IPvAnyAddress
 from app.ssh_zone_master import getDomainZoneMaster
 from app.dns_resolver import resolve_record, RecordNotFoundError
 from app.validators import validate_domain_name
+from app.crud import add_action_to_history
+from app.api.dependencies import CurrentUser, SessionDep
 
 router = APIRouter(prefix="/dns")
 
@@ -28,15 +30,40 @@ async def get_ptr_record(
 
 
 @router.get("/hoster/get/zonemaster/")
-async def get_zone_master_from_dns_servers(domain: str = Depends(validate_domain_name)):
+async def get_zone_master_from_dns_servers(
+    session: SessionDep,
+    current_user: CurrentUser,
+    domain: str = Depends(validate_domain_name),
+):
     try:
         zone_masters_dict = await getDomainZoneMaster(domain)
         if not zone_masters_dict:
+            add_action_to_history(
+                session=session,
+                db_user=current_user,
+                action=f"get zonemaster of domain [{domain}]",
+                execution_status=404,
+                server="dns_servers",
+            )
             raise HTTPException(
                 status_code=404, detail=f"Zone master for domain [{domain}] not found."
             )
+        add_action_to_history(
+            session=session,
+            db_user=current_user,
+            action=f"get zonemaster of domain [{domain}]",
+            execution_status=200,
+            server="dns_servers",
+        )
         return zone_masters_dict
     except RecordNotFoundError as e:
+        add_action_to_history(
+            session=session,
+            db_user=current_user,
+            action=f"get zonemaster of domain [{domain}]",
+            execution_status=404,
+            server="dns_servers",
+        )
         raise HTTPException(status_code=404, detail=str(e))
 
 
