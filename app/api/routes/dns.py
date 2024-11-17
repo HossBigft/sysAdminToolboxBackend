@@ -4,7 +4,8 @@ from app.ssh_zone_master import getDomainZoneMaster
 from app.dns_resolver import resolve_record, RecordNotFoundError
 from app.validators import validate_domain_name
 from app.crud import add_action_to_history
-from app.api.dependencies import CurrentUser, SessionDep
+from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
+from app.models import UserRoles
 
 router = APIRouter(prefix="/dns")
 
@@ -29,7 +30,10 @@ async def get_ptr_record(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.get("/hoster/get/zonemaster/")
+@router.get(
+    "/hoster/get/zonemaster/",
+    dependencies=[Depends(RoleChecker([UserRoles.SUPERUSER, UserRoles.ADMIN]))],
+)
 async def get_zone_master_from_dns_servers(
     session: SessionDep,
     background_tasks: BackgroundTasks,

@@ -40,7 +40,7 @@ class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
     full_name: str | None = Field(default=None, max_length=255)
-    role: UserRoles = Field(default=[UserRoles.USER])
+    role: UserRoles = Field(default=UserRoles.USER)
 
 
 # Properties to receive via API on creation
