@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from pydantic.networks import IPvAnyAddress
 from app.ssh_zone_master import getDomainZoneMaster
 from app.dns_resolver import resolve_record, RecordNotFoundError
@@ -32,12 +32,37 @@ async def get_ptr_record(
 @router.get("/hoster/get/zonemaster/")
 async def get_zone_master_from_dns_servers(
     session: SessionDep,
+    background_tasks: BackgroundTasks,
     current_user: CurrentUser,
     domain: str = Depends(validate_domain_name),
 ):
     try:
         zone_masters_dict = await getDomainZoneMaster(domain)
         if not zone_masters_dict:
+            background_tasks.add_task(
+                add_action_to_history(
+                    session=session,
+                    db_user=current_user,
+                    action=f"get zonemaster of domain [{domain}]",
+                    execution_status=404,
+                    server="dns_servers",
+                )
+            )
+            raise HTTPException(
+                status_code=404, detail=f"Zone master for domain [{domain}] not found."
+            )
+        background_tasks.add_task(
+            add_action_to_history(
+                session=session,
+                db_user=current_user,
+                action=f"get zonemaster of domain [{domain}]",
+                execution_status=200,
+                server="dns_servers",
+            )
+        )
+        return zone_masters_dict
+    except RecordNotFoundError as e:
+        background_tasks.add_task(
             add_action_to_history(
                 session=session,
                 db_user=current_user,
@@ -45,24 +70,6 @@ async def get_zone_master_from_dns_servers(
                 execution_status=404,
                 server="dns_servers",
             )
-            raise HTTPException(
-                status_code=404, detail=f"Zone master for domain [{domain}] not found."
-            )
-        add_action_to_history(
-            session=session,
-            db_user=current_user,
-            action=f"get zonemaster of domain [{domain}]",
-            execution_status=200,
-            server="dns_servers",
-        )
-        return zone_masters_dict
-    except RecordNotFoundError as e:
-        add_action_to_history(
-            session=session,
-            db_user=current_user,
-            action=f"get zonemaster of domain [{domain}]",
-            execution_status=404,
-            server="dns_servers",
         )
         raise HTTPException(status_code=404, detail=str(e))
 
