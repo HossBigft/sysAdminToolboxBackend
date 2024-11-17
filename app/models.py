@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from pydantic import EmailStr
 from sqlmodel import Field, SQLModel
 from enum import Enum
+from datetime import datetime
 
 
 class UserRoles(Enum):
@@ -93,3 +94,12 @@ class Message(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=40)
+
+
+class UserAction(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id")
+    action: str
+    server: str | None = None
+    timestamp: datetime
+    status: str

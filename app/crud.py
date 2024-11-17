@@ -3,7 +3,8 @@ from typing import Any
 from sqlmodel import Session, select
 
 from app.core.security import get_password_hash, verify_password
-from app.models import User, UserCreate, UserUpdate
+from app.models import User, UserCreate, UserUpdate, UserAction
+from app.utils import get_local_time
 
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
@@ -43,3 +44,22 @@ def authenticate(*, session: Session, email: str, password: str) -> User | None:
     if not verify_password(password, db_user.hashed_password):
         return None
     return db_user
+
+
+def add_action_to_history(
+    *,
+    session: Session,
+    db_user: User,
+    action: str,
+    execution_status: str,
+    server: str | None = None,
+):
+    user_action = UserAction(
+        user_id=db_user.id,
+        action=action,
+        server=server,
+        timestamp=get_local_time(),
+        status=execution_status,
+    )
+    session.add(user_action)
+    session.commit()

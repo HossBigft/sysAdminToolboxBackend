@@ -11,6 +11,7 @@ from jwt.exceptions import InvalidTokenError
 
 from app.core import security
 from app.core.config import settings
+import pytz
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -121,3 +122,10 @@ def verify_password_reset_token(token: str) -> str | None:
         return str(decoded_token["sub"])
     except InvalidTokenError:
         return None
+
+
+def get_local_time():
+    local_zone = pytz.timezone("Asia/Almaty")
+    local_time = datetime.now(local_zone)
+    print(local_time.strftime("%Y-%m-%d %H:%M:%S"))
+    return local_time.strftime("%Y-%m-%d %H:%M:%S")
