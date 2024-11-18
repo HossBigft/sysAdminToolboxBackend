@@ -1,0 +1,375 @@
+Include conf.d/*
+Host *
+	ControlMaster auto
+        ControlPath /tmp/%r@%h:%p
+        ServerAliveInterval 11
+        ControlPersist 30m 
+        ConnectTimeout=5
+        StrictHostKeyChecking no
+        UserKnownHostsFile /dev/null
+Host ogruzo
+	HostName IP_PLACEHOLDER
+	User admi
+  IdentityFile ~/.ssh/id_rsa
+  Port 64610
+example.com
+example.com
+	User maximg
+	IdentityFile ~/.ssh/id_rsa
+#Host p-kturbo-1	Currently doesn't exist
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+# Host p-aturbo-3 currently doesn't exist
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+  User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+	#No access 
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+        #No access
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+        #No access
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+        #No access
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+        #No access
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+        #No access
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+        IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_hoster
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+	IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+        User maximg
+        IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+		User maximg
+    IdentityFile ~/.ssh/id_rsa
+Host vgruzo
+		Hostname IP_PLACEHOLDER
+		User root
+example.com
+example.com
+		User maximg
+    IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+		User root
+                IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+		User root
+    IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+		User root
+    IdentityFile ~/.ssh/id_rsa
+example.com
+example.com
+		User maximg
+    IdentityFile ~/.ssh/id_rsa
+
+#Added 20240809_1733
+example.com
+	HostName IP_PLACEHOLDER
+	User root
+	IdentityFile ~/.ssh/id_rsa
+#Added 20240814_1408
+example.com
+example.com
+	User maximg
+	IdentityFile ~/.ssh/id_rsa
+#apkz-5 does not exist
+#Added 20241003_1001
+example.com
+example.com
+	User maximg
+	IdentityFile ~/.ssh/id_rsa
+#Added 20241020_0820
+Host vtest
+	HostName IP_PLACEHOLDER
+	User vtest
+	IdentityFile ~/.ssh/id_rsa
+#Added 20241029_0911
+Host p-acloud-3
+example.com
+	User maximg
+	IdentityFile ~/.ssh/id_rsa
+#Added 20241029_0912
+Host p-acloud-4
+example.com
+	User maximg
+	IdentityFile ~/.ssh/id_rsa
+#Added 20241029_0912
+Host p-acloud-5
+example.com
+	User maximg
+	IdentityFile ~/.ssh/id_rsa
