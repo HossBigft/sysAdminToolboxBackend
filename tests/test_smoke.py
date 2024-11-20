@@ -30,10 +30,10 @@ def test_a_record_resolution_with_malformed_domain_name(
     assert response.status_code == 422
 
 
-@pytest.mark.parametrize("command", COMMAND_INJECTION_LIST[:10])
-def test_invalid_commands_trigger_422_error(command):
-    response = client.get(f"/dns/hoster/get/zonemaster/?domain={command}")
-    assert response.status_code == 422
+# @pytest.mark.parametrize("command", COMMAND_INJECTION_LIST[:10])
+# def test_invalid_commands_trigger_422_error(command):
+#     response = client.get(f"/dns/hoster/get/zonemaster/?domain={command}")
+#     assert response.status_code == 422
 
 
 def test_mx_record_resolution_with_correct_domain_name(

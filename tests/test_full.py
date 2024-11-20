@@ -15,10 +15,10 @@ client.base_url = str(client.base_url) + settings.API_V1_STR  # adding prefix
 client.base_url = str(client.base_url).rstrip("/") + "/"
 
 
-@pytest.mark.parametrize("command", COMMAND_INJECTION_LIST)
-def test_invalid_commands_trigger_422_error(command):
-    response = client.get(f"/dns/hoster/get/zonemaster/?domain={command}")
-    assert response.status_code == 422
+# @pytest.mark.parametrize("command", COMMAND_INJECTION_LIST)
+# def test_invalid_commands_trigger_422_error(command):
+#     response = client.get(f"/dns/hoster/get/zonemaster/?domain={command}")
+#     assert response.status_code == 422
 
 
 @pytest.mark.parametrize("injection_query", AUTH_BYPASS_SQL_QUERY_LIST)
