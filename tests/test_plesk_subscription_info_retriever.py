@@ -55,7 +55,7 @@ def test_parse_answer():
         "name": "Test Name",
         "username": "user1",
         "userlogin": "login1",
-        "domains": ["domain1.com", "domain2.com"],
+        "domains": ["Test Name", "domain1.com", "domain2.com"],
     }
 
     result = parse_answer(sample_input)
@@ -83,6 +83,7 @@ google.com
         "username": "FIO",
         "userlogin": "p-2342343",
         "domains": [
+google.com
 google.com
 google.com
 google.com
