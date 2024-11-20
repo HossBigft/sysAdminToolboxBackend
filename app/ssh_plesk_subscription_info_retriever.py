@@ -34,7 +34,7 @@ def parse_answer(answer) -> dict:
         "name": stdout_lines[1],
         "username": stdout_lines[2].split("\t")[0],
         "userlogin": stdout_lines[2].split("\t")[1],
-        "domains": stdout_lines[3:],
+        "domains": [stdout_lines[1]] + stdout_lines[3:],
     }
     return parsed_answer
 
