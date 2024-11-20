@@ -47,7 +47,7 @@ async def batch_ssh_execute(cmd: str):
     return await batch_ssh_command_prepare(
         server_list=PLESK_SERVER_LIST,
         command=cmd,
-        verbose=False,
+        verbose=True,
     )
 
 
