@@ -1,8 +1,5 @@
-from fastapi import HTTPException, Depends
-from app.ssh_plesk_subscription_info_retriever import query_subscription_info_by_domain
 import logging
-from app.api.routes import login, dns, users
-from app.validators import validate_domain_name
+from app.api.routes import login, dns, users, plesk, utils
 from fastapi import APIRouter
 
 # Set up logging configuration
@@ -18,7 +15,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # dummy tag to make apirouter index out of range go away
-api_router = APIRouter(tags=["main"])
+
 
 
 # @api_router.middleware("http")
@@ -38,23 +35,12 @@ api_router = APIRouter(tags=["main"])
 #     return response
 
 
-@api_router.get("/plesk/get/subscription/")
-async def find_plesk_subscription_by_domain(
-    domain: str = Depends(validate_domain_name),
-):
-    subscriptions = await query_subscription_info_by_domain(domain)
-    if not subscriptions:
-        raise HTTPException(
-            status_code=404, detail=f"Subscription with domain [{domain}] not found."
-        )
-    return subscriptions
-
-
-@api_router.get("/utils/health-check/")
-async def health_check() -> bool:
-    return True
-
-
+api_router = APIRouter()
 api_router.include_router(login.router, tags=["login"])
 api_router.include_router(dns.router, tags=["dns"])
 api_router.include_router(users.router, tags=["users"])
+api_router.include_router(plesk.router, tags=["plesk"])
+api_router.include_router(utils.router, tags=["utils"])
+
+
+
