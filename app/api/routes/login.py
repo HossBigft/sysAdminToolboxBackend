@@ -9,9 +9,7 @@ from app import crud
 from app.core import security
 
 
-PREFIX = "/login"
-
-router = APIRouter(prefix=PREFIX)
+router = APIRouter()
 
 
 @router.post("/access-token")

@@ -36,11 +36,11 @@ logger = logging.getLogger(__name__)
 
 
 api_router = APIRouter()
-api_router.include_router(login.router, tags=["login"])
-api_router.include_router(dns.router, tags=["dns"])
-api_router.include_router(users.router, tags=["users"])
-api_router.include_router(plesk.router, tags=["plesk"])
-api_router.include_router(utils.router, tags=["utils"])
+api_router.include_router(login.router, tags=["login"], prefix="/login")
+api_router.include_router(dns.router, tags=["dns"], prefix="/dns")
+api_router.include_router(users.router, tags=["users"], prefix="/users")
+api_router.include_router(plesk.router, tags=["plesk"], prefix="/plesk")
+api_router.include_router(utils.router, tags=["utils"], prefix="/utils")
 
 
 
