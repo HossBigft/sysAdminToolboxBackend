@@ -7,7 +7,7 @@ from app.crud import add_action_to_history
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
 from app.models import UserRoles
 
-router = APIRouter()
+router = APIRouter(tags=["dns"], prefix="/dns")
 
 
 @router.get("/hoster/resolve/a/")

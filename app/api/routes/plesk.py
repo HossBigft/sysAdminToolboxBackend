@@ -3,7 +3,8 @@ from app.ssh_plesk_subscription_info_retriever import query_subscription_info_by
 from app.validators import validate_domain_name
 
 
-router = APIRouter()
+router = APIRouter(tags=["plesk"], prefix="/plesk")
+
 
 @router.get("/get/subscription/")
 async def find_plesk_subscription_by_domain(

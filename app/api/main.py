@@ -14,9 +14,6 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# dummy tag to make apirouter index out of range go away
-
-
 
 # @api_router.middleware("http")
 # async def log_requests(request: Request, call_next):
@@ -36,11 +33,11 @@ logger = logging.getLogger(__name__)
 
 
 api_router = APIRouter()
-api_router.include_router(login.router, tags=["login"], prefix="/login")
-api_router.include_router(dns.router, tags=["dns"], prefix="/dns")
-api_router.include_router(users.router, tags=["users"], prefix="/users")
-api_router.include_router(plesk.router, tags=["plesk"], prefix="/plesk")
-api_router.include_router(utils.router, tags=["utils"], prefix="/utils")
+api_router.include_router(login.router)
+api_router.include_router(dns.router)
+api_router.include_router(users.router)
+api_router.include_router(plesk.router)
+api_router.include_router(utils.router)
 
 
 
