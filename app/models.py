@@ -1,10 +1,9 @@
 import uuid
-from pydantic import BaseModel
-
-from pydantic import EmailStr
+from pydantic import EmailStr, BaseModel, RootModel
 from sqlmodel import Field, SQLModel
 from enum import Enum
 from datetime import datetime
+from typing import List
 
 
 class UserRoles(Enum):
@@ -103,3 +102,16 @@ class UserAction(SQLModel, table=True):
     server: str | None = None
     timestamp: datetime
     status: str
+
+
+class SubscriptionInfoModel(BaseModel):
+    host: str
+    id: str
+    name: str
+    username: str
+    userlogin: str
+    domains: List[str]
+
+
+class SubscriptionInfoResponseModel(RootModel):
+    root: List[SubscriptionInfoModel]
