@@ -26,7 +26,7 @@ async def _run_command_over_ssh(host, command, verbose: bool):
         succesfulAnswer = stdout.decode().strip().rstrip()
         failAnswer = stderr.decode().strip().rstrip()
         if failAnswer:
-            print(f"{host} failed: {failAnswer}")
+            print(f"{host} failed in {execution_time:.2f}s : {failAnswer}")
         else:
             print(f"{host} answered in {execution_time:.2f}s : {succesfulAnswer}")
 
