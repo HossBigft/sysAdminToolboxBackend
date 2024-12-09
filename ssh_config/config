@@ -225,7 +225,7 @@ example.com
 example.com
 example.com
         User maximg
-	
+
 example.com
 example.com
         User maximg
@@ -354,23 +354,22 @@ example.com
 example.com
 	User maximg
 	
-#Added 20241020_0820
+
 Host vtest
 	HostName IP_PLACEHOLDER
 	User vtest
-	
-#Added 20241029_0911
-Host p-acloud-3
+
+example.com
 example.com
 	User maximg
 	
 #Added 20241029_0912
-Host p-acloud-4
+example.com
 example.com
 	User maximg
 	
 #Added 20241029_0912
-Host p-acloud-5
+example.com
 example.com
 	User maximg
 	
