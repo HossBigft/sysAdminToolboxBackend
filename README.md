@@ -18,4 +18,6 @@
 `python -m app.main`
 2. Run test with 
 `pytest`
+3. To run backend in local mode with requests to test containers
+`fastapi run  'app/test_local_main.py'`
 
