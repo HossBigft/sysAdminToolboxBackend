@@ -10,7 +10,7 @@ from app.models import UserRoles
 router = APIRouter(tags=["dns"], prefix="/dns")
 
 
-@router.get("/hoster/resolve/a/")
+@router.get("/internal/resolve/a/")
 async def get_a_record(domain: str = Depends(validate_domain_name)):
     try:
         a_records = resolve_record(domain, "A")
@@ -31,7 +31,7 @@ async def get_ptr_record(
 
 
 @router.get(
-    "/hoster/get/zonemaster/",
+    "/internal/get/zonemaster/",
     dependencies=[Depends(RoleChecker([UserRoles.SUPERUSER, UserRoles.ADMIN]))],
 )
 async def get_zone_master_from_dns_servers(
@@ -78,7 +78,7 @@ async def get_zone_master_from_dns_servers(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.get("/hoster/resolve/mx/")
+@router.get("/internal/resolve/mx/")
 async def get_mx_record(domain: str = Depends(validate_domain_name)):
     try:
         mx_records = resolve_record(domain, "MX")

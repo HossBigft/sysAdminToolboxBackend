@@ -7,10 +7,10 @@ class RecordNotFoundError(Exception):
         super().__init__(message)
 
 
-def resolve_record(record: str, type: str, dns_list="hoster"):
+def resolve_record(record: str, type: str, dns_list="internal"):
     custom_resolver = resolver.Resolver()
     match dns_list:
-        case "hoster":
+        case "internal":
             custom_resolver.nameservers = [
                 "IP_PLACEHOLDER",
                 "IP_PLACEHOLDER",

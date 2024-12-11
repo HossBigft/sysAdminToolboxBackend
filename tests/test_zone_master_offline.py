@@ -38,9 +38,9 @@
 #     domain=HostList.CORRECT_EXISTING_DOMAIN,
 # ):
 #     mock_response = [
-example.com
-example.com
-example.com
+#         {"host": "ns1.internal.kz.", "stdout": "IP_PLACEHOLDER"},
+#         {"host": "ns2.internal.kz.", "stdout": "IP_PLACEHOLDER"},
+#         {"host": "ns3.internal.kz.", "stdout": "IP_PLACEHOLDER"},
 #     ]
 
 #     with patch(
@@ -53,9 +53,9 @@ example.com
 #         expected_result = {
 #             "domain": domain,
 #             "answers": [
-example.com
-example.com
-example.com
+#                 {"ns": "ns1.internal.kz.", "zone_master": "IP_PLACEHOLDER"},
+#                 {"ns": "ns2.internal.kz.", "zone_master": "IP_PLACEHOLDER"},
+#                 {"ns": "ns3.internal.kz.", "zone_master": "IP_PLACEHOLDER"},
 #             ],
 #         }
 #         assert result == expected_result
@@ -67,9 +67,9 @@ example.com
 #     domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER,
 # ):
 #     mock_response = [
-example.com
-example.com
-example.com
+#         {"host": "ns1.internal.kz.", "stdout": ""},
+#         {"host": "ns2.internal.kz.", "stdout": ""},
+#         {"host": "ns3.internal.kz.", "stdout": ""},
 #     ]
 
 #     with patch(
