@@ -1,9 +1,14 @@
 import uuid
-from pydantic import EmailStr, BaseModel, RootModel
+from pydantic import EmailStr, BaseModel, RootModel, StringConstraints
 from sqlmodel import Field, SQLModel
 from enum import Enum
 from datetime import datetime
 from typing import List
+from typing_extensions import Annotated
+
+DOMAIN_REGEX_PATTERN = (
+    r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}\.?$"
+)
 
 
 class UserRoles(Enum):
@@ -115,3 +120,14 @@ class SubscriptionInfoModel(BaseModel):
 
 class SubscriptionInfoResponseModel(RootModel):
     root: List[SubscriptionInfoModel]
+
+
+class DomainModel(BaseModel):
+    domain: Annotated[
+        str,
+        StringConstraints(
+            min_length=3,
+            max_length=253,
+            pattern=DOMAIN_REGEX_PATTERN,
+        ),
+    ]
