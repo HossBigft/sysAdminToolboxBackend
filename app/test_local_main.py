@@ -7,16 +7,19 @@ from app.api.main import api_router
 from app.core.config import settings
 from unittest.mock import patch
 from tests.utils.container_db_utils import TestMariadb, TEST_DB_CMD
-import os 
+import os
 from tests.utils.container_unix_utils import UnixContainer
+
 
 # Custom unique ID generator function for routes
 def custom_generate_unique_id(route: APIRoute) -> str:
     return f"{route.tags[0]}-{route.name}"
 
+
 # Initialize Sentry SDK if not in local environment
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
     import sentry_sdk
+
     sentry_sdk.init(dsn=str(settings.SENTRY_DSN), enable_tracing=True)
 
 # Initialize FastAPI app
@@ -40,17 +43,24 @@ if settings.all_cors_origins:
 testdb = TestMariadb().populate_db()
 linux_container = UnixContainer().prepare_zonefile()
 
+
 def mock_batch_ssh(command: str):
     stdout = testdb.run_cmd(command)
-    return [{"host": "test", "stdout": stdout}]
+    return [{"host": "test.com", "stdout": stdout}]
+
 
 def mock_batch_ssh_ns(command: str):
     stdout = linux_container.run_cmd(command)
-    return [{"host": "test", "stdout": stdout}]
+    return [{"host": "test.com", "stdout": stdout}]
+
+
 patches = [
     patch("app.ssh_plesk_subscription_info_retriever.PLESK_DB_RUN_CMD", TEST_DB_CMD),
-    patch("app.ssh_plesk_subscription_info_retriever.batch_ssh_execute", wraps=mock_batch_ssh),
-    patch("app.ssh_zone_master.batch_ssh_execute", wraps=mock_batch_ssh_ns)
+    patch(
+        "app.ssh_plesk_subscription_info_retriever.batch_ssh_execute",
+        wraps=mock_batch_ssh,
+    ),
+    patch("app.ssh_zone_master.batch_ssh_execute", wraps=mock_batch_ssh_ns),
 ]
 
 for p in patches:
