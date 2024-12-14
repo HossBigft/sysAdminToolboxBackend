@@ -4,14 +4,14 @@ from app.ssh_zone_master import getDomainZoneMaster
 from app.dns_resolver import resolve_record, RecordNotFoundError
 from app.crud import add_action_to_history
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
-from app.models import UserRoles, DomainModel
+from app.models import UserRoles, Domain
 from typing import Annotated
 
 router = APIRouter(tags=["dns"], prefix="/dns")
 
 
 @router.get("/internal/resolve/a/")
-async def get_a_record(domain: Annotated[DomainModel, Query()]):
+async def get_a_record(domain: Annotated[Domain, Query()]):
     domain_str = domain.domain
     try:
         a_records = resolve_record(domain_str, "A")
@@ -39,7 +39,7 @@ async def get_zone_master_from_dns_servers(
     session: SessionDep,
     background_tasks: BackgroundTasks,
     current_user: CurrentUser,
-    domain: Annotated[DomainModel, Query()],
+    domain: Annotated[Domain, Query()],
 ):
     domain_str = domain.domain
     try:
@@ -82,7 +82,7 @@ async def get_zone_master_from_dns_servers(
 
 
 @router.get("/internal/resolve/mx/")
-async def get_mx_record(domain: Annotated[DomainModel, Query()]):
+async def get_mx_record(domain: Annotated[Domain, Query()]):
     domain_str = domain.domain
     try:
         mx_records = resolve_record(domain_str, "MX")
@@ -92,7 +92,7 @@ async def get_mx_record(domain: Annotated[DomainModel, Query()]):
 
 
 @router.get("/resolve/ns/")
-async def get_ns_records(domain: Annotated[DomainModel, Query()]):
+async def get_ns_records(domain: Annotated[Domain, Query()]):
     domain_str = domain.domain
     try:
         ns_records = resolve_record(domain_str, "NS")

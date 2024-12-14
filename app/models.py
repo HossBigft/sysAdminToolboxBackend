@@ -122,7 +122,7 @@ class SubscriptionInfoResponseModel(RootModel):
     root: List[SubscriptionInfoModel]
 
 
-class DomainModel(BaseModel):
+class Domain(BaseModel):
     domain: Annotated[
         str,
         StringConstraints(
