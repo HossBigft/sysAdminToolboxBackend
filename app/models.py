@@ -1,5 +1,5 @@
 import uuid
-from pydantic import EmailStr, BaseModel, RootModel, StringConstraints
+from pydantic import EmailStr, BaseModel, RootModel, StringConstraints, ConfigDict
 from sqlmodel import Field, SQLModel
 from enum import Enum
 from datetime import datetime
@@ -109,19 +109,6 @@ class UserAction(SQLModel, table=True):
     status: str
 
 
-class SubscriptionInfoModel(BaseModel):
-    host: str
-    id: str
-    name: str
-    username: str
-    userlogin: str
-    domains: List[str]
-
-
-class SubscriptionInfoResponseModel(RootModel):
-    root: List[SubscriptionInfoModel]
-
-
 class Domain(BaseModel):
     domain: Annotated[
         str,
@@ -131,3 +118,24 @@ class Domain(BaseModel):
             pattern=DOMAIN_REGEX_PATTERN,
         ),
     ]
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {"domain": "example.com."},
+            ]
+        }
+    }
+
+
+class SubscriptionInfoModel(BaseModel):
+    host: Domain
+    id: str
+    name: str
+    username: str
+    userlogin: str
+    domains: List[Domain]
+
+
+class SubscriptionInfoResponseModel(RootModel):
+    root: List[SubscriptionInfoModel]
