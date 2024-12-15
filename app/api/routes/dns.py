@@ -8,16 +8,18 @@ from app.models import (
     UserRoles,
     DomainName,
     DomainARecordResponse,
-    ptrRecordResponse,
+    PtrRecordResponse,
     IPv4Address,
+    DomainMxRecordResponse,
+    DomainNsRecordResponse,
 )
 from typing import Annotated
 
 router = APIRouter(tags=["dns"], prefix="/dns")
 
 
-@router.get("/internal/resolve/a/", response_model=DomainARecordResponse)
-async def get_a_record(domain: Annotated[DomainName, Query()]):
+@router.get("/internal/resolve/a/")
+async def get_a_record(domain: Annotated[DomainName, Query()]) -> DomainARecordResponse:
     domain_str = domain.domain
     try:
         a_records = resolve_record(domain_str, "A")
@@ -30,13 +32,14 @@ async def get_a_record(domain: Annotated[DomainName, Query()]):
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.get("/resolve/ptr/", response_model=ptrRecordResponse)
+@router.get("/resolve/ptr/")
 async def get_ptr_record(
     ip: IPvAnyAddress,
 ):
     try:
         ptr_records = resolve_record(str(ip), "PTR")
-        return {"ip": ip, "records": ptr_records}
+        records = [DomainName(domain=domain) for domain in ptr_records]
+        return PtrRecordResponse(ip=IPv4Address(ip=ip), records=records)
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -92,20 +95,30 @@ async def get_zone_master_from_dns_servers(
 
 
 @router.get("/internal/resolve/mx/")
-async def get_mx_record(domain: Annotated[DomainName, Query()]):
+async def get_mx_record(
+    domain: Annotated[DomainName, Query()],
+) -> DomainMxRecordResponse:
     domain_str = domain.domain
     try:
         mx_records = resolve_record(domain_str, "MX")
-        return {"domain": domain_str, "records": mx_records}
+        records = [DomainName(domain=domain) for domain in mx_records]
+        return DomainMxRecordResponse(
+            domain=DomainName(domain=domain_str), records=records
+        )
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
 
 @router.get("/resolve/ns/")
-async def get_ns_records(domain: Annotated[DomainName, Query()]):
+async def get_ns_records(
+    domain: Annotated[DomainName, Query()],
+) -> DomainNsRecordResponse:
     domain_str = domain.domain
     try:
         ns_records = resolve_record(domain_str, "NS")
-        return {"domain": domain_str, "records": ns_records}
+        records = [DomainName(domain=domain) for domain in ns_records]
+        return DomainNsRecordResponse(
+            domain=DomainName(domain=domain_str), records=records
+        )
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))

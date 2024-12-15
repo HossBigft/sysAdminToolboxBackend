@@ -1,5 +1,5 @@
 import uuid
-from pydantic import EmailStr, BaseModel, RootModel, StringConstraints
+from pydantic import EmailStr, BaseModel, RootModel, StringConstraints, model_serializer
 from sqlmodel import Field, SQLModel
 from enum import Enum
 from datetime import datetime
@@ -122,6 +122,10 @@ class DomainName(BaseModel):
 
     model_config = {"json_schema_extra": {"examples": ["example.com."]}}
 
+    @model_serializer
+    def ser_model(self) -> str:
+        return self.domain
+
 
 class SubscriptionDetailsModel(BaseModel):
     host: DomainName
@@ -142,20 +146,28 @@ class IPv4Address(BaseModel):
     def __str__(self) -> str:
         return str(self.ip)
 
+    @model_serializer
+    def ser_model(self) -> str:
+        return str(self.ip)
+
     model_config = {"json_schema_extra": {"examples": ["IP_PLACEHOLDER"]}}
 
 
 class DomainARecordResponse(BaseModel):
     domain: DomainName
     records: List[IPv4Address]
-    model_config = {
-        "json_encoders": {
-            # Custom JSON encoder to serialize only the IP string
-            IPv4Address: lambda v: str(v)
-        }
-    }
 
 
-class ptrRecordResponse(BaseModel):
+class PtrRecordResponse(BaseModel):
     ip: IPv4Address
+    records: List[DomainName]
+
+
+class DomainMxRecordResponse(BaseModel):
+    domain: DomainName
+    records: List[DomainName]
+
+
+class DomainNsRecordResponse(BaseModel):
+    domain: DomainName
     records: List[DomainName]
