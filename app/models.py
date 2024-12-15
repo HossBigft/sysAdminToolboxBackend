@@ -1,10 +1,11 @@
 import uuid
-from pydantic import EmailStr, BaseModel, RootModel, StringConstraints, ConfigDict
+from pydantic import EmailStr, BaseModel, RootModel, StringConstraints
 from sqlmodel import Field, SQLModel
 from enum import Enum
 from datetime import datetime
 from typing import List
 from typing_extensions import Annotated
+from pydantic.networks import IPvAnyAddress
 
 DOMAIN_REGEX_PATTERN = (
     r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}\.?$"
@@ -119,13 +120,7 @@ class DomainName(BaseModel):
         ),
     ]
 
-    model_config = {
-        "json_schema_extra": {
-            "examples": [
-                {"domain": "example.com."},
-            ]
-        }
-    }
+    model_config = {"json_schema_extra": {"examples": ["example.com."]}}
 
 
 class SubscriptionDetailsModel(BaseModel):
@@ -139,3 +134,28 @@ class SubscriptionDetailsModel(BaseModel):
 
 class SubscriptionListResponseModel(RootModel):
     root: List[SubscriptionDetailsModel]
+
+
+class IPv4Address(BaseModel):
+    ip: IPvAnyAddress
+
+    def __str__(self) -> str:
+        return str(self.ip)
+
+    model_config = {"json_schema_extra": {"examples": ["IP_PLACEHOLDER"]}}
+
+
+class DomainARecordResponse(BaseModel):
+    domain: DomainName
+    records: List[IPv4Address]
+    model_config = {
+        "json_encoders": {
+            # Custom JSON encoder to serialize only the IP string
+            IPv4Address: lambda v: str(v)
+        }
+    }
+
+
+class ptrRecordResponse(BaseModel):
+    ip: IPv4Address
+    records: List[DomainName]

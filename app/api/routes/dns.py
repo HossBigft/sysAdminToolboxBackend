@@ -4,23 +4,33 @@ from app.ssh_zone_master import getDomainZoneMaster
 from app.dns_resolver import resolve_record, RecordNotFoundError
 from app.crud import add_action_to_history
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
-from app.models import UserRoles, DomainName
+from app.models import (
+    UserRoles,
+    DomainName,
+    DomainARecordResponse,
+    ptrRecordResponse,
+    IPv4Address,
+)
 from typing import Annotated
 
 router = APIRouter(tags=["dns"], prefix="/dns")
 
 
-@router.get("/internal/resolve/a/")
+@router.get("/internal/resolve/a/", response_model=DomainARecordResponse)
 async def get_a_record(domain: Annotated[DomainName, Query()]):
     domain_str = domain.domain
     try:
         a_records = resolve_record(domain_str, "A")
-        return {"domain": domain_str, "records": a_records}
+
+        records = [IPv4Address(ip=ip) for ip in a_records]
+        return DomainARecordResponse(
+            domain=DomainName(domain=domain_str), records=records
+        )
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.get("/resolve/ptr/")
+@router.get("/resolve/ptr/", response_model=ptrRecordResponse)
 async def get_ptr_record(
     ip: IPvAnyAddress,
 ):
