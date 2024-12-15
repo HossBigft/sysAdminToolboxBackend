@@ -122,8 +122,8 @@ class DomainName(BaseModel):
 
     model_config = {"json_schema_extra": {"examples": ["example.com."]}}
 
-    @model_serializer
-    def ser_model(self) -> str:
+    @model_serializer(mode="wrap")
+    def ser_model(self, _handler):
         return self.domain
 
 
@@ -146,9 +146,9 @@ class IPv4Address(BaseModel):
     def __str__(self) -> str:
         return str(self.ip)
 
-    @model_serializer
-    def ser_model(self) -> str:
-        return str(self.ip)
+    @model_serializer(mode="wrap")
+    def ser_model(self, _handler):
+        return self.domain
 
     model_config = {"json_schema_extra": {"examples": ["IP_PLACEHOLDER"]}}
 
