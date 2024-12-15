@@ -109,7 +109,7 @@ class UserAction(SQLModel, table=True):
     status: str
 
 
-class Domain(BaseModel):
+class DomainName(BaseModel):
     domain: Annotated[
         str,
         StringConstraints(
@@ -128,14 +128,14 @@ class Domain(BaseModel):
     }
 
 
-class SubscriptionInfoModel(BaseModel):
-    host: Domain
+class SubscriptionDetailsModel(BaseModel):
+    host: DomainName
     id: str
     name: str
     username: str
     userlogin: str
-    domains: List[Domain]
+    domains: List[DomainName]
 
 
-class SubscriptionInfoResponseModel(RootModel):
-    root: List[SubscriptionInfoModel]
+class SubscriptionListResponseModel(RootModel):
+    root: List[SubscriptionDetailsModel]
