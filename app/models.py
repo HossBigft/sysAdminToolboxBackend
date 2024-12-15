@@ -148,7 +148,7 @@ class IPv4Address(BaseModel):
 
     @model_serializer(mode="wrap")
     def ser_model(self, _handler):
-        return self.domain
+        return str(self.ip)
 
     model_config = {"json_schema_extra": {"examples": ["IP_PLACEHOLDER"]}}
 
