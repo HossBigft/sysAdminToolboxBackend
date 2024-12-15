@@ -14,8 +14,8 @@
 `uv pip sync pyproject.toml`
 
 ## Execution
-1. Run project with( you need to be in root directory)
-`python -m app.main`
+1. Run project with activated virtual environment( you need to be in root directory)
+`fastapi run --reload 'app/test_local_main.py'`
 2. Run test with 
 `pytest`
 3. To run backend in local mode with requests to test containers
