@@ -1,13 +1,11 @@
-import uvicorn
+from unittest.mock import patch
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from starlette.middleware.cors import CORSMiddleware
 
 from app.api.main import api_router
 from app.core.config import settings
-from unittest.mock import patch
 from tests.utils.container_db_utils import TestMariadb, TEST_DB_CMD
-import os
 from tests.utils.container_unix_utils import UnixContainer
 
 
