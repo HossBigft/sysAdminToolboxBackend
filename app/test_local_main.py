@@ -8,6 +8,8 @@ from app.core.config import settings
 from tests.utils.container_db_utils import TestMariadb, TEST_DB_CMD
 from tests.utils.container_unix_utils import UnixContainer
 
+TEST_SSH_HOST = "test.com"
+
 
 # Custom unique ID generator function for routes
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -44,12 +46,16 @@ linux_container = UnixContainer().prepare_zonefile()
 
 def mock_batch_ssh(command: str):
     stdout = testdb.run_cmd(command)
-    return [{"host": "test.com", "stdout": stdout}]
+    return [{"host": TEST_SSH_HOST, "stdout": stdout}]
 
 
 def mock_batch_ssh_ns(command: str):
     stdout = linux_container.run_cmd(command)
-    return [{"host": "test.com", "stdout": stdout}]
+    return [{"host": TEST_SSH_HOST, "stdout": stdout}]
+
+
+def mock_get_plesk_subscription_login_link_by_id(arg1, arg2, arg3):
+    return f"https://{TEST_SSH_HOST}/login?secret=sdfdfsdfSECRET&success_redirect_url=%2Fadmin%2Fsubscription%2Foverview%2Fid%2F12345"
 
 
 patches = [
@@ -59,6 +65,10 @@ patches = [
         wraps=mock_batch_ssh,
     ),
     patch("app.ssh_zone_master.batch_ssh_execute", wraps=mock_batch_ssh_ns),
+    patch(
+        "app.api.routes.plesk.get_plesk_subscription_login_link_by_id",
+        wraps=mock_get_plesk_subscription_login_link_by_id,
+    ),
 ]
 
 for p in patches:
