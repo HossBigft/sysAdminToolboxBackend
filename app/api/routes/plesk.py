@@ -1,8 +1,16 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
+from typing import Annotated
+
 from app.ssh_plesk_subscription_info_retriever import query_subscription_info_by_domain
 from app.models import DomainName
-from app.models import SubscriptionListResponseModel, SubscriptionDetailsModel
-from typing import Annotated
+from app.models import (
+    SubscriptionListResponseModel,
+    SubscriptionDetailsModel,
+    SubscriptionLoginLinkInput,
+    UserRoles,
+)
+from app.ssh_plesk_login_link_generator import get_plesk_subscription_login_link_by_id
+from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
 
 router = APIRouter(tags=["plesk"], prefix="/plesk")
 
@@ -34,3 +42,17 @@ async def find_plesk_subscription_by_domain(
     ]
 
     return SubscriptionListResponseModel(root=subscription_models)
+
+
+@router.post(
+    "/subscription/login-link",
+    dependencies=[Depends(RoleChecker([UserRoles.SUPERUSER, UserRoles.ADMIN]))],
+)
+async def get_subscription_login_link(
+    data: SubscriptionLoginLinkInput,
+    current_user: CurrentUser,
+):
+    login_link = await get_plesk_subscription_login_link_by_id(
+        data.host, data.subscription_id, current_user.ssh_username
+    )
+    return login_link

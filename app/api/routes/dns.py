@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query
 from pydantic.networks import IPvAnyAddress
+from typing import Annotated
+
 from app.ssh_zone_master import getDomainZoneMaster
 from app.dns_resolver import resolve_record, RecordNotFoundError
 from app.crud import add_action_to_history
@@ -13,7 +15,7 @@ from app.models import (
     DomainMxRecordResponse,
     DomainNsRecordResponse,
 )
-from typing import Annotated
+
 
 router = APIRouter(tags=["dns"], prefix="/dns")
 

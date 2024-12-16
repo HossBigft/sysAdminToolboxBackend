@@ -1,11 +1,13 @@
 import uuid
-from pydantic import EmailStr, BaseModel, RootModel, StringConstraints, model_serializer
+from pydantic import EmailStr, BaseModel, RootModel, StringConstraints, model_serializer, field_validator
 from sqlmodel import Field, SQLModel
 from enum import Enum
 from datetime import datetime
 from typing import List
 from typing_extensions import Annotated
 from pydantic.networks import IPvAnyAddress
+
+from app.host_lists import PLESK_SERVER_LIST
 
 DOMAIN_REGEX_PATTERN = (
     r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}\.?$"
@@ -46,6 +48,7 @@ class UserBase(SQLModel):
     is_active: bool = True
     full_name: str | None = Field(default=None, max_length=255)
     role: UserRoles = Field(default=UserRoles.USER)
+    ssh_username: str | None = Field(default=None, max_length=33)
 
 
 # Properties to receive via API on creation
@@ -171,3 +174,24 @@ class DomainMxRecordResponse(BaseModel):
 class DomainNsRecordResponse(BaseModel):
     domain: DomainName
     records: List[DomainName]
+
+class SubscriptionLoginLinkInput(BaseModel):
+    host: Annotated[
+        str,
+        StringConstraints(
+            min_length=3,
+            max_length=253,
+            pattern=DOMAIN_REGEX_PATTERN,
+        ),
+    ]
+    subscription_id: int
+    model_config = {"json_schema_extra": {"examples": [{
+example.com
+  "subscription_id": 1124
+}]}}
+    
+    @field_validator('host')
+    def validate_host(cls, v):
+        if v not in PLESK_SERVER_LIST:
+            raise ValueError(f"Host '{v}' is not Plesk server.")
+        return v

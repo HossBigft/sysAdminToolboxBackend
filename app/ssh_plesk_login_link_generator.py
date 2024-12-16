@@ -1,4 +1,5 @@
 import re
+from fastapi import HTTPException
 
 from app.host_lists import PLESK_SERVER_LIST
 from app.ssh_async_executor import run_command_over_ssh
@@ -18,10 +19,8 @@ async def _build_login_command(ssh_username: str) -> str:
 
 async def _is_subscription_id_valid(host: str, subscriptionId: str) -> bool:
     get_subscription_name_cmd = f'plesk db -Ne "SELECT name FROM domains WHERE webspace_id=0 AND id={subscriptionId}"'
-    subscription_name = await run_command_over_ssh(
-        host, get_subscription_name_cmd
-    ).stdout
-
+    result = await run_command_over_ssh(host, get_subscription_name_cmd)
+    subscription_name = result["stdout"]
     return not subscription_name == ""
 
 
@@ -39,13 +38,20 @@ async def get_plesk_subscription_login_link_by_id(
     host: str, subscription_id: int, ssh_username: str
 ) -> str:
     if host not in PLESK_SERVER_LIST:
-        raise ValueError(f"Host '{host}' is not a Plesk server.")
+        raise HTTPException(
+            status_code=400, detail=f"Host '{host}' is not a Plesk server."
+        )
 
     if not _is_valid_username(ssh_username):
-        raise ValueError("Input string should be a valid Linux username.")
+        raise HTTPException(
+            status_code=400, detail="Input string should be a valid Linux username."
+        )
 
     if not await _is_subscription_id_valid(host, subscription_id):
-        raise ValueError("Subscription with the provided ID doesn't exist.")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Subscription with {subscription_id} ID doesn't exist.",
+        )
 
     plesk_login_link = await get_plesk_login_link(host, ssh_username)
     subscription_login_link = f"{plesk_login_link}{REDIRECTION_HEADER}{subscription_id}"
