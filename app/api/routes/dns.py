@@ -60,39 +60,20 @@ async def get_zone_master_from_dns_servers(
     try:
         zone_masters_dict = await getDomainZoneMaster(domain_str)
         if not zone_masters_dict:
-            background_tasks.add_task(
-                add_action_to_history(
-                    session=session,
-                    db_user=current_user,
-                    action=f"get zonemaster of domain [{domain_str}]",
-                    execution_status=404,
-                    server="dns_servers",
-                )
-            )
             raise HTTPException(
                 status_code=404,
                 detail=f"Zone master for domain [{domain_str}] not found.",
             )
         background_tasks.add_task(
-            add_action_to_history(
-                session=session,
-                db_user=current_user,
-                action=f"get zonemaster of domain [{domain_str}]",
-                execution_status=200,
-                server="dns_servers",
-            )
+            add_action_to_history,
+            session=session,
+            db_user=current_user,
+            action=f"get zonemaster of domain [{domain_str}]",
+            execution_status=200,
+            server="dns_servers",
         )
         return zone_masters_dict
     except RecordNotFoundError as e:
-        background_tasks.add_task(
-            add_action_to_history(
-                session=session,
-                db_user=current_user,
-                action=f"get zonemaster of domain [{domain_str}]",
-                execution_status=404,
-                server="dns_servers",
-            )
-        )
         raise HTTPException(status_code=404, detail=str(e))
 
 
