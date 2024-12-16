@@ -46,3 +46,10 @@ async def batch_ssh_command_prepare(
 
 def batch_ssh_command_result(server_list, command, verbose=False):
     return asyncio.run(batch_ssh_command_prepare(server_list, command, verbose))
+
+
+async def run_command_over_ssh(
+    host: str, command: str, verbose: bool = True
+) -> Dict[str, str]:
+    stdout, stderr = await _run_command_over_ssh(host, command, verbose)
+    return {"host": host, "stdout": stdout, "stderr": stderr}
