@@ -64,7 +64,7 @@ async def get_subscription_login_link(
         session=session,
         db_user=current_user,
         action=f"generate plesk login link for subscription with ID [{data.subscription_id}] on server [{data.host}] for user [{current_user.ssh_username}]",
-        execution_status=404,
+        execution_status=200,
         server="dns_servers",
     )
     return login_link
