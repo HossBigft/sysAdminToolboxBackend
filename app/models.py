@@ -71,7 +71,7 @@ class UserUpdate(UserBase):
 class UserUpdateMe(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
-
+    ssh_username: str | None = Field(default=None, max_length=33)
 
 class UpdatePassword(SQLModel):
     current_password: str = Field(min_length=8, max_length=40)
