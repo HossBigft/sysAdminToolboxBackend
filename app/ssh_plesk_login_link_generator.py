@@ -27,7 +27,7 @@ async def _is_subscription_id_valid(host: str, subscriptionId: str) -> bool:
 async def get_plesk_login_link(host: str, ssh_username: str) -> str:
     if host not in PLESK_SERVER_LIST:
         raise ValueError(f"Host '{host}' is not Plesk server.")
-    if not _is_valid_username(ssh_username):
+    if not await _is_valid_username(ssh_username):
         raise ValueError("Input string should be a valid linux username.")
     cmd_to_run = await _build_login_command(ssh_username)
     answer = await run_command_over_ssh(cmd_to_run)
