@@ -30,8 +30,9 @@ async def get_plesk_login_link(host: str, ssh_username: str) -> str:
     if not await _is_valid_username(ssh_username):
         raise ValueError("Input string should be a valid linux username.")
     cmd_to_run = await _build_login_command(ssh_username)
-    answer = await run_command_over_ssh(cmd_to_run)
-    return answer.stdout
+    result = await run_command_over_ssh(host, cmd_to_run)
+    login_link = result["stdout"]
+    return login_link
 
 
 async def get_plesk_subscription_login_link_by_id(
