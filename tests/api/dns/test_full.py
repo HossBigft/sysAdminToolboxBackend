@@ -1,13 +1,14 @@
 from fastapi.testclient import TestClient
+import pytest
+
 from app.main import app
-from .test_data.data_command_injection_list import COMMAND_INJECTION_LIST
-from .test_data.sql_injection_lists import (
+from tests.test_data.data_command_injection_list import COMMAND_INJECTION_LIST
+from tests.test_data.sql_injection_lists import (
     AUTH_BYPASS_SQL_QUERY_LIST,
     GENERIC_INJECTION_SQL_QUERY_LIST,
     GENERIC_ERRORBASED_SQL_QUERY_LIST,
     GENERIC_TIMEBASED_INJECTION_SQL_QUERY_LIST,
 )
-import pytest
 from app.core.config import settings
 
 client = TestClient(app)

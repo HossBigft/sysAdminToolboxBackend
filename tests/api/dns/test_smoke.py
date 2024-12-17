@@ -1,8 +1,9 @@
 from fastapi.testclient import TestClient
-from app.main import app
-from .test_data.data_command_injection_list import COMMAND_INJECTION_LIST
 import pytest
-from .test_data.hosts import HostList
+
+from app.main import app
+from tests.test_data.data_command_injection_list import COMMAND_INJECTION_LIST
+from tests.test_data.hosts import HostList
 from app.core.config import settings
 
 client = TestClient(app)
