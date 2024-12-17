@@ -79,7 +79,7 @@ def test_ptr_record_resolution(domain=HostList.IP_WITH_PTR):
     response = client.get(f"/dns/resolve/ptr/?ip={domain}")
     assert response.json() == {
         "ip": domain,
-        "records": ["cloud-4.internal.kz."],
+example.com
     }
 
 
@@ -97,7 +97,7 @@ def test_ns_record_resolution_with_correct_domain_name(
     assert response.status_code == 200
     assert response.json() == {
         "domain": domain,
-        "records": ["ns1.internal.kz.", "ns2.internal.kz.", "ns3.internal.kz."],
+example.com
     }
 
 
@@ -122,5 +122,5 @@ def test_ns_record_resolution_with_correct_subdomain(
     assert response.status_code == 200
     assert response.json() == {
         "domain": domain,
-        "records": ["ns1.internal.kz.", "ns2.internal.kz.", "ns3.internal.kz."],
+example.com
     }

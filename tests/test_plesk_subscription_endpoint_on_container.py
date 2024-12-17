@@ -7,7 +7,7 @@ from tests.utils.container_db_utils import TestMariadb, TEST_DB_CMD
 import pytest_asyncio
 from app.core.config import settings
 
-TEST_HOSTS = ["test"]
+TEST_HOSTS = ["test.com"]
 
 
 client = TestClient(app)
@@ -23,7 +23,7 @@ async def test_container():
 
     def mock_batch_ssh(command: str):
         stdout = testdb.run_cmd(command)
-        return [{"host": "test", "stdout": stdout}]
+        return [{"host": TEST_HOSTS[0], "stdout": stdout}]
 
     with patch(
         "app.ssh_plesk_subscription_info_retriever.PLESK_DB_RUN_CMD", TEST_DB_CMD
