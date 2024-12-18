@@ -25,6 +25,7 @@ def db() -> Generator[Session, None, None]:
 @pytest.fixture(scope="module")
 def client() -> Generator[TestClient, None, None]:
     with TestClient(app) as c:
+        c.base_url = str(c.base_url).rstrip("/") + settings.API_V1_STR
         yield c
 
 
