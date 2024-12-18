@@ -1,10 +1,15 @@
-from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
-from fastapi import APIRouter, HTTPException, Depends
 from typing import Annotated, Any
+
+from fastapi import APIRouter, HTTPException, Depends
+from fastapi.security import OAuth2PasswordRequestForm
+
 from app.models import Token, UserPublic
 from app.core.config import settings
-from app.api.dependencies import SessionDep, CurrentUser
+from app.api.dependencies import (
+    CurrentUser,
+    SessionDep,
+)
 from app import crud
 from app.core import security
 
@@ -34,7 +39,7 @@ def login_access_token(
     )
 
 
-@router.post("/login/test-token", response_model=UserPublic)
+@router.post("/test-token", response_model=UserPublic)
 def test_token(current_user: CurrentUser) -> Any:
     """
     Test access token

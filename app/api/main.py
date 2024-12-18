@@ -1,5 +1,5 @@
 import logging
-from app.api.routes import login, dns, users, plesk, utils
+from app.api.routes import login, dns, users, plesk, utils, password_reset
 from fastapi import APIRouter
 
 
@@ -21,3 +21,4 @@ api_router.include_router(dns.router)
 api_router.include_router(users.router)
 api_router.include_router(plesk.router)
 api_router.include_router(utils.router)
+api_router.include_router(password_reset.router)
