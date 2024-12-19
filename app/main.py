@@ -35,6 +35,6 @@ if settings.all_cors_origins:
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.on_event("startup")
-@repeat_every(seconds=60 * 30)  # 1 hour
+@repeat_every(seconds=60 * 30)
 async def ssh_connection_warmup() -> None:
     await ssh_warmup()
