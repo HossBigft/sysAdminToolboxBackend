@@ -14,9 +14,12 @@ client.base_url = (
 
 
 def test_a_record_resolution_with_correct_domain_name(
+    superuser_token_headers: dict[str, str],
     domain=HostList.DOMAIN_WITH_EXISTING_A_RECORD,
 ):
-    response = client.get(f"/dns/internal/resolve/a/?domain={domain}")
+    response = client.get(
+        f"/dns/internal/resolve/a/?domain={domain}", headers=superuser_token_headers
+    )
     assert response.status_code == 200
     assert response.json() == {
         "domain": domain,
@@ -25,9 +28,12 @@ def test_a_record_resolution_with_correct_domain_name(
 
 
 def test_a_record_resolution_with_malformed_domain_name(
+    superuser_token_headers: dict[str, str],
     domain=HostList.MALFORMED_DOMAIN,
 ):
-    response = client.get(f"/dns/internal/resolve/a/?domain={domain}")
+    response = client.get(
+        f"/dns/internal/resolve/a/?domain={domain}", headers=superuser_token_headers
+    )
     assert response.status_code == 422
 
 
@@ -63,9 +69,11 @@ def test_mx_record_resolution_with_nonexistant_domain_name(
 
 
 def test_a_record_resolution_with_nonexistant_domain_name(
-    domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER,
+    superuser_token_headers: dict[str, str], domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER
 ):
-    response = client.get(f"/dns/internal/resolve/a/?domain={domain}")
+    response = client.get(
+        f"/dns/internal/resolve/a/?domain={domain}", headers=superuser_token_headers
+    )
     assert response.status_code == 404
 
 

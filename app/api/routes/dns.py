@@ -20,12 +20,16 @@ from app.models import (
 router = APIRouter(tags=["dns"], prefix="/dns")
 
 
-@router.get("/internal/resolve/a/")
+@router.get(
+    "/internal/resolve/a/",
+    dependencies=[
+        Depends(RoleChecker([UserRoles.USER, UserRoles.SUPERUSER, UserRoles.ADMIN]))
+    ],
+)
 async def get_a_record(domain: Annotated[DomainName, Query()]) -> DomainARecordResponse:
     domain_str = domain.domain
     try:
         a_records = resolve_record(domain_str, "A")
-
         records = [IPv4Address(ip=ip) for ip in a_records]
         return DomainARecordResponse(
             domain=DomainName(domain=domain_str), records=records
