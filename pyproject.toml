@@ -25,4 +25,5 @@ dependencies = [
     "testcontainers>=4.8.2",
     "tldextract>=5.1.2",
     "coverage>=7.6.9",
+    "fastapi-utils[all]>=0.8.0",
 ]
