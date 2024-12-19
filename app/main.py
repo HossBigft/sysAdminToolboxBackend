@@ -4,10 +4,12 @@ from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from starlette.middleware.cors import CORSMiddleware
 from fastapi_utils.tasks import repeat_every
+from contextlib import asynccontextmanager
 
 from app.api.main import api_router
 from app.core.config import settings
 from app.ssh_warmup import ssh_warmup
+
 
 def custom_generate_unique_id(route: APIRoute) -> str:
     return f"{route.tags[0]}-{route.name}"
@@ -34,7 +36,8 @@ if settings.all_cors_origins:
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
-@app.on_event("startup")
+
+@asynccontextmanager
 @repeat_every(seconds=60 * 30)
-async def ssh_connection_warmup() -> None:
+async def lifespan(app: FastAPI):
     await ssh_warmup()
