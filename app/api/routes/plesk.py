@@ -2,12 +2,13 @@ from fastapi import APIRouter, HTTPException, Query, Depends, BackgroundTasks
 from typing import Annotated
 
 from app.ssh_plesk_subscription_info_retriever import query_subscription_info_by_domain
-from app.models import DomainName
 from app.models import (
     SubscriptionListResponseModel,
     SubscriptionDetailsModel,
     SubscriptionLoginLinkInput,
     UserRoles,
+    SubscriptionName,
+    DomainName,
 )
 from app.ssh_plesk_login_link_generator import get_plesk_subscription_login_link_by_id
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
@@ -19,7 +20,7 @@ router = APIRouter(tags=["plesk"], prefix="/plesk")
 @router.get("/get/subscription/", response_model=SubscriptionListResponseModel)
 async def find_plesk_subscription_by_domain(
     domain: Annotated[
-        DomainName,
+        SubscriptionName,
         Query(),
     ],
 ):
@@ -37,7 +38,7 @@ async def find_plesk_subscription_by_domain(
             name=sub["name"],
             username=sub["username"],
             userlogin=sub["userlogin"],
-            domains=[DomainName(domain=d) for d in sub["domains"]],
+            domains=[SubscriptionName(domain=d) for d in sub["domains"]],
         )
         for sub in subscriptions
     ]

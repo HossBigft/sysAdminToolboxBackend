@@ -1,16 +1,15 @@
-from .host_lists import PLESK_SERVER_LIST
-from .ssh_async_executor import batch_ssh_command_prepare
 import re
 
-DOMAIN_REGEX_PATTERN = (
-    r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$"
-)
+from .host_lists import PLESK_SERVER_LIST
+from .ssh_async_executor import batch_ssh_command_prepare
+from app.models import SUBSCRIPTION_NAME_PATTERN
+
 PLESK_DB_RUN_CMD = "plesk db -Ne"
 
 
-def is_valid_domain(domain_name: str) -> bool:
+def is_valid_subscription_name(domain_name: str) -> bool:
     return 3 <= len(domain_name) <= 63 and bool(
-        re.match(DOMAIN_REGEX_PATTERN, domain_name)
+        re.match(SUBSCRIPTION_NAME_PATTERN, domain_name)
     )
 
 
@@ -52,7 +51,7 @@ async def batch_ssh_execute(cmd: str):
 
 
 async def query_subscription_info_by_domain(domain_name: str, partial_search=False):
-    if not is_valid_domain(domain_name):
+    if not is_valid_subscription_name(domain_name):
         raise ValueError("Input string should be a valid domain name.")
 
     lowercate_domain_name = domain_name.lower()
