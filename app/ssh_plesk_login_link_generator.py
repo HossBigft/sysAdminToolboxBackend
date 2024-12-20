@@ -43,7 +43,7 @@ async def get_plesk_subscription_login_link_by_id(
             status_code=400, detail=f"Host '{host}' is not a Plesk server."
         )
 
-    if not _is_valid_username(ssh_username):
+    if not await _is_valid_username(ssh_username):
         raise HTTPException(
             status_code=400, detail="Input string should be a valid Linux username."
         )
