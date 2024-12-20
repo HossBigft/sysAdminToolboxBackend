@@ -3,7 +3,6 @@ import sentry_sdk
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from starlette.middleware.cors import CORSMiddleware
-from fastapi_utils.tasks import repeat_every
 from contextlib import asynccontextmanager
 
 from app.api.main import api_router
@@ -18,10 +17,18 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
     sentry_sdk.init(dsn=str(settings.SENTRY_DSN), enable_tracing=True)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await ssh_warmup()
+    yield
+
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     generate_unique_id_function=custom_generate_unique_id,
+    lifespan=lifespan,
 )
 
 # Set all CORS enabled origins
@@ -35,9 +42,3 @@ if settings.all_cors_origins:
     )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
-
-
-@asynccontextmanager
-@repeat_every(seconds=60 * 30)
-async def lifespan(app: FastAPI):
-    await ssh_warmup()
