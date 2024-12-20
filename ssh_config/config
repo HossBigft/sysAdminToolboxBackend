@@ -3,7 +3,7 @@ Host *
 	ControlMaster auto
         ControlPath /tmp/%r@%h:%p
         ServerAliveInterval 11
-        ControlPersist 30m 
+        ControlPersist 5m 
         ConnectTimeout=5
         StrictHostKeyChecking no
         UserKnownHostsFile /dev/null
