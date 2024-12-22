@@ -191,3 +191,43 @@ async def test_ns_record_resolution_with_correct_subdomain(
         "domain": domain,
 example.com
     }
+
+
+@pytest.mark.asyncio
+async def test_ns_record_resolution_without_login(
+    client: AsyncClient,
+    domain=HostList.CORRECT_EXISTING_DOMAIN,
+):
+    response = await client.get(f"/dns/resolve/ns/?domain={domain}")
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Not authenticated"}
+
+
+@pytest.mark.asyncio
+async def test_a_record_resolution_without_login(
+    client: AsyncClient,
+    domain=HostList.CORRECT_EXISTING_DOMAIN,
+):
+    response = await client.get(f"/dns/internal/resolve/a/?domain={domain}")
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Not authenticated"}
+
+
+@pytest.mark.asyncio
+async def test_mx_record_resolution_without_login(
+    client: AsyncClient,
+    domain=HostList.CORRECT_EXISTING_DOMAIN,
+):
+    response = await client.get(f"/dns/internal/resolve/mx/?domain={domain}")
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Not authenticated"}
+
+
+@pytest.mark.asyncio
+async def test_ptr_record_resolution_without_login(
+    client: AsyncClient,
+    ip=HostList.IP_WITH_PTR,
+):
+    response = await client.get(f"/dns/resolve/ptr/?domain={ip}")
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Not authenticated"}
