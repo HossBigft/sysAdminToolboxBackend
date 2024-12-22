@@ -1,4 +1,4 @@
-from fastapi.testclient import TestClient
+from httpx import AsyncClient
 from sqlmodel import Session
 
 from app import crud
@@ -6,12 +6,12 @@ from app.models import User, UserCreate, UserUpdate
 from tests.utils.utils import random_email, random_lower_string
 
 
-def user_authentication_headers(
-    *, client: TestClient, email: str, password: str
+async def user_authentication_headers(
+    *, client: AsyncClient, email: str, password: str
 ) -> dict[str, str]:
     data = {"username": email, "password": password}
 
-    r = client.post("/login/access-token", data=data)
+    r = await client.post("/login/access-token", data=data)
     response = r.json()
     auth_token = response["access_token"]
     headers = {"Authorization": f"Bearer {auth_token}"}
@@ -26,8 +26,8 @@ def create_random_user(db: Session) -> User:
     return user
 
 
-def authentication_token_from_email(
-    *, client: TestClient, email: str, db: Session
+async def authentication_token_from_email(
+    *, client: AsyncClient, email: str, db: Session
 ) -> dict[str, str]:
     """
     Return a valid token for the user with given email.
@@ -45,4 +45,6 @@ def authentication_token_from_email(
             raise Exception("User id not set")
         user = crud.update_user(session=db, db_user=user, user_in=user_in_update)
 
-    return user_authentication_headers(client=client, email=email, password=password)
+    return await user_authentication_headers(
+        client=client, email=email, password=password
+    )
