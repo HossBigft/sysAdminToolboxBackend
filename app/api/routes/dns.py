@@ -38,7 +38,12 @@ async def get_a_record(domain: Annotated[DomainName, Query()]) -> DomainARecordR
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.get("/resolve/ptr/")
+@router.get(
+    "/resolve/ptr/",
+    dependencies=[
+        Depends(RoleChecker([UserRoles.USER, UserRoles.SUPERUSER, UserRoles.ADMIN]))
+    ],
+)
 async def get_ptr_record(
     ip: IPvAnyAddress,
 ):
@@ -81,7 +86,12 @@ async def get_zone_master_from_dns_servers(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.get("/internal/resolve/mx/")
+@router.get(
+    "/internal/resolve/mx/",
+    dependencies=[
+        Depends(RoleChecker([UserRoles.USER, UserRoles.SUPERUSER, UserRoles.ADMIN]))
+    ],
+)
 async def get_mx_record(
     domain: Annotated[DomainName, Query()],
 ) -> DomainMxRecordResponse:
@@ -96,7 +106,12 @@ async def get_mx_record(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.get("/resolve/ns/")
+@router.get(
+    "/resolve/ns/",
+    dependencies=[
+        Depends(RoleChecker([UserRoles.USER, UserRoles.SUPERUSER, UserRoles.ADMIN]))
+    ],
+)
 async def get_ns_records(
     domain: Annotated[DomainName, Query()],
 ) -> DomainNsRecordResponse:

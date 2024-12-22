@@ -49,9 +49,12 @@ async def test_invalid_commands_trigger_422_error(
 @pytest.mark.asyncio
 async def test_mx_record_resolution_with_correct_domain_name(
     client: AsyncClient,
+    superuser_token_headers: dict[str, str],
     domain=HostList.DOMAIN_WITH_EXISTING_MX_RECORD,
 ):
-    response = await client.get(f"/dns/internal/resolve/mx/?domain={domain}")
+    response = await client.get(
+        f"/dns/internal/resolve/mx/?domain={domain}", headers=superuser_token_headers
+    )
     assert response.status_code == 200
     assert response.json() == {
         "domain": domain,
@@ -62,18 +65,24 @@ async def test_mx_record_resolution_with_correct_domain_name(
 @pytest.mark.asyncio
 async def test_mx_record_resolution_with_malformed_domain_name(
     client: AsyncClient,
+    superuser_token_headers: dict[str, str],
     domain=HostList.MALFORMED_DOMAIN,
 ):
-    response = await client.get(f"/dns/internal/resolve/mx/?domain={domain}")
+    response = await client.get(
+        f"/dns/internal/resolve/mx/?domain={domain}", headers=superuser_token_headers
+    )
     assert response.status_code == 422
 
 
 @pytest.mark.asyncio
 async def test_mx_record_resolution_with_nonexistant_domain_name(
     client: AsyncClient,
+    superuser_token_headers: dict[str, str],
     domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER,
 ):
-    response = await client.get(f"/dns/internal/resolve/mx/?domain={domain}")
+    response = await client.get(
+        f"/dns/internal/resolve/mx/?domain={domain}", headers=superuser_token_headers
+    )
     assert response.status_code == 404
 
 
@@ -92,15 +101,24 @@ async def test_a_record_resolution_with_nonexistant_domain_name(
 @pytest.mark.asyncio
 async def test_ptr_record_resolution_with_nonexistant_ptr_record(
     client: AsyncClient,
+    superuser_token_headers: dict[str, str],
     domain=HostList.IP_WITHOUT_PTR,
 ):
-    response = await client.get(f"/dns/resolve/ptr/?ip={domain}")
+    response = await client.get(
+        f"/dns/resolve/ptr/?ip={domain}", headers=superuser_token_headers
+    )
     assert response.status_code == 404
 
 
 @pytest.mark.asyncio
-async def test_ptr_record_resolution(client: AsyncClient, domain=HostList.IP_WITH_PTR):
-    response = await client.get(f"/dns/resolve/ptr/?ip={domain}")
+async def test_ptr_record_resolution(
+    client: AsyncClient,
+    superuser_token_headers: dict[str, str],
+    domain=HostList.IP_WITH_PTR,
+):
+    response = await client.get(
+        f"/dns/resolve/ptr/?ip={domain}", headers=superuser_token_headers
+    )
     assert response.json() == {
         "ip": domain,
 example.com
@@ -110,18 +128,24 @@ example.com
 @pytest.mark.asyncio
 async def test_subscription_query_with_malformed_domain_name(
     client: AsyncClient,
+    superuser_token_headers: dict[str, str],
     domain=HostList.MALFORMED_DOMAIN,
 ):
-    response = await client.get(f"/plesk/get/subscription/?domain={domain}")
+    response = await client.get(
+        f"/plesk/get/subscription/?domain={domain}", headers=superuser_token_headers
+    )
     assert response.status_code == 422
 
 
 @pytest.mark.asyncio
 async def test_ns_record_resolution_with_correct_domain_name(
     client: AsyncClient,
+    superuser_token_headers: dict[str, str],
     domain=HostList.CORRECT_EXISTING_DOMAIN,
 ):
-    response = await client.get(f"/dns/resolve/ns/?domain={domain}")
+    response = await client.get(
+        f"/dns/resolve/ns/?domain={domain}", headers=superuser_token_headers
+    )
     assert response.status_code == 200
     assert response.json() == {
         "domain": domain,
@@ -132,27 +156,36 @@ example.com
 @pytest.mark.asyncio
 async def test_ns_record_resolution_with_malformed_domain_name(
     client: AsyncClient,
+    superuser_token_headers: dict[str, str],
     domain=HostList.MALFORMED_DOMAIN,
 ):
-    response = await client.get(f"/dns/resolve/ns/?domain={domain}")
+    response = await client.get(
+        f"/dns/resolve/ns/?domain={domain}", headers=superuser_token_headers
+    )
     assert response.status_code == 422
 
 
 @pytest.mark.asyncio
 async def test_ns_record_resolution_with_nonexistant_domain_name(
     client: AsyncClient,
+    superuser_token_headers: dict[str, str],
     domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER,
 ):
-    response = await client.get(f"/dns/resolve/ns/?domain={domain}")
+    response = await client.get(
+        f"/dns/resolve/ns/?domain={domain}", headers=superuser_token_headers
+    )
     assert response.status_code == 404
 
 
 @pytest.mark.asyncio
 async def test_ns_record_resolution_with_correct_subdomain(
     client: AsyncClient,
+    superuser_token_headers: dict[str, str],
     domain=HostList.CORRECT_EXISTING_SUBDOMAIN,
 ):
-    response = await client.get(f"/dns/resolve/ns/?domain={domain}")
+    response = await client.get(
+        f"/dns/resolve/ns/?domain={domain}", headers=superuser_token_headers
+    )
     assert response.status_code == 200
     assert response.json() == {
         "domain": domain,
