@@ -1,7 +1,7 @@
-from collections.abc import Generator
+from collections.abc import AsyncGenerator
 
-import pytest
-from fastapi.testclient import TestClient
+import pytest_asyncio
+from httpx import AsyncClient, ASGITransport
 from sqlmodel import Session, delete
 
 from app.core.config import settings
@@ -12,8 +12,8 @@ from tests.utils.user import authentication_token_from_email
 from tests.utils.utils import get_superuser_token_headers
 
 
-@pytest.fixture(scope="session", autouse=True)
-def db() -> Generator[Session, None, None]:
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def db() -> AsyncGenerator[Session, None]:
     with Session(engine) as session:
         init_db(session)
         yield session
@@ -22,20 +22,26 @@ def db() -> Generator[Session, None, None]:
         session.commit()
 
 
-@pytest.fixture(scope="module")
-def client() -> Generator[TestClient, None, None]:
-    with TestClient(app) as c:
-        c.base_url = str(c.base_url).rstrip("/") + settings.API_V1_STR
+@pytest_asyncio.fixture(scope="module")
+async def client() -> (
+    AsyncGenerator[
+        AsyncClient,
+        None,
+    ]
+):
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test" + settings.API_V1_STR
+    ) as c:
         yield c
 
 
-@pytest.fixture(scope="module")
-def superuser_token_headers(client: TestClient) -> dict[str, str]:
-    return get_superuser_token_headers(client)
+@pytest_asyncio.fixture(scope="module")
+async def superuser_token_headers(client: AsyncClient) -> dict[str, str]:
+    return await get_superuser_token_headers(client)
 
 
-@pytest.fixture(scope="module")
-def normal_user_token_headers(client: TestClient, db: Session) -> dict[str, str]:
-    return authentication_token_from_email(
+@pytest_asyncio.fixture(scope="module")
+async def normal_user_token_headers(client: AsyncClient, db: Session) -> dict[str, str]:
+    return await authentication_token_from_email(
         client=client, email=settings.EMAIL_TEST_USER, db=db
     )
