@@ -35,7 +35,7 @@ async def test_a_record_resolution_with_malformed_domain_name(
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("command", COMMAND_INJECTION_LIST[:10])
-async def test_invalid_commands_trigger_422_error(
+async def test_command_injection_returns_422_error_get_zonemaster(
     client: AsyncClient, superuser_token_headers: dict[str, str], command
 ):
     response = await client.get(
@@ -218,3 +218,25 @@ async def test_ptr_record_resolution_without_login(
     response = await client.get(f"/dns/resolve/ptr/?domain={ip}")
     assert response.status_code == 401
     assert response.json() == {"detail": "Not authenticated"}
+
+
+@pytest.mark.asyncio
+async def test_delete_zonemaster_without_login(
+    client: AsyncClient,
+    domain=HostList.CORRECT_EXISTING_DOMAIN,
+):
+    response = await client.delete(f"/dns/internal/zonemaster/?domain={domain}")
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Not authenticated"}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("command", COMMAND_INJECTION_LIST[:10])
+async def test_command_injection_returns_422_error_delete_zonemaster(
+    client: AsyncClient, superuser_token_headers: dict[str, str], command
+):
+    response = await client.get(
+        f"/dns/internal/zonemaster/?domain={command}",
+        headers=superuser_token_headers,
+    )
+    assert response.status_code == 422
