@@ -46,3 +46,21 @@ async def getDomainZoneMaster(domain_name: str):
     if not dnsAnswers:
         return None
     return {"domain": f"{domain_name}", "answers": dnsAnswers}
+
+
+async def build_remove_zone_master_command(domain_name: str) -> None:
+    escaped_domain = shlex.quote(f'\\"{domain_name.lower()}\\"')
+    return f"/opt/isc/isc-bind/root/usr/sbin/rndc delzone -clean {escaped_domain}"
+
+
+async def remove_domain_zone_master(domain_name: str):
+    if not is_valid_domain(domain_name):
+        raise ValueError("Input string should be a valid domain name.")
+    rm_zone_master_md = await build_remove_zone_master_command(domain_name)
+    dnsAnswers = await batch_ssh_execute(rm_zone_master_md)
+    for item in dnsAnswers:
+        if item["stderr"]:
+            raise RuntimeError(
+                f"DNS zone removal failed for host: {item['host']} "
+                f"with error: {item['stderr']}"
+            )
