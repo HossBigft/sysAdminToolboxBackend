@@ -12,6 +12,14 @@ from tests.utils.user import authentication_token_from_email
 from tests.utils.utils import get_superuser_token_headers
 
 
+@pytest_asyncio.fixture(autouse=True)
+def mock_ssh_commands(monkeypatch):
+    async def mock_execute(*args, **kwargs):
+        return ("test-host", "mocked_output", "", 0)
+
+    monkeypatch.setattr("app.ssh_async_executor._run_command_over_ssh", mock_execute)
+
+
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def db() -> AsyncGenerator[Session, None]:
     with Session(engine) as session:
