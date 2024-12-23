@@ -18,7 +18,7 @@ client.base_url = str(client.base_url).rstrip("/") + "/"
 
 # @pytest.mark.parametrize("command", COMMAND_INJECTION_LIST)
 # def test_invalid_commands_trigger_422_error(command):
-#     response = client.get(f"/dns/internal/get/zonemaster/?domain={command}")
+#     response = client.get(f"/dns/internal/zonemaster/?domain={command}")
 #     assert response.status_code == 422
 
 

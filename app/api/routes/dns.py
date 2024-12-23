@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query
 from pydantic.networks import IPvAnyAddress
 from typing import Annotated
 
-from app.ssh_zone_master import getDomainZoneMaster
+from app.ssh_zone_master import getDomainZoneMaster, remove_domain_zone_master
 from app.dns_resolver import resolve_record, RecordNotFoundError
 from app.crud import add_action_to_history
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
@@ -56,7 +56,7 @@ async def get_ptr_record(
 
 
 @router.get(
-    "/internal/get/zonemaster/",
+    "/internal/zonemaster/",
     dependencies=[Depends(RoleChecker([UserRoles.SUPERUSER, UserRoles.ADMIN]))],
 )
 async def get_zone_master_from_dns_servers(
@@ -123,4 +123,30 @@ async def get_ns_records(
             domain=DomainName(domain=domain_str), records=records
         )
     except RecordNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.delete(
+    "/internal/zonemaster/",
+    dependencies=[Depends(RoleChecker([UserRoles.SUPERUSER, UserRoles.ADMIN]))],
+)
+async def delete_zone_file_for_domain(
+    session: SessionDep,
+    background_tasks: BackgroundTasks,
+    current_user: CurrentUser,
+    domain: Annotated[DomainName, Query()],
+):
+    domain_str = domain.domain
+    try:
+        await remove_domain_zone_master(domain_str)
+        background_tasks.add_task(
+            add_action_to_history,
+            session=session,
+            db_user=current_user,
+            action=f"remove dns zone file of domain [{domain_str}]",
+            execution_status=200,
+            server="dns_servers",
+        )
+        return {"ok": True}
+    except RuntimeError as e:
         raise HTTPException(status_code=404, detail=str(e))

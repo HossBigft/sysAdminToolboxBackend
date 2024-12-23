@@ -39,7 +39,7 @@ async def test_invalid_commands_trigger_422_error(
     client: AsyncClient, superuser_token_headers: dict[str, str], command
 ):
     response = await client.get(
-        f"/dns/internal/get/zonemaster/?domain={command}",
+        f"/dns/internal/zonemaster/?domain={command}",
         headers=superuser_token_headers,
     )
     assert response.status_code == 422
