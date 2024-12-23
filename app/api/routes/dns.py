@@ -14,6 +14,7 @@ from app.models import (
     IPv4Address,
     DomainMxRecordResponse,
     DomainNsRecordResponse,
+    Message,
 )
 
 
@@ -143,10 +144,10 @@ async def delete_zone_file_for_domain(
             add_action_to_history,
             session=session,
             db_user=current_user,
-            action=f"remove dns zone file of domain [{domain_str}]",
+            action=f"remove dns zone master of domain [{domain_str}]",
             execution_status=200,
             server="dns_servers",
         )
-        return {"ok": True}
+        return Message(message="Zone master deleted successfully")
     except RuntimeError as e:
         raise HTTPException(status_code=404, detail=str(e))
