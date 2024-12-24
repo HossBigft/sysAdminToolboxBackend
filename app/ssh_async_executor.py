@@ -52,5 +52,5 @@ async def run_command_over_ssh(
     host: str, command: str, verbose: bool = True
 ) -> Dict[str, str]:
     result = await asyncio.gather(_run_command_over_ssh(host, command, verbose))
-    _, stdout, stderr, _ = result[0]
-    return {"host": host, "stdout": stdout, "stderr": stderr}
+    _, stdout, stderr, returncode = result[0]
+    return {"host": host, "stdout": stdout, "stderr": stderr, "returncode": returncode}
