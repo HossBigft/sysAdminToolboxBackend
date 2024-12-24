@@ -2,7 +2,7 @@ import re
 from fastapi import HTTPException
 
 from app.host_lists import PLESK_SERVER_LIST
-from app.ssh_async_executor import run_command_over_ssh
+from app.ssh_async_executor import execute_ssh_command
 
 PLESK_LOGLINK_CMD = "plesk login"
 LINUX_USERNAME_PATTERN = r"^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$"
@@ -19,7 +19,7 @@ async def _build_login_command(ssh_username: str) -> str:
 
 async def _is_subscription_id_exist(host: str, subscriptionId: str) -> bool:
     get_subscription_name_cmd = f'plesk db -Ne "SELECT name FROM domains WHERE webspace_id=0 AND id={subscriptionId}"'
-    result = await run_command_over_ssh(host, get_subscription_name_cmd)
+    result = await execute_ssh_command(host, get_subscription_name_cmd)
     subscription_name = result["stdout"]
     return not subscription_name == ""
 
@@ -30,7 +30,7 @@ async def get_plesk_login_link(host: str, ssh_username: str) -> str:
     if not await _is_valid_username(ssh_username):
         raise ValueError("Input string should be a valid linux username.")
     cmd_to_run = await _build_login_command(ssh_username)
-    result = await run_command_over_ssh(host, cmd_to_run)
+    result = await execute_ssh_command(host, cmd_to_run)
     login_link = result["stdout"]
     return login_link
 

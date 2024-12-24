@@ -1,7 +1,7 @@
 import re
 
 from ..host_lists import PLESK_SERVER_LIST
-from ..ssh_async_executor import batch_ssh_command_prepare
+from ..ssh_async_executor import execute_ssh_commands_in_batch
 from app.models import SUBSCRIPTION_NAME_PATTERN
 
 PLESK_DB_RUN_CMD = "plesk db -Ne"
@@ -43,7 +43,7 @@ async def build_ssh_command(query: str) -> str:
 
 
 async def batch_ssh_execute(cmd: str):
-    return await batch_ssh_command_prepare(
+    return await execute_ssh_commands_in_batch(
         server_list=PLESK_SERVER_LIST,
         command=cmd,
         verbose=True,

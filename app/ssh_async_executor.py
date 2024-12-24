@@ -3,7 +3,7 @@ from typing import List, Dict
 import time
 
 
-async def _run_command_over_ssh(host, command, verbose: bool):
+async def _execute_ssh_command(host, command, verbose: bool):
     start_time = time.time()
 
     ssh_command = f'ssh -q  {host} "{command}"'
@@ -33,10 +33,10 @@ async def _run_command_over_ssh(host, command, verbose: bool):
     return (host, stdout.decode().strip(), stderr.decode().strip(), process.returncode)
 
 
-async def batch_ssh_command_prepare(
+async def execute_ssh_commands_in_batch(
     server_list, command, verbose: bool
 ) -> List[Dict[str, str]]:
-    tasks = [_run_command_over_ssh(host, command, verbose) for host in server_list]
+    tasks = [_execute_ssh_command(host, command, verbose) for host in server_list]
     results = await asyncio.gather(*tasks)
     return [
         {"host": host, "stdout": stdout, "stderr": stderr}
@@ -44,13 +44,9 @@ async def batch_ssh_command_prepare(
     ]
 
 
-def batch_ssh_command_result(server_list, command, verbose=False):
-    return asyncio.run(batch_ssh_command_prepare(server_list, command, verbose))
-
-
-async def run_command_over_ssh(
+async def execute_ssh_command(
     host: str, command: str, verbose: bool = True
 ) -> Dict[str, str]:
-    result = await asyncio.gather(_run_command_over_ssh(host, command, verbose))
+    result = await asyncio.gather(_execute_ssh_command(host, command, verbose))
     _, stdout, stderr, returncode = result[0]
     return {"host": host, "stdout": stdout, "stderr": stderr, "returncode": returncode}

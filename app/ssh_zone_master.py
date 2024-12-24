@@ -1,5 +1,5 @@
 from .host_lists import DNS_SERVER_LIST
-from .ssh_async_executor import batch_ssh_command_prepare
+from .ssh_async_executor import execute_ssh_commands_in_batch
 import re
 import shlex
 
@@ -26,7 +26,7 @@ async def build_zone_master_command(domain_name: str) -> str:
 
 
 async def batch_ssh_execute(cmd: str):
-    return await batch_ssh_command_prepare(
+    return await execute_ssh_commands_in_batch(
         server_list=DNS_SERVER_LIST,
         command=cmd,
         verbose=False,
