@@ -1,7 +1,7 @@
 import re
 
 from ..host_lists import PLESK_SERVER_LIST
-from ..ssh_async_executor import execute_ssh_commands_in_batch
+from ..AsyncSSHandler import execute_ssh_commands_in_batch
 from app.models import SUBSCRIPTION_NAME_PATTERN
 
 PLESK_DB_RUN_CMD = "plesk db -Ne"

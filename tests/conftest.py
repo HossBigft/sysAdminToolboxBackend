@@ -17,7 +17,7 @@ def mock_ssh_commands(monkeypatch):
     async def mock_execute(*args, **kwargs):
         return ("test-host", "mocked_output", "", 0)
 
-    monkeypatch.setattr("app.ssh_async_executor._run_command_over_ssh", mock_execute)
+    monkeypatch.setattr("app.AsyncSSHandler._execute_ssh_command", mock_execute)
 
 
 @pytest_asyncio.fixture(scope="session", autouse=True)

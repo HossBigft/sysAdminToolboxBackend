@@ -2,7 +2,7 @@ import re
 from fastapi import HTTPException
 
 from app.host_lists import PLESK_SERVER_LIST
-from app.ssh_async_executor import execute_ssh_command
+from app.AsyncSSHandler import execute_ssh_command
 
 PLESK_LOGLINK_CMD = "plesk login"
 LINUX_USERNAME_PATTERN = r"^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$"

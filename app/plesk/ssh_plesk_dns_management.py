@@ -2,7 +2,7 @@ import shlex
 
 
 from app.host_lists import PLESK_SERVER_LIST
-from app.ssh_async_executor import execute_ssh_command
+from app.AsyncSSHandler import execute_ssh_command
 from app.models import DomainName, SubscriptionName
 
 
