@@ -17,7 +17,7 @@ async def _build_login_command(ssh_username: str) -> str:
     return f"plesk login {ssh_username}"
 
 
-async def _is_subscription_id_valid(host: str, subscriptionId: str) -> bool:
+async def _is_subscription_id_exist(host: str, subscriptionId: str) -> bool:
     get_subscription_name_cmd = f'plesk db -Ne "SELECT name FROM domains WHERE webspace_id=0 AND id={subscriptionId}"'
     result = await run_command_over_ssh(host, get_subscription_name_cmd)
     subscription_name = result["stdout"]
@@ -48,7 +48,7 @@ async def get_plesk_subscription_login_link_by_id(
             status_code=400, detail="Input string should be a valid Linux username."
         )
 
-    if not await _is_subscription_id_valid(host, subscription_id):
+    if not await _is_subscription_id_exist(host, subscription_id):
         raise HTTPException(
             status_code=404,
             detail=f"Subscription with {subscription_id} ID doesn't exist.",
