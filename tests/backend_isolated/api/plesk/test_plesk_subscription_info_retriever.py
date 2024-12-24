@@ -1,5 +1,5 @@
 import pytest
-from app.ssh_plesk_subscription_info_retriever import (
+from app.plesk.ssh_plesk_subscription_info_retriever import (
     is_valid_subscription_name,
     build_query,
     parse_answer,

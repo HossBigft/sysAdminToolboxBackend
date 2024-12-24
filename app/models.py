@@ -2,10 +2,8 @@ import uuid
 from pydantic import (
     EmailStr,
     BaseModel,
-    RootModel,
     StringConstraints,
     model_serializer,
-    field_validator,
 )
 from sqlmodel import Field, SQLModel
 from enum import Enum
@@ -173,56 +171,3 @@ class DomainMxRecordResponse(BaseModel):
 class DomainNsRecordResponse(BaseModel):
     domain: DomainName
     records: List[DomainName]
-
-
-class SubscriptionLoginLinkInput(BaseModel):
-    host: Annotated[
-        str,
-        StringConstraints(
-            min_length=3,
-            max_length=253,
-            pattern=OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN,
-        ),
-    ]
-    subscription_id: int
-    model_config = {
-        "json_schema_extra": {
-example.com
-        }
-    }
-
-    @field_validator("host")
-    def validate_host(cls, v):
-        if v not in PLESK_SERVER_LIST:
-            raise ValueError(f"Host '{v}' is not Plesk server.")
-        return v
-
-
-class SubscriptionName(BaseModel):
-    domain: Annotated[
-        str,
-        StringConstraints(
-            min_length=3,
-            max_length=253,
-            pattern=SUBSCRIPTION_NAME_PATTERN,
-        ),
-    ]
-
-    model_config = {"json_schema_extra": {"examples": ["v-12312.webspace"]}}
-
-    @model_serializer(mode="wrap")
-    def ser_model(self, _handler):
-        return self.domain
-
-
-class SubscriptionDetailsModel(BaseModel):
-    host: DomainName
-    id: str
-    name: str
-    username: str
-    userlogin: str
-    domains: List[SubscriptionName]
-
-
-class SubscriptionListResponseModel(RootModel):
-    root: List[SubscriptionDetailsModel]

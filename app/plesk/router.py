@@ -1,16 +1,20 @@
 from fastapi import APIRouter, HTTPException, Query, Depends, BackgroundTasks
 from typing import Annotated
 
-from app.ssh_plesk_subscription_info_retriever import query_subscription_info_by_domain
-from app.models import (
+from app.plesk.ssh_plesk_subscription_info_retriever import (
+    query_subscription_info_by_domain,
+)
+from app.plesk.models import (
     SubscriptionListResponseModel,
     SubscriptionDetailsModel,
     SubscriptionLoginLinkInput,
-    UserRoles,
     SubscriptionName,
     DomainName,
 )
-from app.ssh_plesk_login_link_generator import get_plesk_subscription_login_link_by_id
+from app.models import UserRoles
+from app.plesk.ssh_plesk_login_link_generator import (
+    get_plesk_subscription_login_link_by_id,
+)
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
 from app.crud import add_action_to_history
 
