@@ -1,8 +1,9 @@
 import logging
-from app.api.routes import dns, users, utils, password_reset
+from app.api.routes import users, utils, password_reset
 from fastapi import APIRouter
 
 from app.auth import router as login
+from app.dns import router as dns
 from app.plesk import router as plesk
 
 

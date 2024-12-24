@@ -1,12 +1,14 @@
-from app.ssh_zone_master import (
+import pytest
+import shlex
+from unittest.mock import patch, AsyncMock
+
+from app.dns.ssh_utils import (
     is_valid_domain,
     build_zone_master_command,
     getDomainZoneMaster,
 )
 from tests.test_data.hosts import HostList
-import pytest
-from unittest.mock import patch, AsyncMock
-import shlex
+
 
 
 @pytest.mark.asyncio
@@ -46,7 +48,7 @@ async def test_get_domain_zone_master_with_correct_domain_existing_zone_master(
     ]
 
     with patch(
-        "app.ssh_zone_master.batch_ssh_command_prepare", new_callable=AsyncMock
+        "app.AsyncSSHandler.execute_ssh_commands_in_batch", new_callable=AsyncMock
     ) as mock_batch_ssh:
         mock_batch_ssh.return_value = mock_response
 
@@ -75,7 +77,7 @@ async def test_get_domain_zone_master_with_correct_domain_nonexisting_zone_maste
     ]
 
     with patch(
-        "app.ssh_zone_master.batch_ssh_command_prepare", new_callable=AsyncMock
+        "app.AsyncSSHandler.execute_ssh_commands_in_batch", new_callable=AsyncMock
     ) as mock_batch_ssh:
         mock_batch_ssh.return_value = mock_response
         result = await getDomainZoneMaster(domain)

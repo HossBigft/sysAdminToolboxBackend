@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query
 from pydantic.networks import IPvAnyAddress
 from typing import Annotated
 
-from app.ssh_zone_master import getDomainZoneMaster, remove_domain_zone_master
+from app.dns.ssh_utils import getDomainZoneMaster, remove_domain_zone_master
 from app.dns_resolver import resolve_record, RecordNotFoundError
 from app.crud import add_action_to_history
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
