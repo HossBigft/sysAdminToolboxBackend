@@ -48,7 +48,7 @@ async def test_get_domain_zone_master_with_correct_domain_existing_zone_master(
     ]
 
     with patch(
-        "app.AsyncSSHandler.execute_ssh_commands_in_batch", new_callable=AsyncMock
+        "app.dns.ssh_utils.batch_ssh_execute", new_callable=AsyncMock
     ) as mock_batch_ssh:
         mock_batch_ssh.return_value = mock_response
 
@@ -77,7 +77,7 @@ async def test_get_domain_zone_master_with_correct_domain_nonexisting_zone_maste
     ]
 
     with patch(
-        "app.AsyncSSHandler.execute_ssh_commands_in_batch", new_callable=AsyncMock
+        "app.dns.ssh_utils.batch_ssh_execute", new_callable=AsyncMock
     ) as mock_batch_ssh:
         mock_batch_ssh.return_value = mock_response
         result = await getDomainZoneMaster(domain)
