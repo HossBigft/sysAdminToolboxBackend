@@ -10,6 +10,7 @@ from app.plesk.models import (
     SubscriptionLoginLinkInput,
     SubscriptionName,
     DomainName,
+    SetZonemasterInput,
 )
 from app.models import UserRoles
 from app.plesk.ssh_plesk_login_link_generator import (
@@ -17,6 +18,10 @@ from app.plesk.ssh_plesk_login_link_generator import (
 )
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
 from app.crud import add_action_to_history
+from app.plesk.ssh_plesk_dns_management import (
+    is_domain_exist_on_server,
+    restart_dns_service_for_domain,
+)
 
 router = APIRouter(tags=["plesk"], prefix="/plesk")
 
@@ -73,3 +78,32 @@ async def get_subscription_login_link(
         server="dns_servers",
     )
     return login_link
+
+
+@router.post(
+    "/zonemaster/set",
+    dependencies=[Depends(RoleChecker([UserRoles.SUPERUSER, UserRoles.ADMIN]))],
+)
+async def set_zonemaster(
+    data: SetZonemasterInput,
+    current_user: CurrentUser,
+    background_tasks: BackgroundTasks,
+    session: SessionDep,
+) -> None:
+    if await is_domain_exist_on_server(data.target_plesk_server, data.domain):
+        await restart_dns_service_for_domain(
+            host=data.target_plesk_server, domain=data.domain
+        )
+    else:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Subscription with domain [{data.domain}] not found.",
+        )
+    background_tasks.add_task(
+        add_action_to_history,
+        session=session,
+        db_user=current_user,
+        action=f"restart dns service for domain [{data.domain}] on server [{data.host}]",
+        execution_status=200,
+        server="plesk_servers",
+    )

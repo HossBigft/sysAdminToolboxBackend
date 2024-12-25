@@ -102,3 +102,35 @@ class SubscriptionDetailsModel(BaseModel):
 
 class SubscriptionListResponseModel(RootModel):
     root: List[SubscriptionDetailsModel]
+
+
+class SetZonemasterInput(BaseModel):
+    target_plesk_server: Annotated[
+        str,
+        StringConstraints(
+            min_length=3,
+            max_length=253,
+            pattern=OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN,
+        ),
+    ]
+    domain: Annotated[
+        str,
+        StringConstraints(
+            min_length=3,
+            max_length=253,
+            pattern=SUBSCRIPTION_NAME_PATTERN,
+        ),
+    ]
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+example.com
+            ]
+        }
+    }
+
+    @field_validator("target_plesk_server")
+    def validate_host(cls, v):
+        if v not in PLESK_SERVER_LIST:
+            raise ValueError(f"Host '{v}' is not Plesk server.")
+        return v
