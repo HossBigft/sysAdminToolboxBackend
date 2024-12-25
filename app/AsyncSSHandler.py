@@ -1,9 +1,18 @@
 import asyncio
-from typing import List, Dict
+from typing import List, Dict, TypedDict
 import time
 
 
-async def _execute_ssh_command(host, command, verbose: bool):
+class SSHCommandResult(TypedDict):
+    host: str
+    stdout: str
+    stderr: str
+    returncode: int | None
+
+
+async def _execute_ssh_command(
+    host, command, verbose: bool
+) -> SSHCommandResult:
     start_time = time.time()
 
     ssh_command = f'ssh -q  {host} "{command}"'
@@ -30,23 +39,19 @@ async def _execute_ssh_command(host, command, verbose: bool):
         else:
             print(f"{host} answered in {execution_time:.2f}s : {succesfulAnswer}")
 
-    return (host, stdout.decode().strip(), stderr.decode().strip(), process.returncode)
+    return {"host": host, "stdout": stdout.decode().strip(), "stderr": stderr.decode().strip(), "returncode": process.returncode}
 
 
 async def execute_ssh_commands_in_batch(
     server_list, command, verbose: bool
-) -> List[Dict[str, str]]:
+) -> List[SSHCommandResult]:
     tasks = [_execute_ssh_command(host, command, verbose) for host in server_list]
     results = await asyncio.gather(*tasks)
-    return [
-        {"host": host, "stdout": stdout, "stderr": stderr}
-        for host, stdout, stderr, *_ in results
-    ]
+    return results
 
 
 async def execute_ssh_command(
     host: str, command: str, verbose: bool = True
-) -> Dict[str, str]:
+) -> SSHCommandResult:
     result = await asyncio.gather(_execute_ssh_command(host, command, verbose))
-    _, stdout, stderr, returncode = result[0]
-    return {"host": host, "stdout": stdout, "stderr": stderr, "returncode": returncode}
+    return result[0]
