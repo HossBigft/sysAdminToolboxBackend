@@ -12,7 +12,7 @@ from app.plesk.models import (
     DomainName,
     SetZonemasterInput,
 )
-from app.models import UserRoles
+from app.models import UserRoles, Message
 from app.plesk.ssh_plesk_login_link_generator import (
     get_plesk_subscription_login_link_by_id,
 )
@@ -103,7 +103,8 @@ async def set_zonemaster(
         add_action_to_history,
         session=session,
         db_user=current_user,
-        action=f"restart dns service for domain [{data.domain}] on server [{data.host}]",
+        action=f"restart dns service for domain [{data.domain}] on server [{data.target_plesk_server}]",
         execution_status=200,
         server="plesk_servers",
     )
+    return Message(message="Zone master set successfully")
