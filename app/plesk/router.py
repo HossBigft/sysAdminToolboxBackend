@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Query, Depends, BackgroundTasks
 from typing import Annotated
 
-from app.plesk.ssh_plesk_subscription_info_retriever import (
-    query_subscription_info_by_domain,
+from app.plesk.ssh_utils import (
+    fetch_subscription_info,
 )
 from app.plesk.models import (
     SubscriptionListResponseModel,
@@ -18,10 +18,11 @@ from app.plesk.ssh_plesk_login_link_generator import (
 )
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
 from app.crud import add_action_to_history
-from app.plesk.ssh_plesk_dns_management import (
+from app.plesk.ssh_utils import (
     is_domain_exist_on_server,
     restart_dns_service_for_domain,
 )
+from app.dns.ssh_utils import remove_domain_zone_master
 
 router = APIRouter(tags=["plesk"], prefix="/plesk")
 
@@ -34,7 +35,7 @@ async def find_plesk_subscription_by_domain(
     ],
 ):
     domain_str = domain.domain
-    subscriptions = await query_subscription_info_by_domain(domain_str)
+    subscriptions = await fetch_subscription_info(domain_str)
     if not subscriptions:
         raise HTTPException(
             status_code=404,
@@ -89,8 +90,9 @@ async def set_zonemaster(
     current_user: CurrentUser,
     background_tasks: BackgroundTasks,
     session: SessionDep,
-) -> None:
+) -> Message:
     if await is_domain_exist_on_server(data.target_plesk_server, data.domain):
+        await remove_domain_zone_master(domain_name=data.domain)
         await restart_dns_service_for_domain(
             host=data.target_plesk_server, domain=data.domain
         )

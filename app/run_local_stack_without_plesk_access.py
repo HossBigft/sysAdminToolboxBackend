@@ -59,9 +59,9 @@ def mock_get_plesk_subscription_login_link_by_id(arg1, arg2, arg3):
 
 
 patches = [
-    patch("app.ssh_plesk_subscription_info_retriever.PLESK_DB_RUN_CMD", TEST_DB_CMD),
+    patch("app.ssh_utils.PLESK_DB_RUN_CMD", TEST_DB_CMD),
     patch(
-        "app.ssh_plesk_subscription_info_retriever.batch_ssh_execute",
+        "app.ssh_utils.batch_ssh_execute",
         wraps=mock_batch_ssh,
     ),
     patch("app.ssh_zone_master.batch_ssh_execute", wraps=mock_batch_ssh_ns),

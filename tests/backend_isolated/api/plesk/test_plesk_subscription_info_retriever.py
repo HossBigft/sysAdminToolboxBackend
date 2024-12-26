@@ -1,8 +1,8 @@
 import pytest
-from app.plesk.ssh_plesk_subscription_info_retriever import (
+from app.plesk.ssh_utils import (
     is_valid_subscription_name,
-    build_query,
-    parse_answer,
+    build_subscription_info_query,
+    extract_subscription_details,
 )
 from tests.test_data.hosts import HostList
 
@@ -40,10 +40,10 @@ def test_query_builder(domain=HostList.CORRECT_EXISTING_DOMAIN):
         "SELECT name FROM domains WHERE webspace_id=(SELECT CASE WHEN webspace_id = 0 THEN id ELSE webspace_id END AS result FROM domains WHERE name LIKE '{0}');"
     ).format(domain)
 
-    assert build_query(domain) == correct_query
+    assert build_subscription_info_query(domain) == correct_query
 
 
-def test_parse_answer():
+def test_extract_subscription_details():
     sample_input = {
         "host": "example.com",
         "stdout": "12345\nTest Name\nuser1\tlogin1\ndomain1.com\ndomain2.com",
@@ -58,15 +58,15 @@ def test_parse_answer():
         "domains": ["Test Name", "domain1.com", "domain2.com"],
     }
 
-    result = parse_answer(sample_input)
+    result = extract_subscription_details(sample_input)
 
     assert result == expected_output
 
 
-def test_parse_answer_empty_stdout():
+def test_extract_subscription_details_empty_stdout():
     sample_input = {"host": "example.com", "stdout": "\n\n\n\n"}
 
-    result = parse_answer(sample_input)
+    result = extract_subscription_details(sample_input)
     assert result is None
 
 
@@ -96,6 +96,6 @@ google.com
         ],
     }
 
-    result = parse_answer(sample_input)
+    result = extract_subscription_details(sample_input)
 
     assert result == expected_output

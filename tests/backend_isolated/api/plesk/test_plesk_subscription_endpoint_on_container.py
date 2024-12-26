@@ -26,10 +26,10 @@ async def test_container():
         return [{"host": TEST_HOSTS[0], "stdout": stdout}]
 
     with patch(
-        "app.plesk.ssh_plesk_subscription_info_retriever.PLESK_DB_RUN_CMD", TEST_DB_CMD
+        "app.plesk.ssh_utils.PLESK_DB_RUN_CMD", TEST_DB_CMD
     ):
         with patch(
-            "app.plesk.ssh_plesk_subscription_info_retriever.batch_ssh_execute",
+            "app.plesk.ssh_utils.batch_ssh_execute",
             wraps=mock_batch_ssh,
         ):
             yield testdb  # Yield the test database for use in tests

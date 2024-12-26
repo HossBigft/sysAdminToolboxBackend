@@ -1,6 +1,6 @@
 import pytest
-from app.plesk.ssh_plesk_subscription_info_retriever import (
-    query_subscription_info_by_domain,
+from app.plesk.ssh_utils import (
+    fetch_subscription_info,
 )
 from tests.utils.container_db_utils import TestMariadb, TEST_DB_CMD
 from tests.test_data.hosts import HostList
@@ -16,10 +16,10 @@ def init_test_db():
         return [{"host": "test", "stdout": stdout}]
 
     with patch(
-        "app.plesk.ssh_plesk_subscription_info_retriever.PLESK_DB_RUN_CMD", TEST_DB_CMD
+        "app.plesk.ssh_utils.PLESK_DB_RUN_CMD", TEST_DB_CMD
     ):
         with patch(
-            "app.plesk.ssh_plesk_subscription_info_retriever.batch_ssh_execute",
+            "app.plesk.ssh_utils.batch_ssh_execute",
             wraps=mock_batch_ssh,
         ):
             yield testdb  # Yield the test database for use in tests
@@ -27,7 +27,7 @@ def init_test_db():
 
 @pytest.mark.asyncio
 async def test_get_existing_subscription_info(init_test_db):
-    result = await query_subscription_info_by_domain(HostList.CORRECT_EXISTING_DOMAIN)
+    result = await fetch_subscription_info(HostList.CORRECT_EXISTING_DOMAIN)
 
     expected_output = [
         {
@@ -56,5 +56,5 @@ google.com
 
 @pytest.mark.asyncio
 async def test_get_nonexisting_subscription_info(init_test_db):
-    result = await query_subscription_info_by_domain("zless.kz")
+    result = await fetch_subscription_info("zless.kz")
     assert result is None
