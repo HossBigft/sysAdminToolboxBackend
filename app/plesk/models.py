@@ -15,10 +15,11 @@ from app.host_lists import PLESK_SERVER_LIST
 SUBSCRIPTION_NAME_PATTERN = (
     r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,8}$"
 )
-
 OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN = (
     r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}\.?$"
 )
+
+LINUX_USERNAME_PATTERN = r"^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$"
 
 
 class DomainName(BaseModel):
@@ -133,4 +134,33 @@ example.com
     def validate_host(cls, v):
         if v not in PLESK_SERVER_LIST:
             raise ValueError(f"Host '{v}' is not Plesk server.")
+        return v
+
+
+class LinuxUsername(BaseModel):
+    name: Annotated[
+        str,
+        StringConstraints(
+            min_length=3,
+            max_length=63,
+            pattern=LINUX_USERNAME_PATTERN,
+        ),
+    ]
+
+
+class PleskServerDomain(BaseModel):
+    host: Annotated[
+        str,
+        StringConstraints(
+            min_length=3,
+            max_length=253,
+            pattern=OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN,
+        ),
+    ]
+example.com
+
+    @field_validator("host")
+    def validate_host(cls, v):
+        if v not in PLESK_SERVER_LIST:
+            raise ValueError(f"Domain '{v}' is not in the list of Plesk servers.")
         return v

@@ -1,14 +1,9 @@
 import pytest
 from app.plesk.ssh_utils import (
-    is_valid_subscription_name,
     build_subscription_info_query,
     extract_subscription_details,
 )
 from tests.test_data.hosts import HostList
-
-
-def test_valid_domain(domain=HostList.CORRECT_EXISTING_SUBDOMAIN):
-    assert is_valid_subscription_name(domain)
 
 
 invalid_domains = [
@@ -24,11 +19,6 @@ invalid_domains = [
     "a" * 64 + ".com",  # Too long (64 characters)
     HostList.MALFORMED_DOMAIN,
 ]
-
-
-@pytest.mark.parametrize("domain", invalid_domains)
-def test_invalid_domain(domain):
-    assert not is_valid_subscription_name(domain)
 
 
 def test_query_builder(domain=HostList.CORRECT_EXISTING_DOMAIN):
