@@ -13,8 +13,8 @@ from app.plesk.models import (
     SetZonemasterInput,
 )
 from app.models import UserRoles, Message
-from app.plesk.ssh_plesk_login_link_generator import (
-    get_plesk_subscription_login_link_by_id,
+from app.plesk.ssh_utils import (
+    generate_subscription_login_link,
 )
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
 from app.crud import add_action_to_history
@@ -66,7 +66,7 @@ async def get_subscription_login_link(
     background_tasks: BackgroundTasks,
     session: SessionDep,
 ):
-    login_link = await get_plesk_subscription_login_link_by_id(
+    login_link = await generate_subscription_login_link(
         data.host, data.subscription_id, current_user.ssh_username
     )
 
