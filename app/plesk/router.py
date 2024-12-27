@@ -22,7 +22,7 @@ from app.plesk.ssh_utils import (
     is_domain_exist_on_server,
     restart_dns_service_for_domain,
 )
-from app.dns.ssh_utils import remove_domain_zone_master
+from app.dns.ssh_utils import remove_domain_zone_master, getDomainZoneMaster
 
 router = APIRouter(tags=["plesk"], prefix="/plesk")
 
@@ -91,7 +91,9 @@ async def set_zonemaster(
     background_tasks: BackgroundTasks,
     session: SessionDep,
 ) -> Message:
+    curr_zonemaster: str
     if await is_domain_exist_on_server(data.target_plesk_server, data.domain):
+        curr_zonemaster = await getDomainZoneMaster(domain_name=data.domain)
         await remove_domain_zone_master(domain_name=data.domain)
         await restart_dns_service_for_domain(
             host=data.target_plesk_server, domain=data.domain
@@ -105,7 +107,7 @@ async def set_zonemaster(
         add_action_to_history,
         session=session,
         db_user=current_user,
-        action=f"restart dns service for domain [{data.domain}] on server [{data.target_plesk_server}]",
+        action=f"Set zonemaster for domain [{data.domain}] [{curr_zonemaster}->{data.target_plesk_server}]",
         execution_status=200,
         server="plesk_servers",
     )

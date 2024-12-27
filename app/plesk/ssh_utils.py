@@ -8,6 +8,7 @@ from app.host_lists import PLESK_SERVER_LIST
 
 PLESK_LOGLINK_CMD = "plesk login"
 REDIRECTION_HEADER = r"&success_redirect_url=%2Fadmin%2Fsubscription%2Foverview%2Fid%2F"
+PLESK_DB_RUN_CMD_TEMPLATE = 'plesk db -Ne \\"{}\\"'
 
 
 class PleskServiceError(Exception):
@@ -31,6 +32,10 @@ class CommandExecutionError(PleskServiceError):
         super().__init__(f"Command failed with return code {return_code}: {stderr}")
 
 
+async def build_plesk_db_command(query: str) -> str:
+    return PLESK_DB_RUN_CMD_TEMPLATE.format(query)
+
+
 async def build_restart_dns_service_command(domain: SubscriptionName) -> str:
     escaped_domain = shlex.quote(f'"{domain.lower()}"')
     return (
@@ -38,15 +43,23 @@ async def build_restart_dns_service_command(domain: SubscriptionName) -> str:
     )
 
 
+async def fetch_subscription_id_by_domain(
+    host: PleskServerDomain, domain: SubscriptionName
+) -> int:
+    query_subscription_id_by_domain = f"SELECT CASE WHEN webspace_id = 0 THEN id ELSE webspace_id END AS result FROM domains WHERE name LIKE '{domain}'"
+
+    fetch_subscription_id_by_domain_cmd = await build_plesk_db_command(
+        query_subscription_id_by_domain
+    )
+    result = await execute_ssh_command(host, fetch_subscription_id_by_domain_cmd)
+    subscription_id = int(result["stdout"])
+    return subscription_id
+
+
 async def is_domain_exist_on_server(
     host: PleskServerDomain, domain: SubscriptionName
 ) -> bool:
-    get_subscription_name_cmd = (
-        f'plesk db -Ne "SELECT name FROM domains WHERE webspace_id=0 AND id={domain}"'
-    )
-    result = await execute_ssh_command(host, get_subscription_name_cmd)
-    subscription_name = result["stdout"]
-    return not subscription_name == ""
+    return await fetch_subscription_id_by_domain(host=host, domain=domain) != 0
 
 
 async def restart_dns_service_for_domain(
@@ -69,9 +82,6 @@ async def restart_dns_service_for_domain(
 
     else:
         raise ValueError(f"{host} is not valid Plesk server")
-
-
-PLESK_DB_RUN_CMD = "plesk db -Ne"
 
 
 def build_subscription_info_query(domain_to_find: str) -> str:
@@ -97,10 +107,6 @@ def extract_subscription_details(answer) -> dict:
         "domains": [stdout_lines[1]] + stdout_lines[3:],
     }
     return parsed_answer
-
-
-async def build_plesk_db_command(query: str) -> str:
-    return f'{PLESK_DB_RUN_CMD} \\"{query}\\"'
 
 
 async def batch_ssh_execute(cmd: str):
