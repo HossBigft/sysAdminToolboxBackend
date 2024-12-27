@@ -20,7 +20,7 @@ if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    ssh_warmup()
+    await ssh_warmup()
     yield
 
 
