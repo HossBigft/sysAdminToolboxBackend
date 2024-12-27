@@ -3,6 +3,8 @@ import shlex
 from app.host_lists import DNS_SERVER_LIST
 from app.AsyncSSHandler import execute_ssh_commands_in_batch
 from app.models import SubscriptionName
+from app.plesk.models import PleskServerDomain
+from app.dns.dns_utils import resolve_record
 
 ZONEFILE_PATH = "/var/opt/isc/scls/isc-bind/zones/_default.nzf"
 DOMAIN_REGEX_PATTERN = (
@@ -10,7 +12,7 @@ DOMAIN_REGEX_PATTERN = (
 )
 
 
-async def build_zone_master_command(domain_name: SubscriptionName) -> str:
+async def build_get_zone_master_command(domain_name: SubscriptionName) -> str:
     escaped_domain = shlex.quote(f'\\"{domain_name.lower()}\\"')
     return (
         f"cat {ZONEFILE_PATH} | "
@@ -28,8 +30,8 @@ async def batch_ssh_execute(cmd: str):
     )
 
 
-async def get_domain_zonemaster_data(domain_name: SubscriptionName):
-    getZoneMasterCmd = await build_zone_master_command(domain_name)
+async def get_domain_zone_master_data(domain_name: SubscriptionName):
+    getZoneMasterCmd = await build_get_zone_master_command(domain_name)
     dnsAnswers = await batch_ssh_execute(getZoneMasterCmd)
     dnsAnswers = [
         {"ns": answer["host"], "zone_master": answer["stdout"]}
@@ -56,3 +58,17 @@ async def remove_domain_zone_master(domain: SubscriptionName):
                 f"DNS zone removal failed for host: {item['host']} "
                 f"with error: {item['stderr']}"
             )
+
+
+async def get_domain_zone_master(domain: SubscriptionName) -> set[PleskServerDomain]:
+    zonemaster_data = await get_domain_zone_master_data(domain_name=domain)
+    if zonemaster_data is None:
+        return None
+    
+    zonemaster_ip_set = {answer["zone_master"] for answer in zonemaster_data["answers"]}
+    zonemaster_domains_set = set()
+
+    for zonemaster in zonemaster_ip_set:
+        zonemaster_domains_set.update(resolve_record(record=zonemaster, type="PTR"))
+
+    return zonemaster_domains_set

@@ -2,8 +2,8 @@ from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query
 from pydantic.networks import IPvAnyAddress
 from typing import Annotated
 
-from app.dns.ssh_utils import get_domain_zonemaster_data, remove_domain_zone_master
-from app.dns_resolver import resolve_record, RecordNotFoundError
+from app.dns.ssh_utils import get_domain_zone_master, remove_domain_zone_master
+from app.dns.dns_utils import resolve_record, RecordNotFoundError
 from app.crud import add_action_to_history
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
 from app.models import (
@@ -139,12 +139,13 @@ async def delete_zone_file_for_domain(
 ):
     domain_str = domain.domain
     try:
+        curr_zonemaster = await get_domain_zone_master(domain_str)
         await remove_domain_zone_master(domain_str)
         background_tasks.add_task(
             add_action_to_history,
             session=session,
             db_user=current_user,
-            action=f"remove dns zone master of domain [{domain_str}]",
+            action=f"remove dns zone master of [{domain_str}] [{', '.join(str(item) for item in curr_zonemaster)}->None]",
             execution_status=200,
             server="dns_servers",
         )

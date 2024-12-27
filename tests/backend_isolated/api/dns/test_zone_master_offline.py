@@ -4,8 +4,8 @@ from unittest.mock import patch, AsyncMock
 
 from app.dns.ssh_utils import (
     is_valid_domain,
-    build_zone_master_command,
-    get_domain_zonemaster_data,
+    build_get_zone_master_command,
+    get_domain_zone_master_data,
 )
 from tests.test_data.hosts import HostList
 
@@ -52,7 +52,7 @@ async def test_get_domain_zone_master_with_correct_domain_existing_zone_master(
     ) as mock_batch_ssh:
         mock_batch_ssh.return_value = mock_response
 
-        result = await get_domain_zonemaster_data(domain)
+        result = await get_domain_zone_master_data(domain)
 
         expected_result = {
             "domain": domain,
@@ -80,7 +80,7 @@ async def test_get_domain_zone_master_with_correct_domain_nonexisting_zone_maste
         "app.dns.ssh_utils.batch_ssh_execute", new_callable=AsyncMock
     ) as mock_batch_ssh:
         mock_batch_ssh.return_value = mock_response
-        result = await get_domain_zonemaster_data(domain)
+        result = await get_domain_zone_master_data(domain)
 
         assert result is None
         mock_batch_ssh.assert_called_once()
@@ -97,4 +97,4 @@ async def test_command_injection_sanitization(
         r"grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}' | "
         "head -n1"
     )
-    assert await build_zone_master_command(domain) == expected
+    assert await build_get_zone_master_command(domain) == expected
