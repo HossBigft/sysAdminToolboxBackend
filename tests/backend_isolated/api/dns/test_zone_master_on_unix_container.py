@@ -1,4 +1,4 @@
-# from app.ssh_zone_master import getDomainZoneMaster
+# from app.ssh_zone_master import test_zone_master_offline
 # from .test_data.hosts import HostList
 # import pytest
 # from unittest.mock import patch
@@ -26,7 +26,7 @@
 # @pytest.mark.asyncio
 # async def test_get_existing_domain_zone_master_query_on_test_server():
 #     test_domain = HostList.CORRECT_EXISTING_DOMAIN
-#     result = await getDomainZoneMaster(test_domain)
+#     result = await test_zone_master_offline(test_domain)
 
 #     expected_result = {
 #         "domain": test_domain,
@@ -40,5 +40,5 @@
 # @pytest.mark.asyncio
 # async def test_get_nonexisting_domain_zone_master_query_on_test_server():
 #     test_domain = HostList.DOMAIN_WITHOUT_ZONE_MASTER
-#     result = await getDomainZoneMaster(test_domain)
+#     result = await test_zone_master_offline(test_domain)
 #     assert result is None

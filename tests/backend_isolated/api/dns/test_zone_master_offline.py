@@ -5,7 +5,7 @@ from unittest.mock import patch, AsyncMock
 from app.dns.ssh_utils import (
     is_valid_domain,
     build_zone_master_command,
-    getDomainZoneMaster,
+    get_domain_zonemaster_data,
 )
 from tests.test_data.hosts import HostList
 
@@ -52,7 +52,7 @@ async def test_get_domain_zone_master_with_correct_domain_existing_zone_master(
     ) as mock_batch_ssh:
         mock_batch_ssh.return_value = mock_response
 
-        result = await getDomainZoneMaster(domain)
+        result = await get_domain_zonemaster_data(domain)
 
         expected_result = {
             "domain": domain,
@@ -80,7 +80,7 @@ async def test_get_domain_zone_master_with_correct_domain_nonexisting_zone_maste
         "app.dns.ssh_utils.batch_ssh_execute", new_callable=AsyncMock
     ) as mock_batch_ssh:
         mock_batch_ssh.return_value = mock_response
-        result = await getDomainZoneMaster(domain)
+        result = await get_domain_zonemaster_data(domain)
 
         assert result is None
         mock_batch_ssh.assert_called_once()

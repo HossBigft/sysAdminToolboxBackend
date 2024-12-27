@@ -28,7 +28,7 @@ async def batch_ssh_execute(cmd: str):
     )
 
 
-async def getDomainZoneMaster(domain_name: SubscriptionName):
+async def get_domain_zonemaster_data(domain_name: SubscriptionName):
     getZoneMasterCmd = await build_zone_master_command(domain_name)
     dnsAnswers = await batch_ssh_execute(getZoneMasterCmd)
     dnsAnswers = [

@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query
 from pydantic.networks import IPvAnyAddress
 from typing import Annotated
 
-from app.dns.ssh_utils import getDomainZoneMaster, remove_domain_zone_master
+from app.dns.ssh_utils import get_domain_zonemaster_data, remove_domain_zone_master
 from app.dns_resolver import resolve_record, RecordNotFoundError
 from app.crud import add_action_to_history
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
@@ -68,7 +68,7 @@ async def get_zone_master_from_dns_servers(
 ):
     domain_str = domain.domain
     try:
-        zone_masters_dict = await getDomainZoneMaster(domain_str)
+        zone_masters_dict = await get_domain_zonemaster_data(domain_str)
         if not zone_masters_dict:
             raise HTTPException(
                 status_code=404,
