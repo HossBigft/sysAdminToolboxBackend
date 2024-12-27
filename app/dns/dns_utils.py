@@ -32,7 +32,8 @@ def resolve_record(record: str, type: str, dns_list="internal"):
                 ]
             case "MX":
                 return [
-                    ipval.to_text().split(" ")[1] for ipval in custom_resolver.resolve(record, "MX")
+                    ipval.to_text().split(" ")[1]
+                    for ipval in custom_resolver.resolve(record, "MX")
                 ]
 
             case "NS":
