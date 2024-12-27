@@ -12,7 +12,6 @@ from typing import List
 from typing_extensions import Annotated
 from pydantic.networks import IPvAnyAddress
 
-from app.host_lists import PLESK_SERVER_LIST
 
 SUBSCRIPTION_NAME_PATTERN = (
     r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,8}$"
@@ -171,3 +170,20 @@ class DomainMxRecordResponse(BaseModel):
 class DomainNsRecordResponse(BaseModel):
     domain: DomainName
     records: List[DomainName]
+
+
+class SubscriptionName(BaseModel):
+    domain: Annotated[
+        str,
+        StringConstraints(
+            min_length=3,
+            max_length=253,
+            pattern=SUBSCRIPTION_NAME_PATTERN,
+        ),
+    ]
+
+    model_config = {"json_schema_extra": {"examples": ["v-12312.webspace"]}}
+
+    @model_serializer(mode="wrap")
+    def ser_model(self, _handler):
+        return self.domain

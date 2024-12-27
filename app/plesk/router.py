@@ -94,7 +94,7 @@ async def set_zonemaster(
     curr_zonemaster: str
     if await is_domain_exist_on_server(data.target_plesk_server, data.domain):
         curr_zonemaster = await getDomainZoneMaster(domain_name=data.domain)
-        await remove_domain_zone_master(domain_name=data.domain)
+        await remove_domain_zone_master(domain=data.domain)
         await restart_dns_service_for_domain(
             host=data.target_plesk_server, domain=data.domain
         )

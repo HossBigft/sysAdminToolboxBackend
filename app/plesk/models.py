@@ -9,12 +9,10 @@ from pydantic import (
 from typing import List
 from typing_extensions import Annotated
 from pydantic.networks import IPvAnyAddress
+from app.models import SubscriptionName, SUBSCRIPTION_NAME_PATTERN
 
 from app.host_lists import PLESK_SERVER_LIST
 
-SUBSCRIPTION_NAME_PATTERN = (
-    r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,8}$"
-)
 OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN = (
     r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}\.?$"
 )
@@ -73,23 +71,6 @@ example.com
         if v not in PLESK_SERVER_LIST:
             raise ValueError(f"Host '{v}' is not Plesk server.")
         return v
-
-
-class SubscriptionName(BaseModel):
-    domain: Annotated[
-        str,
-        StringConstraints(
-            min_length=3,
-            max_length=253,
-            pattern=SUBSCRIPTION_NAME_PATTERN,
-        ),
-    ]
-
-    model_config = {"json_schema_extra": {"examples": ["v-12312.webspace"]}}
-
-    @model_serializer(mode="wrap")
-    def ser_model(self, _handler):
-        return self.domain
 
 
 class SubscriptionDetailsModel(BaseModel):
