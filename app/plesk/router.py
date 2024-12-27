@@ -8,11 +8,10 @@ from app.plesk.models import (
     SubscriptionListResponseModel,
     SubscriptionDetailsModel,
     SubscriptionLoginLinkInput,
-    SubscriptionName,
     DomainName,
     SetZonemasterInput,
 )
-from app.models import UserRoles, Message
+from app.models import UserRoles, Message, SubscriptionName
 from app.plesk.ssh_utils import (
     generate_subscription_login_link,
 )
@@ -33,13 +32,12 @@ async def find_plesk_subscription_by_domain(
         SubscriptionName,
         Query(),
     ],
-):
-    domain_str = domain.domain
-    subscriptions = await fetch_subscription_info(domain_str)
+) -> SubscriptionListResponseModel:
+    subscriptions = await fetch_subscription_info(domain.domain)
     if not subscriptions:
         raise HTTPException(
             status_code=404,
-            detail=f"Subscription with domain [{domain_str}] not found.",
+            detail=f"Subscription with domain [{domain.domain}] not found.",
         )
     subscription_models = [
         SubscriptionDetailsModel(
@@ -75,7 +73,7 @@ async def get_subscription_login_link(
         session=session,
         db_user=current_user,
         action=f"generate plesk login link for subscription with ID [{data.subscription_id}] on server [{data.host}] for user [{current_user.ssh_username}]",
-        execution_status=200,
+        execution_status="200",
         server="dns_servers",
     )
     return login_link

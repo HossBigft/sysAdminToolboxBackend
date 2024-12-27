@@ -117,8 +117,8 @@ async def batch_ssh_execute(cmd: str):
     )
 
 
-async def fetch_subscription_info(domain_name: SubscriptionName, partial_search=False):
-    lowercate_domain_name = domain_name.lower()
+async def fetch_subscription_info(domain: SubscriptionName, partial_search=False):
+    lowercate_domain_name = domain.lower()
     query = (
         build_subscription_info_query(lowercate_domain_name)
         if not partial_search
@@ -139,7 +139,7 @@ async def _build_plesk_login_command(ssh_username: LinuxUsername) -> str:
 
 
 async def _is_subscription_id_exist(
-    host: PleskServerDomain, subscriptionId: str
+    host: PleskServerDomain, subscriptionId: int
 ) -> bool:
     get_subscription_name_cmd = f'plesk db -Ne "SELECT name FROM domains WHERE webspace_id=0 AND id={subscriptionId}"'
     result = await execute_ssh_command(host, get_subscription_name_cmd)
