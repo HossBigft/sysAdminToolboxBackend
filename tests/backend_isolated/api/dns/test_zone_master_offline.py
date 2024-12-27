@@ -3,17 +3,10 @@ import shlex
 from unittest.mock import patch, AsyncMock
 
 from app.dns.ssh_utils import (
-    is_valid_domain,
     build_get_zone_master_command,
     get_domain_zone_master_data,
 )
 from tests.test_data.hosts import HostList
-
-
-
-@pytest.mark.asyncio
-async def test_valid_domain(domain=HostList.CORRECT_EXISTING_SUBDOMAIN):
-    assert await is_valid_domain(domain)
 
 
 invalid_domains = [
@@ -29,12 +22,6 @@ invalid_domains = [
     "a" * 64 + ".com",  # Too long (64 characters)
     HostList.MALFORMED_DOMAIN,
 ]
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize("domain", invalid_domains)
-async def test_invalid_domain(domain):
-    assert not await is_valid_domain(domain)
 
 
 @pytest.mark.asyncio

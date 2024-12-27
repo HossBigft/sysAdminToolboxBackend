@@ -15,9 +15,7 @@ def init_test_db():
         stdout = testdb.run_cmd(command)
         return [{"host": "test", "stdout": stdout}]
 
-    with patch(
-        "app.plesk.ssh_utils.PLESK_DB_RUN_CMD", TEST_DB_CMD
-    ):
+    with patch("app.plesk.ssh_utils.PLESK_DB_RUN_CMD_TEMPLATE", TEST_DB_CMD):
         with patch(
             "app.plesk.ssh_utils.batch_ssh_execute",
             wraps=mock_batch_ssh,

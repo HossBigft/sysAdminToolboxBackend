@@ -1,7 +1,7 @@
 from sqlmodel import Field, Session, SQLModel, create_engine
 from testcontainers.mysql import MySqlContainer
 
-TEST_DB_CMD = "mariadb -B --disable-column-names -p'test' -D'test' -e"
+TEST_DB_CMD = "mariadb -B --disable-column-names -p'test' -D'test' -e \\\"{}\\\""
 
 
 class Clients(SQLModel, table=True):
