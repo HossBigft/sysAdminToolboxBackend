@@ -113,7 +113,7 @@ class UserAction(SQLModel, table=True):
     user_id: uuid.UUID = Field(foreign_key="user.id")
     action: str
     server: str | None = None
-    timestamp: datetime
+    timestamp: str
     status: str
 
 

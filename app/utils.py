@@ -124,7 +124,7 @@ def verify_password_reset_token(token: str) -> str | None:
         return None
 
 
-def get_local_time():
+def get_local_time()->str:
     local_zone = pytz.timezone("Asia/Almaty")
     local_time = datetime.now(local_zone)
     print(local_time.strftime("%Y-%m-%d %H:%M:%S"))
