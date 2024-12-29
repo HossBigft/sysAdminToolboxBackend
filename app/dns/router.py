@@ -2,7 +2,11 @@ from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query
 from pydantic.networks import IPvAnyAddress
 from typing import Annotated
 
-from app.dns.ssh_utils import get_domain_zone_master, remove_domain_zone_master
+from app.dns.ssh_utils import (
+    get_domain_zone_master,
+    remove_domain_zone_master,
+    get_domain_zone_master_data,
+)
 from app.dns.dns_utils import resolve_record, RecordNotFoundError
 from app.crud import add_action_to_history
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
@@ -15,6 +19,7 @@ from app.models import (
     DomainMxRecordResponse,
     DomainNsRecordResponse,
     Message,
+    SubscriptionName,
 )
 
 
@@ -28,13 +33,10 @@ router = APIRouter(tags=["dns"], prefix="/dns")
     ],
 )
 async def get_a_record(domain: Annotated[DomainName, Query()]) -> DomainARecordResponse:
-    domain_str = domain.domain
     try:
-        a_records = resolve_record(domain_str, "A")
+        a_records = resolve_record(domain.domain, "A")
         records = [IPv4Address(ip=ip) for ip in a_records]
-        return DomainARecordResponse(
-            domain=DomainName(domain=domain_str), records=records
-        )
+        return DomainARecordResponse(domain=domain, records=records)
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -64,22 +66,21 @@ async def get_zone_master_from_dns_servers(
     session: SessionDep,
     background_tasks: BackgroundTasks,
     current_user: CurrentUser,
-    domain: Annotated[DomainName, Query()],
+    domain: Annotated[SubscriptionName, Query()],
 ):
-    domain_str = domain.domain
     try:
-        zone_masters_dict = await get_domain_zonemaster_data(domain_str)
+        zone_masters_dict = await get_domain_zone_master_data(domain)
         if not zone_masters_dict:
             raise HTTPException(
                 status_code=404,
-                detail=f"Zone master for domain [{domain_str}] not found.",
+                detail=f"Zone master for domain [{domain.domain}] not found.",
             )
         background_tasks.add_task(
             add_action_to_history,
             session=session,
             db_user=current_user,
-            action=f"get zonemaster of domain [{domain_str}]",
-            execution_status=200,
+            action=f"get zonemaster of domain [{domain.domain}]",
+            execution_status="200",
             server="dns_servers",
         )
         return zone_masters_dict
@@ -135,18 +136,17 @@ async def delete_zone_file_for_domain(
     session: SessionDep,
     background_tasks: BackgroundTasks,
     current_user: CurrentUser,
-    domain: Annotated[DomainName, Query()],
+    domain: Annotated[SubscriptionName, Query()],
 ):
-    domain_str = domain.domain
     try:
-        curr_zonemaster = await get_domain_zone_master(domain_str)
-        await remove_domain_zone_master(domain_str)
+        curr_zonemaster = await get_domain_zone_master(domain)
+        await remove_domain_zone_master(domain)
         background_tasks.add_task(
             add_action_to_history,
             session=session,
             db_user=current_user,
-            action=f"remove dns zone master of [{domain_str}] [{', '.join(str(item) for item in curr_zonemaster)}->None]",
-            execution_status=200,
+            action=f"remove dns zone master of [{domain.domain}] [{', '.join(str(item) for item in curr_zonemaster) if curr_zonemaster else 'None' }->None]",
+            execution_status="200",
             server="dns_servers",
         )
         return Message(message="Zone master deleted successfully")

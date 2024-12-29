@@ -39,9 +39,8 @@ def resolve_record(record: str, type: str, dns_list="internal"):
             case "NS":
                 custom_resolver.nameservers = ["IP_PLACEHOLDER", "IP_PLACEHOLDER"]
                 top_level_domain = extract(record).registered_domain
-                primary_ns = str(
-                    custom_resolver.resolve(top_level_domain, "SOA")[0].mname
-                ).rstrip(".")
+                soa_record = custom_resolver.resolve(top_level_domain, "SOA")[0].mname  # type: ignore
+                primary_ns = str(soa_record).rstrip(".")
                 primary_ns_ip = str(custom_resolver.resolve(primary_ns, "A")[0])
                 custom_resolver.nameservers = [primary_ns_ip]
 

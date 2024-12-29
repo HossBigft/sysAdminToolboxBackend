@@ -93,7 +93,7 @@ async def set_zonemaster(
     background_tasks: BackgroundTasks,
     session: SessionDep,
 ) -> Message:
-    curr_zonemaster: set[PleskServerDomain]
+    curr_zonemaster: set[PleskServerDomain] | None
     if await is_domain_exist_on_server(
         host=PleskServerDomain(domain=data.target_plesk_server),
         domain=SubscriptionName(domain=data.domain),
@@ -101,6 +101,7 @@ async def set_zonemaster(
         curr_zonemaster = await get_domain_zone_master(
             SubscriptionName(domain=data.domain)
         )
+
         await remove_domain_zone_master(SubscriptionName(domain=data.domain))
         await restart_dns_service_for_domain(
             host=PleskServerDomain(domain=data.target_plesk_server),

@@ -126,21 +126,25 @@ async def batch_ssh_execute(cmd: str):
     )
 
 
-async def fetch_subscription_info(domain: SubscriptionName, partial_search=False):
+async def fetch_subscription_info(
+    domain: SubscriptionName, partial_search=False
+) -> List[SubscriptionDetails] | None:
     lowercate_domain_name = domain.domain.lower()
-    query = (
-        build_subscription_info_query(lowercate_domain_name)
-        if not partial_search
-        else build_subscription_info_query(lowercate_domain_name + "%")
+    query = build_subscription_info_query(
+        lowercate_domain_name if not partial_search else lowercate_domain_name + "%"
     )
+
     ssh_command = await build_plesk_db_command(query)
+
     answers = await batch_ssh_execute(ssh_command)
+
     results = [
-        extract_subscription_details(answer) for answer in answers if answer["stdout"]
+        details
+        for answer in answers
+        if answer.get("stdout") and (details := extract_subscription_details(answer))
     ]
-    if not results:
-        return None
-    return results
+
+    return results if results else None
 
 
 async def _build_plesk_login_command(ssh_username: LinuxUsername) -> str:

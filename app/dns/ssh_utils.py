@@ -12,8 +12,8 @@ DOMAIN_REGEX_PATTERN = (
 )
 
 
-async def build_get_zone_master_command(domain_name: SubscriptionName) -> str:
-    escaped_domain = shlex.quote(f'\\"{domain_name.lower()}\\"')
+async def build_get_zone_master_command(domain: SubscriptionName) -> str:
+    escaped_domain = shlex.quote(f'\\"{domain.domain.lower()}\\"')
     return (
         f"cat {ZONEFILE_PATH} | "
         f"grep {escaped_domain} | "
@@ -30,8 +30,8 @@ async def batch_ssh_execute(cmd: str):
     )
 
 
-async def get_domain_zone_master_data(domain_name: SubscriptionName):
-    getZoneMasterCmd = await build_get_zone_master_command(domain_name)
+async def get_domain_zone_master_data(domain: SubscriptionName):
+    getZoneMasterCmd = await build_get_zone_master_command(domain)
     dnsAnswers = await batch_ssh_execute(getZoneMasterCmd)
     dnsAnswers = [
         {"ns": answer["host"], "zone_master": answer["stdout"]}
@@ -40,11 +40,11 @@ async def get_domain_zone_master_data(domain_name: SubscriptionName):
     ]
     if not dnsAnswers:
         return None
-    return {"domain": f"{domain_name}", "answers": dnsAnswers}
+    return {"domain": f"{domain.domain}", "answers": dnsAnswers}
 
 
-async def build_remove_zone_master_command(domain_name: SubscriptionName) -> str:
-    escaped_domain = shlex.quote(f'\\"{domain_name.lower()}\\"')
+async def build_remove_zone_master_command(domain: SubscriptionName) -> str:
+    escaped_domain = shlex.quote(f'\\"{domain.domain.lower()}\\"')
     return f"/opt/isc/isc-bind/root/usr/sbin/rndc delzone -clean {escaped_domain}"
 
 
@@ -60,11 +60,13 @@ async def remove_domain_zone_master(domain: SubscriptionName):
             )
 
 
-async def get_domain_zone_master(domain: SubscriptionName) -> set[PleskServerDomain]:
-    zonemaster_data = await get_domain_zone_master_data(domain_name=domain)
+async def get_domain_zone_master(
+    domain: SubscriptionName,
+) -> set[PleskServerDomain] | None:
+    zonemaster_data = await get_domain_zone_master_data(domain=domain)
     if zonemaster_data is None:
         return None
-    
+
     zonemaster_ip_set = {answer["zone_master"] for answer in zonemaster_data["answers"]}
     zonemaster_domains_set = set()
 
