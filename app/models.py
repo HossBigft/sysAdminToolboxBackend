@@ -7,7 +7,6 @@ from pydantic import (
 )
 from sqlmodel import Field, SQLModel
 from enum import Enum
-from datetime import datetime
 from typing import List
 from typing_extensions import Annotated
 from pydantic.networks import IPvAnyAddress

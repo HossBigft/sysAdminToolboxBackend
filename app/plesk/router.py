@@ -10,6 +10,8 @@ from app.plesk.models import (
     SubscriptionLoginLinkInput,
     DomainName,
     SetZonemasterInput,
+    LinuxUsername,
+    PleskServerDomain,
 )
 from app.models import UserRoles, Message, SubscriptionName
 from app.plesk.ssh_utils import (
@@ -33,7 +35,7 @@ async def find_plesk_subscription_by_domain(
         Query(),
     ],
 ) -> SubscriptionListResponseModel:
-    subscriptions = await fetch_subscription_info(domain.domain)
+    subscriptions = await fetch_subscription_info(domain)
     if not subscriptions:
         raise HTTPException(
             status_code=404,
@@ -65,7 +67,9 @@ async def get_subscription_login_link(
     session: SessionDep,
 ):
     login_link = await generate_subscription_login_link(
-        data.host, data.subscription_id, current_user.ssh_username
+        PleskServerDomain(domain=data.host),
+        data.subscription_id,
+        LinuxUsername(name=current_user.ssh_username),
     )
 
     background_tasks.add_task(
@@ -89,12 +93,18 @@ async def set_zonemaster(
     background_tasks: BackgroundTasks,
     session: SessionDep,
 ) -> Message:
-    curr_zonemaster: str
-    if await is_domain_exist_on_server(data.target_plesk_server, data.domain):
-        curr_zonemaster = await get_domain_zone_master(domain=data.domain)
-        await remove_domain_zone_master(domain=data.domain)
+    curr_zonemaster: set[PleskServerDomain]
+    if await is_domain_exist_on_server(
+        host=PleskServerDomain(domain=data.target_plesk_server),
+        domain=SubscriptionName(domain=data.domain),
+    ):
+        curr_zonemaster = await get_domain_zone_master(
+            SubscriptionName(domain=data.domain)
+        )
+        await remove_domain_zone_master(SubscriptionName(domain=data.domain))
         await restart_dns_service_for_domain(
-            host=data.target_plesk_server, domain=data.domain
+            host=PleskServerDomain(domain=data.target_plesk_server),
+            domain=SubscriptionName(domain=data.domain),
         )
     else:
         raise HTTPException(
@@ -106,7 +116,7 @@ async def set_zonemaster(
         session=session,
         db_user=current_user,
         action=f"Set zonemaster for domain [{data.domain}] [{curr_zonemaster}->{data.target_plesk_server}]",
-        execution_status=200,
+        execution_status="200",
         server="plesk_servers",
     )
     return Message(message="Zone master set successfully")

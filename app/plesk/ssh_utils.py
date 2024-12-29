@@ -1,6 +1,6 @@
 import shlex
 from fastapi import HTTPException
-
+from typing import TypedDict, List
 
 from app.AsyncSSHandler import execute_ssh_command, execute_ssh_commands_in_batch
 from app.plesk.models import SubscriptionName, LinuxUsername, PleskServerDomain
@@ -9,6 +9,15 @@ from app.host_lists import PLESK_SERVER_LIST
 PLESK_LOGLINK_CMD = "plesk login"
 REDIRECTION_HEADER = r"&success_redirect_url=%2Fadmin%2Fsubscription%2Foverview%2Fid%2F"
 PLESK_DB_RUN_CMD_TEMPLATE = 'plesk db -Ne \\"{}\\"'
+
+
+class SubscriptionDetails(TypedDict):
+    host: str
+    id: str
+    name: str
+    username: str
+    userlogin: str
+    domains: List[str]
 
 
 class PleskServiceError(Exception):
@@ -37,7 +46,7 @@ async def build_plesk_db_command(query: str) -> str:
 
 
 async def build_restart_dns_service_command(domain: SubscriptionName) -> str:
-    escaped_domain = shlex.quote(f'"{domain.lower()}"')
+    escaped_domain = shlex.quote(f'"{domain.domain.lower()}"')
     return (
         f"plesk bin dns --off {escaped_domain} && plesk bin dns --on {escaped_domain}"
     )
@@ -51,7 +60,7 @@ async def fetch_subscription_id_by_domain(
     fetch_subscription_id_by_domain_cmd = await build_plesk_db_command(
         query_subscription_id_by_domain
     )
-    result = await execute_ssh_command(host, fetch_subscription_id_by_domain_cmd)
+    result = await execute_ssh_command(host.domain, fetch_subscription_id_by_domain_cmd)
     subscription_id = int(result["stdout"])
     return subscription_id
 
@@ -94,11 +103,11 @@ def build_subscription_info_query(domain_to_find: str) -> str:
     ).format(domain_to_find)
 
 
-def extract_subscription_details(answer) -> dict:
+def extract_subscription_details(answer) -> SubscriptionDetails | None:
     stdout_lines = answer["stdout"].strip().split("\n")
     if len(stdout_lines) == 1:
         return None
-    parsed_answer = {
+    subscription_details: SubscriptionDetails = {
         "host": answer["host"],
         "id": stdout_lines[0],
         "name": stdout_lines[1],
@@ -106,7 +115,7 @@ def extract_subscription_details(answer) -> dict:
         "userlogin": stdout_lines[2].split("\t")[1],
         "domains": [stdout_lines[1]] + stdout_lines[3:],
     }
-    return parsed_answer
+    return subscription_details
 
 
 async def batch_ssh_execute(cmd: str):
@@ -118,7 +127,7 @@ async def batch_ssh_execute(cmd: str):
 
 
 async def fetch_subscription_info(domain: SubscriptionName, partial_search=False):
-    lowercate_domain_name = domain.lower()
+    lowercate_domain_name = domain.domain.lower()
     query = (
         build_subscription_info_query(lowercate_domain_name)
         if not partial_search
@@ -142,7 +151,7 @@ async def _is_subscription_id_exist(
     host: PleskServerDomain, subscriptionId: int
 ) -> bool:
     get_subscription_name_cmd = f'plesk db -Ne "SELECT name FROM domains WHERE webspace_id=0 AND id={subscriptionId}"'
-    result = await execute_ssh_command(host, get_subscription_name_cmd)
+    result = await execute_ssh_command(host.domain, get_subscription_name_cmd)
     subscription_name = result["stdout"]
     return not subscription_name == ""
 
@@ -151,7 +160,7 @@ async def fetch_plesk_login_link(
     host: PleskServerDomain, ssh_username: LinuxUsername
 ) -> str:
     cmd_to_run = await _build_plesk_login_command(ssh_username)
-    result = await execute_ssh_command(host, cmd_to_run)
+    result = await execute_ssh_command(host.domain, cmd_to_run)
     login_link = result["stdout"]
     return login_link
 

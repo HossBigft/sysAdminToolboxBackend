@@ -123,14 +123,14 @@ class LinuxUsername(BaseModel):
         str,
         StringConstraints(
             min_length=3,
-            max_length=63,
+            max_length=32,
             pattern=LINUX_USERNAME_PATTERN,
         ),
-    ]
+    ] | None
 
 
 class PleskServerDomain(BaseModel):
-    host: Annotated[
+    domain: Annotated[
         str,
         StringConstraints(
             min_length=3,
@@ -140,8 +140,8 @@ class PleskServerDomain(BaseModel):
     ]
 example.com
 
-    @field_validator("host")
-    def validate_host(cls, v):
+    @field_validator("domain")
+    def validate_domain(cls, v):
         if v not in PLESK_SERVER_LIST:
             raise ValueError(f"Domain '{v}' is not in the list of Plesk servers.")
         return v
