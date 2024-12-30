@@ -16,7 +16,7 @@ async def build_get_zone_master_command(domain: SubscriptionName) -> str:
     escaped_domain = shlex.quote(f'\\"{domain.domain.lower()}\\"')
     return (
         f"cat {ZONEFILE_PATH} | "
-        f"grep {escaped_domain} | "
+        f"grep -F {escaped_domain} | "
         r"grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}' | "
         "head -n1"
     )
