@@ -52,7 +52,7 @@ async def db() -> AsyncGenerator[Session, None]:
         init_db(session)
         yield session
         statement = delete(User)
-        session.exec(statement)
+        session.execute(statement)
         session.commit()
 
 
