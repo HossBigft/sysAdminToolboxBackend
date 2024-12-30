@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends, BackgroundTasks
 from typing import Annotated
 
 from app.plesk.ssh_utils import (
-    fetch_subscription_info,
+    plesk_fetch_subscription_info,
 )
 from app.plesk.models import (
     SubscriptionListResponseModel,
@@ -15,7 +15,7 @@ from app.plesk.models import (
 )
 from app.models import UserRoles, Message, SubscriptionName
 from app.plesk.ssh_utils import (
-    generate_subscription_login_link,
+    plesk_generate_subscription_login_link,
 )
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
 from app.crud import add_action_to_history
@@ -35,7 +35,7 @@ async def find_plesk_subscription_by_domain(
         Query(),
     ],
 ) -> SubscriptionListResponseModel:
-    subscriptions = await fetch_subscription_info(domain)
+    subscriptions = await plesk_fetch_subscription_info(domain)
     if not subscriptions:
         raise HTTPException(
             status_code=404,
@@ -66,7 +66,7 @@ async def get_subscription_login_link(
     background_tasks: BackgroundTasks,
     session: SessionDep,
 ):
-    login_link = await generate_subscription_login_link(
+    login_link = await plesk_generate_subscription_login_link(
         PleskServerDomain(domain=data.host),
         data.subscription_id,
         LinuxUsername(name=current_user.ssh_username),

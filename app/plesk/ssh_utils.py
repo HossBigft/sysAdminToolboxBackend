@@ -126,7 +126,7 @@ async def batch_ssh_execute(cmd: str):
     )
 
 
-async def fetch_subscription_info(
+async def plesk_plesk_fetch_subscription_info(
     domain: SubscriptionName, partial_search=False
 ) -> List[SubscriptionDetails] | None:
     lowercate_domain_name = domain.domain.lower()
@@ -160,7 +160,7 @@ async def _is_subscription_id_exist(
     return not subscription_name == ""
 
 
-async def fetch_plesk_login_link(
+async def plesk_fetch_plesk_login_link(
     host: PleskServerDomain, ssh_username: LinuxUsername
 ) -> str:
     cmd_to_run = await _build_plesk_login_command(ssh_username)
@@ -169,7 +169,7 @@ async def fetch_plesk_login_link(
     return login_link
 
 
-async def generate_subscription_login_link(
+async def plesk_plesk_generate_subscription_login_link(
     host: PleskServerDomain, subscription_id: int, ssh_username: LinuxUsername
 ) -> str:
     if not await _is_subscription_id_exist(host, subscription_id):
@@ -178,7 +178,7 @@ async def generate_subscription_login_link(
             detail=f"Subscription with {subscription_id} ID doesn't exist.",
         )
 
-    plesk_login_link = await fetch_plesk_login_link(host, ssh_username)
+    plesk_login_link = await plesk_fetch_plesk_login_link(host, ssh_username)
     subscription_login_link = f"{plesk_login_link}{REDIRECTION_HEADER}{subscription_id}"
 
     return subscription_login_link
