@@ -2,6 +2,8 @@ import pytest
 from fastapi import HTTPException
 from unittest.mock import AsyncMock, patch, MagicMock
 
+
+
 from app.dns.router import delete_zone_file_for_domain
 from app.models import SubscriptionName, Message
 from app.dns.ssh_utils import (
@@ -135,3 +137,4 @@ async def test_dns_remove_domain_zone_master_error():
             await dns_remove_domain_zone_master(domain)
 
         assert "DNS zone removal failed for host: dns1" in str(exc_info.value)
+
