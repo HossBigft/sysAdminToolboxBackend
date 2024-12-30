@@ -126,7 +126,7 @@ async def batch_ssh_execute(cmd: str):
     )
 
 
-async def plesk_plesk_fetch_subscription_info(
+async def plesk_fetch_subscription_info(
     domain: SubscriptionName, partial_search=False
 ) -> List[SubscriptionDetails] | None:
     lowercate_domain_name = domain.domain.lower()
@@ -169,7 +169,7 @@ async def plesk_fetch_plesk_login_link(
     return login_link
 
 
-async def plesk_plesk_generate_subscription_login_link(
+async def plesk_generate_subscription_login_link(
     host: PleskServerDomain, subscription_id: int, ssh_username: LinuxUsername
 ) -> str:
     if not await _is_subscription_id_exist(host, subscription_id):
