@@ -55,10 +55,6 @@ class User(UserBase, table=True):
     hashed_password: str
 
 
-class UserInDB(User):
-    hashed_password: str
-
-
 # Properties to receive via API on creation
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=40)
