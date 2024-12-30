@@ -30,7 +30,7 @@ async def batch_ssh_execute(cmd: str):
     )
 
 
-async def get_domain_zone_master_data(domain: SubscriptionName):
+async def dns_query_domain_zone_master(domain: SubscriptionName):
     getZoneMasterCmd = await build_get_zone_master_command(domain)
     dnsAnswers = await batch_ssh_execute(getZoneMasterCmd)
     dnsAnswers = [
@@ -48,7 +48,7 @@ async def build_remove_zone_master_command(domain: SubscriptionName) -> str:
     return f"/opt/isc/isc-bind/root/usr/sbin/rndc delzone -clean {escaped_domain}"
 
 
-async def remove_domain_zone_master(domain: SubscriptionName):
+async def dns_remove_domain_zone_master(domain: SubscriptionName):
     rm_zone_master_md = await build_remove_zone_master_command(domain)
     dnsAnswers = await batch_ssh_execute(rm_zone_master_md)
     for item in dnsAnswers:
@@ -60,10 +60,10 @@ async def remove_domain_zone_master(domain: SubscriptionName):
             )
 
 
-async def get_domain_zone_master(
+async def dns_get_domain_zone_master(
     domain: SubscriptionName,
 ) -> set[PleskServerDomain] | None:
-    zonemaster_data = await get_domain_zone_master_data(domain=domain)
+    zonemaster_data = await dns_query_domain_zone_master(domain=domain)
     if zonemaster_data is None:
         return None
 

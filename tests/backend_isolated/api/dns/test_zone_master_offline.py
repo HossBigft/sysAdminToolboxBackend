@@ -4,7 +4,7 @@ from unittest.mock import patch, AsyncMock
 
 from app.dns.ssh_utils import (
     build_get_zone_master_command,
-    get_domain_zone_master_data,
+    dns_query_domain_zone_master,
 )
 from tests.test_data.hosts import HostList
 from app.models import SubscriptionName
@@ -25,7 +25,7 @@ invalid_domains = [
 
 
 @pytest.mark.asyncio
-async def test_get_domain_zone_master_with_correct_domain_existing_zone_master(
+async def test_dns_get_domain_zone_master_with_correct_domain_existing_zone_master(
     domain=HostList.CORRECT_EXISTING_DOMAIN,
 ):
     mock_response = [
@@ -39,7 +39,7 @@ async def test_get_domain_zone_master_with_correct_domain_existing_zone_master(
     ) as mock_batch_ssh:
         mock_batch_ssh.return_value = mock_response
 
-        result = await get_domain_zone_master_data(SubscriptionName(domain=domain))
+        result = await dns_query_domain_zone_master(SubscriptionName(domain=domain))
 
         expected_result = {
             "domain": domain,
@@ -54,7 +54,7 @@ async def test_get_domain_zone_master_with_correct_domain_existing_zone_master(
 
 
 @pytest.mark.asyncio
-async def test_get_domain_zone_master_with_correct_domain_nonexisting_zone_master(
+async def test_dns_get_domain_zone_master_with_correct_domain_nonexisting_zone_master(
     domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER,
 ):
     mock_response = [
@@ -67,7 +67,7 @@ async def test_get_domain_zone_master_with_correct_domain_nonexisting_zone_maste
         "app.dns.ssh_utils.batch_ssh_execute", new_callable=AsyncMock
     ) as mock_batch_ssh:
         mock_batch_ssh.return_value = mock_response
-        result = await get_domain_zone_master_data(SubscriptionName(domain=domain))
+        result = await dns_query_domain_zone_master(SubscriptionName(domain=domain))
 
         assert result is None
         mock_batch_ssh.assert_called_once()

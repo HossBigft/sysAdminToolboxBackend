@@ -3,9 +3,9 @@ from pydantic.networks import IPvAnyAddress
 from typing import Annotated
 
 from app.dns.ssh_utils import (
-    get_domain_zone_master,
-    remove_domain_zone_master,
-    get_domain_zone_master_data,
+    dns_get_domain_zone_master,
+    dns_remove_domain_zone_master,
+    dns_query_domain_zone_master,
 )
 from app.dns.dns_utils import resolve_record, RecordNotFoundError
 from app.crud import add_action_to_history
@@ -69,7 +69,7 @@ async def get_zone_master_from_dns_servers(
     domain: Annotated[SubscriptionName, Query()],
 ):
     try:
-        zone_masters_dict = await get_domain_zone_master_data(domain)
+        zone_masters_dict = await dns_query_domain_zone_master(domain)
         if not zone_masters_dict:
             raise HTTPException(
                 status_code=404,
@@ -139,8 +139,8 @@ async def delete_zone_file_for_domain(
     domain: Annotated[SubscriptionName, Query()],
 ):
     try:
-        curr_zonemaster = await get_domain_zone_master(domain)
-        await remove_domain_zone_master(domain)
+        curr_zonemaster = await dns_get_domain_zone_master(domain)
+        await dns_remove_domain_zone_master(domain)
         background_tasks.add_task(
             add_action_to_history,
             session=session,

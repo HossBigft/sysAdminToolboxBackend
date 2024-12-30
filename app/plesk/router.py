@@ -23,7 +23,7 @@ from app.plesk.ssh_utils import (
     is_domain_exist_on_server,
     restart_dns_service_for_domain,
 )
-from app.dns.ssh_utils import remove_domain_zone_master, get_domain_zone_master
+from app.dns.ssh_utils import dns_remove_domain_zone_master, dns_get_domain_zone_master
 
 router = APIRouter(tags=["plesk"], prefix="/plesk")
 
@@ -98,11 +98,11 @@ async def set_zonemaster(
         host=PleskServerDomain(domain=data.target_plesk_server),
         domain=SubscriptionName(domain=data.domain),
     ):
-        curr_zonemaster = await get_domain_zone_master(
+        curr_zonemaster = await dns_get_domain_zone_master(
             SubscriptionName(domain=data.domain)
         )
 
-        await remove_domain_zone_master(SubscriptionName(domain=data.domain))
+        await dns_remove_domain_zone_master(SubscriptionName(domain=data.domain))
         await restart_dns_service_for_domain(
             host=PleskServerDomain(domain=data.target_plesk_server),
             domain=SubscriptionName(domain=data.domain),
