@@ -41,7 +41,6 @@ async def validate_ssh_disabled():
     results = await execute_ssh_commands_in_batch(
         server_list=PLESK_SERVER_LIST, command="echo ok", verbose=True
     )
-    print("SSH Command Results:", results)
     if not all(result == MOCK_SSH_COMMAND_RESULT for result in results):
         pytest.exit("SSH is not disabled, skipping all tests.")
 
