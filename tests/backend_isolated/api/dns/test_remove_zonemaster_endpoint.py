@@ -3,7 +3,6 @@ from fastapi import HTTPException
 from unittest.mock import AsyncMock, patch, MagicMock
 
 
-
 from app.dns.router import delete_zone_file_for_domain
 from app.models import SubscriptionName, Message
 from app.dns.ssh_utils import (
@@ -34,44 +33,40 @@ def mock_current_user():
 async def test_delete_zone_file_success(
     mock_session, mock_background_tasks, mock_current_user
 ):
-    # Mock the domain
     domain = SubscriptionName(domain=TEST_DOMAIN)
-
-    # Mock the dns_get_domain_zone_master function
     current_zone = ["IP_PLACEHOLDER", "IP_PLACEHOLDER"]
-    with patch(
-        "app.dns.ssh_utils.dns_get_domain_zone_master", new_callable=AsyncMock
-    ) as mock_get_zone:
+    with (
+        patch(
+            "app.dns.router.dns_get_domain_zone_master", new_callable=AsyncMock
+        ) as mock_get_zone,
+        patch(
+            "app.dns.router.dns_remove_domain_zone_master", new_callable=AsyncMock
+        ) as mock_remove,
+        patch(
+            "app.dns.router.add_action_to_history", new_callable=AsyncMock
+        ) as mock_history,
+    ):
         mock_get_zone.return_value = current_zone
+        response = await delete_zone_file_for_domain(
+            session=mock_session,
+            background_tasks=mock_background_tasks,
+            current_user=mock_current_user,
+            domain=domain,
+        )
 
-        # Mock the dns_remove_domain_zone_master function
-        with patch(
-            "app.dns.routes.dns_remove_domain_zone_master", new_callable=AsyncMock
-        ) as mock_remove:
-            # Mock the add_action_to_history function
-            with patch(
-                "app.crud.add_action_to_history", new_callable=AsyncMock
-            ) as mock_history:
-                response = await delete_zone_file_for_domain(
-                    session=mock_session,
-                    background_tasks=mock_background_tasks,
-                    current_user=mock_current_user,
-                    domain=domain,
-                )
+        assert isinstance(response, Message)
+        assert response.message == "Zone master deleted successfully"
 
-                assert isinstance(response, Message)
-                assert response.message == "Zone master deleted successfully"
-
-                mock_get_zone.assert_called_once_with(domain)
-                mock_remove.assert_called_once_with(domain)
-                mock_background_tasks.add_task.assert_called_once_with(
-                    mock_history,
-                    session=mock_session,
-                    db_user=mock_current_user,
-                    action=f"remove dns zone master of [{TEST_DOMAIN}] [IP_PLACEHOLDER, IP_PLACEHOLDER->None]",
-                    execution_status="200",
-                    server="dns_servers",
-                )
+        mock_get_zone.assert_called_once_with(domain)
+        mock_remove.assert_called_once_with(domain)
+        mock_background_tasks.add_task.assert_called_once_with(
+            mock_history,
+            session=mock_session,
+            db_user=mock_current_user,
+            action=f"remove dns zone master of [{TEST_DOMAIN}] [IP_PLACEHOLDER, IP_PLACEHOLDER->None]",
+            execution_status="200",
+            server="dns_servers",
+        )
 
 
 @pytest.mark.asyncio
@@ -80,33 +75,34 @@ async def test_delete_zone_file_not_found(
 ):
     domain = SubscriptionName(domain="nonexistent.com")
 
-    with patch(
-        "app.dns.ssh_utils.dns_get_domain_zone_master", new_callable=AsyncMock
-    ) as mock_get_zone:
+    with (
+        patch(
+            "app.dns.router.dns_get_domain_zone_master", new_callable=AsyncMock
+        ) as mock_get_zone,
+        patch(
+            "app.dns.router.dns_remove_domain_zone_master", new_callable=AsyncMock
+        ) as mock_remove,
+    ):
         mock_get_zone.return_value = None
+        mock_remove.side_effect = RuntimeError("Zone not found")
 
-        with patch(
-            "app.dns.ssh_utils.dns_remove_domain_zone_master", new_callable=AsyncMock
-        ) as mock_remove:
-            mock_remove.side_effect = RuntimeError("Zone not found")
+        with pytest.raises(HTTPException) as exc_info:
+            await delete_zone_file_for_domain(
+                session=mock_session,
+                background_tasks=mock_background_tasks,
+                current_user=mock_current_user,
+                domain=domain,
+            )
 
-            with pytest.raises(HTTPException) as exc_info:
-                await delete_zone_file_for_domain(
-                    session=mock_session,
-                    background_tasks=mock_background_tasks,
-                    current_user=mock_current_user,
-                    domain=domain,
-                )
-
-            assert exc_info.value.status_code == 404
-            assert str(exc_info.value.detail) == "Zone not found"
+        assert exc_info.value.status_code == 404
+        assert str(exc_info.value.detail) == "Zone not found"
 
 
 @pytest.mark.asyncio
 async def test_build_remove_zone_master_command():
     domain = SubscriptionName(domain="test.com")
     command = await build_remove_zone_master_command(domain)
-    expected = '/opt/isc/isc-bind/root/usr/sbin/rndc delzone -clean \\"test.com\\"'
+    expected = "/opt/isc/isc-bind/root/usr/sbin/rndc delzone -clean test.com"
     assert command == expected
 
 
@@ -116,7 +112,7 @@ async def test_dns_remove_domain_zone_master_success():
     mock_response = [{"host": "dns1", "stderr": ""}]
 
     with patch(
-        "app.plesk.ssh_utils.batch_ssh_execute", new_callable=AsyncMock
+        "app.dns.ssh_utils.batch_ssh_execute", new_callable=AsyncMock
     ) as mock_execute:
         mock_execute.return_value = mock_response
         await dns_remove_domain_zone_master(domain)
@@ -129,7 +125,7 @@ async def test_dns_remove_domain_zone_master_error():
     mock_response = [{"host": "dns1", "stderr": "error occurred"}]
 
     with patch(
-        "app.plesk.ssh_utils.batch_ssh_execute", new_callable=AsyncMock
+        "app.dns.ssh_utils.batch_ssh_execute", new_callable=AsyncMock
     ) as mock_execute:
         mock_execute.return_value = mock_response
 
@@ -137,4 +133,3 @@ async def test_dns_remove_domain_zone_master_error():
             await dns_remove_domain_zone_master(domain)
 
         assert "DNS zone removal failed for host: dns1" in str(exc_info.value)
-

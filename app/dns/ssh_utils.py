@@ -44,7 +44,7 @@ async def dns_query_domain_zone_master(domain: SubscriptionName):
 
 
 async def build_remove_zone_master_command(domain: SubscriptionName) -> str:
-    escaped_domain = shlex.quote(f'\\"{domain.domain.lower()}\\"')
+    escaped_domain = shlex.quote(domain.domain.lower())
     return f"/opt/isc/isc-bind/root/usr/sbin/rndc delzone -clean {escaped_domain}"
 
 
@@ -70,6 +70,7 @@ async def dns_get_domain_zone_master(
     zonemaster_ip_set = {answer["zone_master"] for answer in zonemaster_data["answers"]}
     zonemaster_domains_set = set()
 
+    print("zonemaster_ip_set", zonemaster_ip_set)
     for zonemaster in zonemaster_ip_set:
         zonemaster_domains_set.update(resolve_record(record=zonemaster, type="PTR"))
 
