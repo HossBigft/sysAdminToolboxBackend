@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query
-from pydantic.networks import IPvAnyAddress
 from typing import Annotated
 
 from app.dns.ssh_utils import (
@@ -35,7 +34,7 @@ router = APIRouter(tags=["dns"], prefix="/dns")
 async def get_a_record(domain: Annotated[DomainName, Query()]) -> DomainARecordResponse:
     try:
         a_records = resolve_record(domain.domain, "A")
-        records = [IPv4Address(ip=ip) for ip in a_records]
+        records = [IPv4Address(ip) for ip in a_records]
         return DomainARecordResponse(domain=domain, records=records)
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -48,12 +47,12 @@ async def get_a_record(domain: Annotated[DomainName, Query()]) -> DomainARecordR
     ],
 )
 async def get_ptr_record(
-    ip: IPvAnyAddress,
+    ip: IPv4Address,
 ):
     try:
         ptr_records = resolve_record(str(ip), "PTR")
         records = [DomainName(domain=domain) for domain in ptr_records]
-        return PtrRecordResponse(ip=IPv4Address(ip=ip), records=records)
+        return PtrRecordResponse(ip=ip, records=records)
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 

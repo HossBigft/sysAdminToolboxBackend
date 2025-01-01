@@ -1,16 +1,11 @@
 import uuid
-from pydantic import (
-    EmailStr,
-    BaseModel,
-    StringConstraints,
-    model_serializer,
-)
+from pydantic import EmailStr, BaseModel, StringConstraints, model_serializer, RootModel
 from sqlmodel import Field, SQLModel
 from enum import Enum
 from typing import List
 from typing_extensions import Annotated
 from pydantic.networks import IPvAnyAddress
-
+from ipaddress import ip_address
 
 SUBSCRIPTION_NAME_PATTERN = (
     r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,8}$"
@@ -129,15 +124,18 @@ class DomainName(BaseModel):
         return self.domain
 
 
-class IPv4Address(BaseModel):
-    ip: IPvAnyAddress
+class IPv4Address(RootModel):
+    root: IPvAnyAddress
+
+    def __init__(self, ip: str):
+        super().__init__(root=ip_address(ip))
 
     def __str__(self) -> str:
-        return str(self.ip)
+        return str(self.root)
 
     @model_serializer(mode="wrap")
     def ser_model(self, _handler):
-        return str(self.ip)
+        return str(self.root)
 
     model_config = {"json_schema_extra": {"examples": ["IP_PLACEHOLDER"]}}
 
