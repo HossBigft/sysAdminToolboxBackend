@@ -50,7 +50,7 @@ async def get_a_record(domain: Annotated[DomainName, Query()]) -> DomainARecordR
     ],
 )
 async def get_ptr_record(
-    ip: IPv4Address,
+    ip: Annotated[IPv4Address, Query()],
 ):
     try:
         ptr_records = resolve_record(str(ip), "PTR")

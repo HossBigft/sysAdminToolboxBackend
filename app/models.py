@@ -118,8 +118,8 @@ class DomainName(BaseModel):
 class IPv4Address(RootModel):
     root: IPvAnyAddress
 
-    def __init__(self, ip: str):
-        super().__init__(root=ip_address(ip))
+    def __init__(self, root: str):
+        super().__init__(root=ip_address(root))
 
     def __str__(self) -> str:
         return str(self.root)
