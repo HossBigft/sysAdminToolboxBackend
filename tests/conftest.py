@@ -8,7 +8,7 @@ from sqlmodel import Session, delete
 from app.core.config import settings
 from app.core.db import engine, init_db
 from app.main import app
-from app.models import User, UserAction
+from app.models import User, UsersActivityLog
 from tests.utils.user import authentication_token_from_email
 from tests.utils.utils import get_superuser_token_headers
 
@@ -50,7 +50,7 @@ async def db() -> AsyncGenerator[Session, None]:
     with Session(engine) as session:
         init_db(session)
         yield session
-        statement = delete(UserAction)
+        statement = delete(UsersActivityLog)
         session.execute(statement)
         statement = delete(User)
         session.execute(statement)

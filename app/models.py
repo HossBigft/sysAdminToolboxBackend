@@ -1,6 +1,6 @@
 import uuid
 from pydantic import EmailStr, BaseModel, StringConstraints, model_serializer, RootModel
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, SQLModel, Relationship, AutoString
 from enum import Enum
 from typing import List
 from typing_extensions import Annotated
@@ -98,15 +98,6 @@ class NewPassword(SQLModel):
     new_password: str = Field(min_length=8, max_length=40)
 
 
-class UserAction(SQLModel, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: uuid.UUID = Field(foreign_key="user.id")
-    action: str
-    server: str | None = None
-    timestamp: str
-    status: str
-
-
 class DomainName(BaseModel):
     domain: Annotated[
         str,
@@ -175,3 +166,65 @@ class SubscriptionName(BaseModel):
     @model_serializer(mode="wrap")
     def ser_model(self, _handler):
         return self.domain
+
+
+class UserActionType(str, Enum):
+    GET_ZONE_MASTER = "GET_ZONE_MASTER"
+    DELETE_ZONE_MASTER = "DELETE_ZONE_MASTER"
+    SET_ZONE_MASTER = "SET_ZONE_MASTER"
+    GENERATE_LOGIN_LINK = "GENERATE_LOGIN_LINK"
+
+
+class UsersActivityLog(SQLModel, table=True):
+    __tablename__ = "users_activity_log"  # type: ignore
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id")
+    action: UserActionType
+    server: str
+    timestamp: str
+
+    # Relationships to action-specific logs
+    dns_zone_delete_logs: list["DeleteZonemasterLog"] = Relationship(
+        back_populates="user_action"
+    )
+    dns_set_zone_master_logs: list["SetZoneMasterLog"] = Relationship(
+        back_populates="user_action"
+    )
+    dns_get_zone_master_logs: list["GetZoneMasterLog"] = Relationship(
+        back_populates="user_action"
+    )
+
+
+class UserActionLogBase(SQLModel):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_action_id: uuid.UUID = Field(foreign_key="users_activity_log.id")
+
+
+class DeleteZonemasterLog(UserActionLogBase, table=True):
+    __tablename__ = "zone_master_delete_log"  # type: ignore
+
+    current_zone_master: DomainName = Field(sa_type=AutoString)
+    user_action: "UsersActivityLog" = Relationship(
+        back_populates="dns_zone_delete_logs"
+    )
+
+
+class SetZoneMasterLog(UserActionLogBase, table=True):
+    __tablename__ = "zone_master_set_log"  # type: ignore
+
+    current_zone_master: DomainName | None = Field(sa_type=AutoString)
+    target_zone_master: DomainName = Field(sa_type=AutoString)
+    domain: DomainName = Field(sa_type=AutoString)
+    user_action: "UsersActivityLog" = Relationship(
+        back_populates="dns_set_zone_master_logs"
+    )
+
+
+class GetZoneMasterLog(UserActionLogBase, table=True):
+    __tablename__ = "zone_master_get_log"  # type: ignore
+
+    domain: SubscriptionName = Field(sa_type=AutoString)
+    user_action: "UsersActivityLog" = Relationship(
+        back_populates="dns_get_zone_master_logs"
+    )

@@ -22,7 +22,7 @@ from app.models import (
     UsersPublic,
     UserUpdate,
     UserUpdateMe,
-    UserAction,
+    UsersActivityLog,
     UserRoles,
 )
 from app.utils import generate_new_account_email, send_email
@@ -227,5 +227,5 @@ def delete_user(
 
 @router.get("/{user_id}/history")
 async def get_user_actions(user_id: uuid.UUID, session: SessionDep):
-    actions = session.exec(UserAction).filter(UserAction.user_id == user_id).all()
+    actions = session.exec(UsersActivityLog).filter(UsersActivityLog.user_id == user_id).all()
     return actions

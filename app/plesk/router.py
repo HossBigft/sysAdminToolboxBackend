@@ -18,7 +18,7 @@ from app.plesk.ssh_utils import (
     plesk_generate_subscription_login_link,
 )
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
-from app.crud import add_action_to_history
+from app.crud import add_dns_set_zone_master_log_entry
 from app.plesk.ssh_utils import (
     is_domain_exist_on_server,
     restart_dns_service_for_domain,
@@ -72,14 +72,14 @@ async def get_subscription_login_link(
         LinuxUsername(name=current_user.ssh_username),
     )
 
-    background_tasks.add_task(
-        add_action_to_history,
-        session=session,
-        db_user=current_user,
-        action=f"generate plesk login link for subscription with ID [{data.subscription_id}] on server [{data.host}] for user [{current_user.ssh_username}]",
-        execution_status="200",
-        server="dns_servers",
-    )
+    # background_tasks.add_task(
+    #     add_action_to_history,
+    #     session=session,
+    #     db_user=current_user,
+    #     action=f"generate plesk login link for subscription with ID [{data.subscription_id}] on server [{data.host}] for user [{current_user.ssh_username}]",
+    #     execution_status="200",
+    #     server="dns_servers",
+    # )
     return login_link
 
 
@@ -93,12 +93,12 @@ async def set_zonemaster(
     background_tasks: BackgroundTasks,
     session: SessionDep,
 ) -> Message:
-    curr_zonemaster: set[PleskServerDomain] | None
+    curr_zone_master: set[PleskServerDomain] | None
     if await is_domain_exist_on_server(
         host=PleskServerDomain(domain=data.target_plesk_server),
         domain=SubscriptionName(domain=data.domain),
     ):
-        curr_zonemaster = await dns_get_domain_zone_master(
+        curr_zone_master = await dns_get_domain_zone_master(
             SubscriptionName(domain=data.domain)
         )
 
@@ -113,11 +113,11 @@ async def set_zonemaster(
             detail=f"Subscription with domain [{data.domain}] not found.",
         )
     background_tasks.add_task(
-        add_action_to_history,
+        add_dns_set_zone_master_log_entry,
         session=session,
         db_user=current_user,
-        action=f"Set zonemaster for domain [{data.domain}] [{curr_zonemaster}->{data.target_plesk_server}]",
-        execution_status="200",
-        server="plesk_servers",
+        current_zone_master=curr_zone_master,
+        target_zone_master=data.target_plesk_server,
+        domain=data.domain,
     )
     return Message(message="Zone master set successfully")

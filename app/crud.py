@@ -3,7 +3,18 @@ from typing import Any
 from sqlmodel import Session, select
 
 from app.core.security import get_password_hash, verify_password
-from app.models import User, UserCreate, UserUpdate, UserAction
+from app.models import (
+    User,
+    UserCreate,
+    UserUpdate,
+    UsersActivityLog,
+    UserActionType,
+    DeleteZonemasterLog,
+    DomainName,
+    GetZoneMasterLog,
+    SubscriptionName,
+    SetZoneMasterLog,
+)
 from app.utils import get_local_time
 
 
@@ -46,20 +57,67 @@ def authenticate(*, session: Session, email: str, password: str) -> User | None:
     return db_user
 
 
-def add_action_to_history(
-    *,
+async def add_dns_remove_zone_master_log_entry(
+    session: Session, db_user: User, current_zone_master: DomainName
+) -> None:
+    user_log = UsersActivityLog(
+        user_id=db_user.id,
+        action=UserActionType.DELETE_ZONE_MASTER,
+        timestamp=get_local_time(),
+        server="DNS",
+    )
+    session.add(user_log)
+    session.commit()
+
+    user_action = DeleteZonemasterLog(
+        user_action_id=user_log.id,
+        current_zone_master=current_zone_master,
+    )
+    session.add(user_action)
+    session.commit()
+
+
+async def add_dns_get_zone_master_log_entry(
+    session: Session, db_user: User, domain: SubscriptionName
+) -> None:
+    user_log = UsersActivityLog(
+        user_id=db_user.id,
+        action=UserActionType.GET_ZONE_MASTER,
+        timestamp=get_local_time(),
+        server="DNS",
+    )
+    session.add(user_log)
+    session.commit()
+
+    user_action = GetZoneMasterLog(
+        user_action_id=user_log.id,
+        domain=domain,
+    )
+    session.add(user_action)
+    session.commit()
+
+
+async def add_dns_set_zone_master_log_entry(
     session: Session,
     db_user: User,
-    action: str,
-    execution_status: str,
-    server: str | None = None,
-):
-    user_action = UserAction(
+    current_zone_master: DomainName,
+    target_zone_master: DomainName,
+    domain: DomainName,
+) -> None:
+    user_log = UsersActivityLog(
         user_id=db_user.id,
-        action=action,
-        server=server,
+        action=UserActionType.SET_ZONE_MASTER,
         timestamp=get_local_time(),
-        status=execution_status,
+        server="DNS",
+    )
+    session.add(user_log)
+    session.commit()
+
+    user_action = SetZoneMasterLog(
+        user_action_id=user_log.id,
+        current_zone_master=current_zone_master,
+        target_zone_master=target_zone_master,
+        domain=domain,
     )
     session.add(user_action)
     session.commit()

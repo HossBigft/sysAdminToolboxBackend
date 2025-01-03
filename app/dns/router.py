@@ -7,7 +7,10 @@ from app.dns.ssh_utils import (
     dns_query_domain_zone_master,
 )
 from app.dns.dns_utils import resolve_record, RecordNotFoundError
-from app.crud import add_action_to_history
+from app.crud import (
+    add_dns_remove_zone_master_log_entry,
+    add_dns_get_zone_master_log_entry,
+)
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
 from app.models import (
     UserRoles,
@@ -75,12 +78,10 @@ async def get_zone_master_from_dns_servers(
                 detail=f"Zone master for domain [{domain.domain}] not found.",
             )
         background_tasks.add_task(
-            add_action_to_history,
+            add_dns_get_zone_master_log_entry,
             session=session,
             db_user=current_user,
-            action=f"get zonemaster of domain [{domain.domain}]",
-            execution_status="200",
-            server="dns_servers",
+            domain=domain,
         )
         return zone_masters_dict
     except RecordNotFoundError as e:
@@ -141,12 +142,12 @@ async def delete_zone_file_for_domain(
         curr_zonemaster = await dns_get_domain_zone_master(domain)
         await dns_remove_domain_zone_master(domain)
         background_tasks.add_task(
-            add_action_to_history,
+            add_dns_remove_zone_master_log_entry,
             session=session,
             db_user=current_user,
-            action=f"remove dns zone master of [{domain.domain}] [{', '.join(str(item) for item in curr_zonemaster) if curr_zonemaster else 'None' }->None]",
-            execution_status="200",
-            server="dns_servers",
+            current_zone_master=", ".join(str(item) for item in curr_zonemaster)
+            if curr_zonemaster
+            else None,
         )
         return Message(message="Zone master deleted successfully")
     except RuntimeError as e:
