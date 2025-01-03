@@ -13,7 +13,7 @@ DOMAIN_REGEX_PATTERN = (
 
 
 async def build_get_zone_master_command(domain: SubscriptionName) -> str:
-    escaped_domain = shlex.quote(f'\\"{domain.domain.lower()}\\"')
+    escaped_domain = shlex.quote(domain.domain.lower())
     return (
         f"cat {ZONEFILE_PATH} | "
         f"grep -F {escaped_domain} | "
