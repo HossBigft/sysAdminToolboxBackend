@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, patch, MagicMock
 
 
 from app.dns.router import delete_zone_file_for_domain
-from app.models import SubscriptionName, Message
+from app.models import SubscriptionName, Message, DomainName
 from app.dns.ssh_utils import (
     build_remove_zone_master_command,
     dns_remove_domain_zone_master,
@@ -34,7 +34,7 @@ async def test_delete_zone_file_success(
     mock_session, mock_background_tasks, mock_current_user
 ):
     domain = SubscriptionName(domain=TEST_DOMAIN)
-    current_zone = ["IP_PLACEHOLDER", "IP_PLACEHOLDER"]
+    current_zone = "zonemaster.com"
     with (
         patch(
             "app.dns.router.dns_get_domain_zone_master", new_callable=AsyncMock
@@ -43,7 +43,8 @@ async def test_delete_zone_file_success(
             "app.dns.router.dns_remove_domain_zone_master", new_callable=AsyncMock
         ) as mock_remove,
         patch(
-            "app.dns.router.add_action_to_history", new_callable=AsyncMock
+            "app.dns.router.add_dns_remove_zone_master_log_entry",
+            new_callable=AsyncMock,
         ) as mock_history,
     ):
         mock_get_zone.return_value = current_zone
@@ -63,9 +64,7 @@ async def test_delete_zone_file_success(
             mock_history,
             session=mock_session,
             db_user=mock_current_user,
-            action=f"remove dns zone master of [{TEST_DOMAIN}] [IP_PLACEHOLDER, IP_PLACEHOLDER->None]",
-            execution_status="200",
-            server="dns_servers",
+            current_zone_master=DomainName(domain="zonemaster.com"),
         )
 
 

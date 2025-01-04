@@ -143,9 +143,7 @@ async def delete_zone_file_for_domain(
             add_dns_remove_zone_master_log_entry,
             session=session,
             db_user=current_user,
-            current_zone_master=", ".join(str(item) for item in curr_zonemaster)
-            if curr_zonemaster
-            else None,
+            current_zone_master=DomainName(domain=str(curr_zonemaster)),
         )
         return Message(message="Zone master deleted successfully")
     except RuntimeError as e:
