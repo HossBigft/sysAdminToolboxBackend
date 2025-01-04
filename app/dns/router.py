@@ -49,9 +49,7 @@ async def get_a_record(domain: Annotated[DomainName, Query()]) -> DomainARecordR
         Depends(RoleChecker([UserRoles.USER, UserRoles.SUPERUSER, UserRoles.ADMIN]))
     ],
 )
-async def get_ptr_record(
-    ip: Annotated[IPv4Address, Query()],
-):
+async def get_ptr_record(ip: Annotated[IPv4Address, Query()]):
     try:
         ptr_records = resolve_record(str(ip), "PTR")
         records = [DomainName(domain=domain) for domain in ptr_records]

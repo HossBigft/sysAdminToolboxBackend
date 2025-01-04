@@ -115,18 +115,18 @@ class DomainName(BaseModel):
         return self.domain
 
 
-class IPv4Address(RootModel):
-    root: IPvAnyAddress
+class IPv4Address(BaseModel):
+    ip: str
 
-    def __init__(self, root: str):
-        super().__init__(root=ip_address(root))
+    def __init__(self, ip: str):
+        super().__init__(ip=str(ip_address(ip)))
 
     def __str__(self) -> str:
-        return str(self.root)
+        return self.ip
 
-    @model_serializer(mode="wrap")
-    def ser_model(self, _handler):
-        return str(self.root)
+    @model_serializer
+    def serialize(self) -> str:
+        return self.ip
 
     model_config = {"json_schema_extra": {"examples": ["IP_PLACEHOLDER"]}}
 
@@ -184,21 +184,22 @@ class UsersActivityLog(SQLModel, table=True):
     server: str
     timestamp: str
 
-    # Relationships to action-specific logs
     dns_zone_delete_logs: list["DeleteZonemasterLog"] = Relationship(
-        back_populates="user_action"
+        back_populates="user_action", cascade_delete=True
     )
     dns_set_zone_master_logs: list["SetZoneMasterLog"] = Relationship(
-        back_populates="user_action"
+        back_populates="user_action", cascade_delete=True
     )
     dns_get_zone_master_logs: list["GetZoneMasterLog"] = Relationship(
-        back_populates="user_action"
+        back_populates="user_action", cascade_delete=True
     )
 
 
 class UserActionLogBase(SQLModel):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_action_id: uuid.UUID = Field(foreign_key="users_activity_log.id")
+    user_action_id: uuid.UUID = Field(
+        foreign_key="users_activity_log.id", ondelete="CASCADE"
+    )
 
 
 class DeleteZonemasterLog(UserActionLogBase, table=True):
@@ -217,7 +218,7 @@ class SetZoneMasterLog(UserActionLogBase, table=True):
     target_zone_master: DomainName = Field(sa_type=AutoString)
     domain: DomainName = Field(sa_type=AutoString)
     user_action: "UsersActivityLog" = Relationship(
-        back_populates="dns_set_zone_master_logs"
+        back_populates="dns_set_zone_master_logs",
     )
 
 
