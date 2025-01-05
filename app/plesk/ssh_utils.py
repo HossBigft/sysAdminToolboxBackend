@@ -1,6 +1,7 @@
 import shlex
 from fastapi import HTTPException
 from typing import TypedDict, List
+import secrets
 
 from app.AsyncSSHandler import execute_ssh_command, execute_ssh_commands_in_batch
 from app.plesk.models import SubscriptionName, LinuxUsername, PleskServerDomain
@@ -9,6 +10,8 @@ from app.host_lists import PLESK_SERVER_LIST
 PLESK_LOGLINK_CMD = "plesk login"
 REDIRECTION_HEADER = r"&success_redirect_url=%2Fadmin%2Fsubscription%2Foverview%2Fid%2F"
 PLESK_DB_RUN_CMD_TEMPLATE = 'plesk db -Ne \\"{}\\"'
+TEST_MAIL_LOGIN = "testhoster"
+TEST_MAIL_PASSWORD_LENGTH = 14
 
 
 class SubscriptionDetails(TypedDict):
@@ -182,3 +185,52 @@ async def plesk_generate_subscription_login_link(
     subscription_login_link = f"{plesk_login_link}{REDIRECTION_HEADER}{subscription_id}"
 
     return subscription_login_link
+
+
+async def _build_fetch_testmail_password_command(domain: SubscriptionName) -> str:
+    return f"plesk bin mail --info {TEST_MAIL_LOGIN}@{domain} 2>/dev/null| grep Description | string replace -r ' +' ' ' | string split \\\" \\\" -f2"
+
+
+async def _build_create_testmail_command(
+    domain: SubscriptionName, password: str
+) -> str:
+    return f'plesk bin mail --create {TEST_MAIL_LOGIN}@{domain} -passwd \\"$password\\" -mailbox true -description \\"{password}\\"'
+
+
+async def _generate_password(password_length: int) -> str:
+    password = secrets.token_urlsafe(password_length)
+    return password
+
+
+async def _get_testmail_password(
+    host: PleskServerDomain, mail_domain: SubscriptionName
+) -> str | None:
+    command = await _build_fetch_testmail_password_command(mail_domain)
+    result = await execute_ssh_command(host=host.domain, command=command)
+    password = result["stdout"]
+    return password if password else None
+
+
+async def _create_testmail(
+    host: PleskServerDomain, mail_domain: SubscriptionName, password: str
+) -> None:
+    command = await _build_create_testmail_command(mail_domain, password)
+    result = await execute_ssh_command(host=host.domain, command=command)
+    if result["returncode"] != 0:
+        raise RuntimeError(
+            f"Test mail creation failed on Plesk server: {result['host']} "
+            f"with error: {result['stderr']}"
+        )
+
+
+async def plesk_get_testmail_login_data(
+    host: PleskServerDomain, mail_domain: SubscriptionName
+) -> list[str]:
+    login_link = f"https://webmail.{mail_domain}/roundcube/index.php?_user={TEST_MAIL_LOGIN}%40{mail_domain}"
+
+    password = await _get_testmail_password(host=host, mail_domain=mail_domain)
+    if not password:
+        password = await _generate_password(TEST_MAIL_PASSWORD_LENGTH)
+        await _create_testmail(host=host, mail_domain=mail_domain, password=password)
+
+    return [login_link, password]
