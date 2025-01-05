@@ -151,7 +151,7 @@ async def plesk_fetch_subscription_info(
 
 
 async def _build_plesk_login_command(ssh_username: LinuxUsername) -> str:
-    return f"{PLESK_LOGLINK_CMD} {ssh_username}"
+    return f"{PLESK_LOGLINK_CMD} {ssh_username.name}"
 
 
 async def _is_subscription_id_exist(
