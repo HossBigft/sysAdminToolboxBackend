@@ -66,6 +66,11 @@ async def get_subscription_login_link(
     background_tasks: BackgroundTasks,
     session: SessionDep,
 ):
+    if not current_user.ssh_username:
+        raise HTTPException(
+            status_code=404,
+            detail=f"User have no Plesk SSH username",
+        )
     login_link = await plesk_generate_subscription_login_link(
         PleskServerDomain(domain=data.host),
         data.subscription_id,
