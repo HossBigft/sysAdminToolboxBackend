@@ -66,7 +66,7 @@ patches = [
     ),
     patch("app.dns.ssh_utils.batch_ssh_execute", wraps=mock_batch_ssh_ns),
     patch(
-        "app.plesk.ssh_utils.plesk_generate_subscription_login_link",
+        "app.plesk.router.plesk_generate_subscription_login_link",
         wraps=mock_get_plesk_subscription_login_link_by_id,
     ),
 ]
