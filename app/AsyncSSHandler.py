@@ -5,14 +5,12 @@ import time
 
 class SSHCommandResult(TypedDict):
     host: str
-    stdout: str
-    stderr: str
+    stdout: str | None
+    stderr: str | None
     returncode: int | None
 
 
-async def _execute_ssh_command(
-    host, command, verbose: bool
-) -> SSHCommandResult:
+async def _execute_ssh_command(host, command, verbose: bool) -> SSHCommandResult:
     start_time = time.time()
 
     ssh_command = f'ssh -q  {host} "{command}"'
@@ -39,7 +37,15 @@ async def _execute_ssh_command(
         else:
             print(f"{host} answered in {execution_time:.2f}s : {succesfulAnswer}")
 
-    return {"host": host, "stdout": stdout.decode().strip(), "stderr": stderr.decode().strip(), "returncode": process.returncode}
+    stdout_output = stdout.decode().strip() if stdout.decode().strip() != "" else None
+    stderr_output = stderr.decode().strip() if stderr.decode().strip() != "" else None
+    returncode_output = process.returncode if process.returncode else None
+    return {
+        "host": host,
+        "stdout": stdout_output,
+        "stderr": stderr_output,
+        "returncode": returncode_output,
+    }
 
 
 async def execute_ssh_commands_in_batch(

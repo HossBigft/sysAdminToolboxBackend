@@ -57,21 +57,25 @@ async def build_restart_dns_service_command(domain: SubscriptionName) -> str:
 
 async def fetch_subscription_id_by_domain(
     host: PleskServerDomain, domain: SubscriptionName
-) -> int:
+) -> int | None:
     query_subscription_id_by_domain = f"SELECT CASE WHEN webspace_id = 0 THEN id ELSE webspace_id END AS result FROM domains WHERE name LIKE '{domain.domain}'"
 
     fetch_subscription_id_by_domain_cmd = await build_plesk_db_command(
         query_subscription_id_by_domain
     )
     result = await execute_ssh_command(host.domain, fetch_subscription_id_by_domain_cmd)
-    subscription_id = int(result["stdout"])
-    return subscription_id
+
+    if result["stdout"]:
+        subscription_id = int(result["stdout"])
+        return subscription_id
+    else:
+        return None
 
 
 async def is_domain_exist_on_server(
     host: PleskServerDomain, domain: SubscriptionName
 ) -> bool:
-    return await fetch_subscription_id_by_domain(host=host, domain=domain) != 0
+    return await fetch_subscription_id_by_domain(host=host, domain=domain) is not None
 
 
 async def restart_dns_service_for_domain(
