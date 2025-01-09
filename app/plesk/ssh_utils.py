@@ -58,7 +58,7 @@ async def build_restart_dns_service_command(domain: SubscriptionName) -> str:
 async def fetch_subscription_id_by_domain(
     host: PleskServerDomain, domain: SubscriptionName
 ) -> int:
-    query_subscription_id_by_domain = f"SELECT CASE WHEN webspace_id = 0 THEN id ELSE webspace_id END AS result FROM domains WHERE name LIKE '{domain}'"
+    query_subscription_id_by_domain = f"SELECT CASE WHEN webspace_id = 0 THEN id ELSE webspace_id END AS result FROM domains WHERE name LIKE '{domain.domain}'"
 
     fetch_subscription_id_by_domain_cmd = await build_plesk_db_command(
         query_subscription_id_by_domain
