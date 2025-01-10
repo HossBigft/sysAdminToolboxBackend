@@ -68,8 +68,6 @@ async def dns_get_domain_zone_master(
 
     zonemaster_ip_set = {answer["zone_master"] for answer in zonemaster_data["answers"]}
     zonemaster_domains_set = set()
-
-    print("zonemaster_ip_set", zonemaster_ip_set)
     for zonemaster in zonemaster_ip_set:
         zonemaster_domains_set.update(resolve_record(record=zonemaster, type="PTR"))
 
