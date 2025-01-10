@@ -1,10 +1,11 @@
 import uuid
-from pydantic import EmailStr, BaseModel, StringConstraints, model_serializer
+from pydantic import EmailStr, BaseModel, StringConstraints, model_serializer, field_validator
 from sqlmodel import Field, SQLModel, Relationship, AutoString
 from enum import Enum
 from typing import List
 from typing_extensions import Annotated
 from ipaddress import ip_address
+from app.host_lists import PLESK_SERVER_LIST
 
 SUBSCRIPTION_NAME_PATTERN = (
     r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,8}$"
@@ -113,6 +114,28 @@ class DomainName(BaseModel):
     def ser_model(self, _handler):
         return self.domain
 
+    def __str__(self):
+        return self.domain
+
+class PleskServerDomain(BaseModel):
+    domain: Annotated[
+        str,
+        StringConstraints(
+            min_length=3,
+            max_length=253,
+            pattern=OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN,
+        ),
+    ]
+example.com
+
+    @field_validator("domain")
+    def validate_domain(cls, v):
+        if v not in PLESK_SERVER_LIST:
+            raise ValueError(f"Domain '{v}' is not in the list of Plesk servers.")
+        return v
+
+    def __str__(self):
+        return self.domain
 
 class IPv4Address(BaseModel):
     ip: str
@@ -213,8 +236,8 @@ class DeleteZonemasterLog(UserActionLogBase, table=True):
 class SetZoneMasterLog(UserActionLogBase, table=True):
     __tablename__ = "zone_master_set_log"  # type: ignore
 
-    current_zone_master: DomainName | None = Field(sa_type=AutoString)
-    target_zone_master: DomainName = Field(sa_type=AutoString)
+    current_zone_master: PleskServerDomain | None = Field(sa_type=AutoString)
+    target_zone_master: PleskServerDomain = Field(sa_type=AutoString)
     domain: DomainName = Field(sa_type=AutoString)
     user_action: "UsersActivityLog" = Relationship(
         back_populates="dns_set_zone_master_logs",

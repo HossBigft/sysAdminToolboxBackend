@@ -14,6 +14,7 @@ from app.models import (
     GetZoneMasterLog,
     SubscriptionName,
     SetZoneMasterLog,
+    PleskServerDomain
 )
 from app.utils import get_local_time
 
@@ -100,8 +101,8 @@ async def add_dns_get_zone_master_log_entry(
 async def add_dns_set_zone_master_log_entry(
     session: Session,
     db_user: User,
-    current_zone_master: DomainName,
-    target_zone_master: DomainName,
+    current_zone_master: PleskServerDomain,
+    target_zone_master: PleskServerDomain,
     domain: DomainName,
 ) -> None:
     user_log = UsersActivityLog(
@@ -115,7 +116,7 @@ async def add_dns_set_zone_master_log_entry(
 
     user_action = SetZoneMasterLog(
         user_action_id=user_log.id,
-        current_zone_master=current_zone_master,
+        current_zone_master=''.join(current_zone_master),
         target_zone_master=target_zone_master,
         domain=domain,
     )
