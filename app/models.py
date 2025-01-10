@@ -1,10 +1,9 @@
 import uuid
-from pydantic import EmailStr, BaseModel, StringConstraints, model_serializer, RootModel
+from pydantic import EmailStr, BaseModel, StringConstraints, model_serializer
 from sqlmodel import Field, SQLModel, Relationship, AutoString
 from enum import Enum
 from typing import List
 from typing_extensions import Annotated
-from pydantic.networks import IPvAnyAddress
 from ipaddress import ip_address
 
 SUBSCRIPTION_NAME_PATTERN = (
