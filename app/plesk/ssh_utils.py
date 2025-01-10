@@ -81,23 +81,19 @@ async def is_domain_exist_on_server(
 async def restart_dns_service_for_domain(
     host: PleskServerDomain, domain: SubscriptionName
 ) -> None:
-    if host in PLESK_SERVER_LIST:
-        restart_dns_cmd = await build_restart_dns_service_command(domain)
-        result = await execute_ssh_command(
-            host=host, command=restart_dns_cmd, verbose=True
-        )
-        match result["returncode"]:
-            case 4:
-                raise DomainNotFoundError(f"Domain {domain} does not exist on server")
-            case 0:
-                pass
-            case _:
-                raise CommandExecutionError(
-                    stderr=result["stderr"], return_code=result["returncode"]
-                )
-
-    else:
-        raise ValueError(f"{host} is not valid Plesk server")
+    restart_dns_cmd = await build_restart_dns_service_command(domain)
+    result = await execute_ssh_command(
+        host=host.domain, command=restart_dns_cmd, verbose=True
+    )
+    match result["returncode"]:
+        case 4:
+            raise DomainNotFoundError(f"Domain {domain} does not exist on server")
+        case 0:
+            pass
+        case _:
+            raise CommandExecutionError(
+                stderr=result["stderr"], return_code=result["returncode"]
+            )
 
 
 def build_subscription_info_query(domain_to_find: str) -> str:
