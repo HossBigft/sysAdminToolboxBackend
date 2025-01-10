@@ -23,10 +23,7 @@ async def _execute_ssh_command(host, command, verbose: bool) -> SSHCommandResult
 
     stdout, stderr = await process.communicate()
 
-    # Record the end time after the command finishes
     end_time = time.time()
-
-    # Calculate the elapsed time
     execution_time = end_time - start_time
 
     if verbose:
@@ -37,9 +34,13 @@ async def _execute_ssh_command(host, command, verbose: bool) -> SSHCommandResult
         else:
             print(f"{host} answered in {execution_time:.2f}s : {succesfulAnswer}")
 
-    stdout_output = stdout.decode().strip() if stdout.decode().strip() != "" else None
-    stderr_output = stderr.decode().strip() if stderr.decode().strip() != "" else None
-    returncode_output = process.returncode if process.returncode else None
+    stdout_output: str | None = (
+        stdout.decode().strip() if stdout.decode().strip() != "" else None
+    )
+    stderr_output: str | None = (
+        stderr.decode().strip() if stderr.decode().strip() != "" else None
+    )
+    returncode_output: int | None = process.returncode
     return {
         "host": host,
         "stdout": stdout_output,
