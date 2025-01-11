@@ -77,7 +77,7 @@ async def test_mx_record_resolution_with_malformed_domain_name(
 async def test_mx_record_resolution_with_nonexistant_domain_name(
     client: AsyncClient,
     superuser_token_headers: dict[str, str],
-    domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER,
+    domain=HostList.CORRECT_NONEXISTING_DOMAIN,
 ):
     response = await client.get(
         f"/dns/internal/resolve/mx/?domain={domain}", headers=superuser_token_headers
@@ -89,7 +89,7 @@ async def test_mx_record_resolution_with_nonexistant_domain_name(
 async def test_a_record_resolution_with_nonexistant_domain_name(
     client: AsyncClient,
     superuser_token_headers: dict[str, str],
-    domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER,
+    domain=HostList.CORRECT_NONEXISTING_DOMAIN,
 ):
     response = await client.get(
         f"/dns/internal/resolve/a/?domain={domain}", headers=superuser_token_headers
@@ -156,7 +156,7 @@ async def test_ns_record_resolution_with_malformed_domain_name(
 async def test_ns_record_resolution_with_nonexistant_domain_name(
     client: AsyncClient,
     superuser_token_headers: dict[str, str],
-    domain=HostList.DOMAIN_WITHOUT_ZONE_MASTER,
+    domain=HostList.CORRECT_NONEXISTING_DOMAIN,
 ):
     response = await client.get(
         f"/dns/resolve/ns/?domain={domain}", headers=superuser_token_headers
