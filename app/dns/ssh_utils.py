@@ -51,7 +51,6 @@ async def dns_remove_domain_zone_master(domain: SubscriptionName):
     rm_zone_master_md = await build_remove_zone_master_command(domain)
     dnsAnswers = await batch_ssh_execute(rm_zone_master_md)
     for item in dnsAnswers:
-        print(item["stderr"])
         if item["stderr"] and "not found" not in item["stderr"]:
             raise RuntimeError(
                 f"DNS zone removal failed for host: {item['host']} "
