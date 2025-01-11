@@ -7,6 +7,8 @@ from app.api.main import api_router
 from app.core.config import settings
 from tests.utils.container_db_utils import TestMariadb, TEST_DB_CMD
 from tests.utils.container_unix_utils import UnixContainer
+from unittest.mock import AsyncMock
+
 
 example.com
 
@@ -58,18 +60,32 @@ def mock_get_plesk_subscription_login_link_by_id(arg1, arg2, arg3):
     return f"https://{TEST_SSH_HOST}/login?secret=sdfdfsdfSECRET&success_redirect_url=%2Fadmin%2Fsubscription%2Foverview%2Fid%2F12345"
 
 
-patches = [
+get_zone_master_patches = [
     patch("app.plesk.ssh_utils.PLESK_DB_RUN_CMD_TEMPLATE", TEST_DB_CMD),
     patch(
         "app.plesk.ssh_utils.batch_ssh_execute",
         wraps=mock_batch_ssh,
     ),
     patch("app.dns.ssh_utils.batch_ssh_execute", wraps=mock_batch_ssh_ns),
-    patch(
-        "app.plesk.router.plesk_generate_subscription_login_link",
-        wraps=mock_get_plesk_subscription_login_link_by_id,
-    ),
 ]
+set_zone_master_patches = [
+    patch(
+        "app.plesk.router.is_domain_exist_on_server", wraps=AsyncMock(return_value=True)
+    ),
+    patch("app.plesk.router.dns_get_domain_zone_master", wraps=AsyncMock()),
+    patch("app.plesk.router.dns_remove_domain_zone_master", wraps=AsyncMock()),
+    patch("app.plesk.router.restart_dns_service_for_domain", wraps=AsyncMock()),
+]
+patches = (
+    [
+        patch(
+            "app.plesk.router.plesk_generate_subscription_login_link",
+            wraps=mock_get_plesk_subscription_login_link_by_id,
+        )
+    ]
+    + get_zone_master_patches
+    + set_zone_master_patches
+)
 
 for p in patches:
     p.start()
