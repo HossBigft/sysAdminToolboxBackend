@@ -19,5 +19,5 @@
 2. Run test with 
 `pytest`
 3. To run backend in local mode with requests to test containers
-`fastapi run  'app/test_local_main.py'`
+`fastapi run  'app/run_local_stack_without_plesk_access.py'`
 
