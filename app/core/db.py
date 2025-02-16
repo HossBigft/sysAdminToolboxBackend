@@ -1,10 +1,12 @@
-from sqlmodel import Session, create_engine, select
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session
 
 from app import crud
 from app.core.config import settings
-from app.models import User, UserCreate, UserRoles
+from app.models import UserCreate, UserRoles
+from app.db.db_models import User
 
-engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
+engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI), echo=False)
 
 
 # make sure all SQLModel models are imported (app.models) before initializing DB

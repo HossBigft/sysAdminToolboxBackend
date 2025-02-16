@@ -25,6 +25,8 @@ from app.models import (
     UsersActivityLog,
     UserRoles,
 )
+import app.db.db_models 
+
 from app.utils import generate_new_account_email, send_email
 
 router = APIRouter(tags=["users"], prefix="/users")
@@ -123,7 +125,8 @@ def read_user_me(current_user: CurrentUser) -> Any:
     """
     Get current user.
     """
-    return current_user
+    print(current_user.model_dump())
+    return UserPublic.model_validate(current_user.model_dump())
 
 
 @router.delete("/me", response_model=Message)

@@ -4,9 +4,6 @@ from sqlmodel import Session, select
 
 from app.core.security import get_password_hash, verify_password
 from app.models import (
-    User,
-    UserCreate,
-    UserUpdate,
     UsersActivityLog,
     UserActionType,
     DeleteZonemasterLog,
@@ -17,11 +14,19 @@ from app.models import (
     PleskServerDomain
 )
 from app.utils import get_local_time
+from app.db.db_models import (
+    User,
+    UserCreate,
+    UserUpdate,
+)
 
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
-    db_obj = User.model_validate(
-        user_create, update={"hashed_password": get_password_hash(user_create.password)}
+    hashed_password = get_password_hash(user_create.password)
+    db_obj = User(
+        username=user_create.username,
+        email=user_create.email,
+        hashed_password=hashed_password
     )
     session.add(db_obj)
     session.commit()

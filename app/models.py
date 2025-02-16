@@ -19,9 +19,9 @@ LINUX_USERNAME_PATTERN = r"^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$"
 
 
 class UserRoles(Enum):
-    SUPERUSER = "superuser"
-    ADMIN = "admin"
-    USER = "user"
+    SUPERUSER = "SUPERUSER"
+    ADMIN = "ADMIN"
+    USER = "USER"
 
 
 # JSON payload containing access token
@@ -35,58 +35,49 @@ class TokenPayload(SQLModel):
     sub: str | None = None
 
 
-# Shared properties
-class UserBase(SQLModel):
+class UserBase(BaseModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
     full_name: str | None = Field(default=None, max_length=255)
     role: UserRoles = Field(default=UserRoles.USER)
     ssh_username: str | None = Field(default=None, max_length=32)
+    
 
-
-# Database model, database table inferred from class name
-class User(UserBase, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+class User(UserBase):
     hashed_password: str
 
-
-# Properties to receive via API on creation
-class UserCreate(UserBase):
-    password: str = Field(min_length=8, max_length=40)
-
-
-class UserRegister(SQLModel):
-    email: EmailStr = Field(max_length=255)
-    password: str = Field(min_length=8, max_length=40)
-    full_name: str | None = Field(default=None, max_length=255)
-
-
-# Properties to receive via API on update, all are optional
 class UserUpdate(UserBase):
     email: EmailStr | None = Field(default=None, max_length=255)  # type: ignore
     password: str | None = Field(default=None, min_length=8, max_length=40)
 
 
-class UserUpdateMe(SQLModel):
+class UserUpdateMe(BaseModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
     ssh_username: str | None = Field(default=None, max_length=33)
 
 
-class UpdatePassword(SQLModel):
-    current_password: str = Field(min_length=8, max_length=40)
-    new_password: str = Field(min_length=8, max_length=40)
+class UserCreate(UserBase):
+    password: str = Field(min_length=8, max_length=40)
+ 
+class UserRegister(BaseModel):
+    email: EmailStr = Field(max_length=255)
+    password: str = Field(min_length=8, max_length=40)
+    full_name: str | None = Field(default=None, max_length=255)   
 
-
-# Properties to return via API, id is always required
 class UserPublic(UserBase):
     id: uuid.UUID
 
 
-class UsersPublic(SQLModel):
+class UsersPublic(BaseModel):
     data: list[UserPublic]
     count: int
 
+
+
+class UpdatePassword(SQLModel):
+    current_password: str = Field(min_length=8, max_length=40)
+    new_password: str = Field(min_length=8, max_length=40)
 
 # Generic message
 class Message(SQLModel):
@@ -183,7 +174,7 @@ class SubscriptionName(BaseModel):
         ),
     ]
 
-    model_config = {"json_schema_extra": {"examples": ["v-12312.webspace"]}}
+    model_config = {"json_schema_extra": {"examples": ["v12312.webspace"]}}
 
     @model_serializer(mode="wrap")
     def ser_model(self, _handler):
@@ -196,58 +187,52 @@ class UserActionType(str, Enum):
     SET_ZONE_MASTER = "SET_ZONE_MASTER"
     GENERATE_LOGIN_LINK = "GENERATE_LOGIN_LINK"
 
+import uuid
+from sqlalchemy import Column, ForeignKey, String, UUID
+from sqlalchemy.orm import relationship, DeclarativeBase
 
-class UsersActivityLog(SQLModel, table=True):
-    __tablename__ = "users_activity_log"  # type: ignore
+class Base(DeclarativeBase):
+    pass
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: uuid.UUID = Field(foreign_key="user.id")
-    action: UserActionType
-    server: str
-    timestamp: str
+class UsersActivityLog(Base):
+    __tablename__ = "users_activity_log"
 
-    dns_zone_delete_logs: list["DeleteZonemasterLog"] = Relationship(
-        back_populates="user_action", cascade_delete=True
-    )
-    dns_set_zone_master_logs: list["SetZoneMasterLog"] = Relationship(
-        back_populates="user_action", cascade_delete=True
-    )
-    dns_get_zone_master_logs: list["GetZoneMasterLog"] = Relationship(
-        back_populates="user_action", cascade_delete=True
-    )
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("user.id"), nullable=False)
+    action = Column(String, nullable=False)
+    server = Column(String, nullable=False)
+    timestamp = Column(String, nullable=False)
 
-
-class UserActionLogBase(SQLModel):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_action_id: uuid.UUID = Field(
-        foreign_key="users_activity_log.id", ondelete="CASCADE"
-    )
+    dns_zone_delete_logs = relationship("DeleteZonemasterLog", back_populates="user_action", cascade="all, delete")
+    dns_set_zone_master_logs = relationship("SetZoneMasterLog", back_populates="user_action", cascade="all, delete")
+    dns_get_zone_master_logs = relationship("GetZoneMasterLog", back_populates="user_action", cascade="all, delete")
 
 
-class DeleteZonemasterLog(UserActionLogBase, table=True):
-    __tablename__ = "zone_master_delete_log"  # type: ignore
+class UserActionLogBase(Base):
+    __abstract__ = True
 
-    current_zone_master: DomainName = Field(sa_type=AutoString)
-    user_action: "UsersActivityLog" = Relationship(
-        back_populates="dns_zone_delete_logs"
-    )
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_action_id = Column(UUID(as_uuid=True), ForeignKey("users_activity_log.id", ondelete="CASCADE"), nullable=False)
 
 
-class SetZoneMasterLog(UserActionLogBase, table=True):
-    __tablename__ = "zone_master_set_log"  # type: ignore
+class DeleteZonemasterLog(UserActionLogBase):
+    __tablename__ = "zone_master_delete_log"
 
-    current_zone_master: PleskServerDomain | None = Field(sa_type=AutoString)
-    target_zone_master: PleskServerDomain = Field(sa_type=AutoString)
-    domain: DomainName = Field(sa_type=AutoString)
-    user_action: "UsersActivityLog" = Relationship(
-        back_populates="dns_set_zone_master_logs",
-    )
+    current_zone_master = Column(String, nullable=False)
+    user_action = relationship("UsersActivityLog", back_populates="dns_zone_delete_logs")
 
 
-class GetZoneMasterLog(UserActionLogBase, table=True):
-    __tablename__ = "zone_master_get_log"  # type: ignore
+class SetZoneMasterLog(UserActionLogBase):
+    __tablename__ = "zone_master_set_log"
 
-    domain: SubscriptionName = Field(sa_type=AutoString)
-    user_action: "UsersActivityLog" = Relationship(
-        back_populates="dns_get_zone_master_logs"
-    )
+    current_zone_master = Column(String)
+    target_zone_master = Column(String, nullable=False)
+    domain = Column(String, nullable=False)
+    user_action = relationship("UsersActivityLog", back_populates="dns_set_zone_master_logs")
+
+
+class GetZoneMasterLog(UserActionLogBase):
+    __tablename__ = "zone_master_get_log"
+
+    domain = Column(String, nullable=False)
+    user_action = relationship("UsersActivityLog", back_populates="dns_get_zone_master_logs")
