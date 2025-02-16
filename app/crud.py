@@ -11,22 +11,24 @@ from app.schemas import (
     GetZoneMasterLog,
     SubscriptionName,
     SetZoneMasterLog,
-    PleskServerDomain
+    PleskServerDomain,
 )
 from app.utils import get_local_time
 from app.db.models import (
     User,
-    UserCreate,
     UserUpdate,
 )
+import app.schemas
 
 
-def create_user(*, session: Session, user_create: UserCreate) -> User:
-    hashed_password = get_password_hash(user_create.password)
+def create_user(*, session: Session, user_create: app.schemas.UserCreate) -> User:
     db_obj = User(
-        username=user_create.username,
         email=user_create.email,
-        hashed_password=hashed_password
+        full_name=user_create.full_name,
+        is_active=user_create.is_active,
+        role=user_create.role,
+        ssh_username=user_create.ssh_username,
+        hashed_password=get_password_hash(user_create.password),
     )
     session.add(db_obj)
     session.commit()
@@ -121,7 +123,7 @@ async def add_dns_set_zone_master_log_entry(
 
     user_action = SetZoneMasterLog(
         user_action_id=user_log.id,
-        current_zone_master=''.join(current_zone_master),
+        current_zone_master="".join(current_zone_master),
         target_zone_master=target_zone_master,
         domain=domain,
     )

@@ -1,7 +1,7 @@
 import uuid
-from sqlalchemy import Column, ForeignKey, String, UUID, Integer
+from sqlalchemy import Column, ForeignKey, String, UUID, Integer, Boolean, Enum
 from sqlalchemy.orm import relationship, DeclarativeBase
-
+from app.schemas import UserRoles 
 
 class Base(DeclarativeBase):
     pass
@@ -12,9 +12,9 @@ class UserBase(Base):
     __abstract__ = True
 
     email = Column(String(255), unique=True, index=True, nullable=False)
-    is_active = Column(String, default=True, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
     full_name = Column(String(255), nullable=True)
-    role = Column(String, default="USER", nullable=False)
+    role = Column(Enum(UserRoles), default=UserRoles.USER, nullable=False)
     ssh_username = Column(String(32), nullable=True)
 
 
@@ -32,7 +32,7 @@ class UserCreate:
     password = Column(String(40), nullable=False)
     full_name = Column(String(255), nullable=True)
     is_active = Column(String, default=True, nullable=False)
-    role = Column(String, default="USER", nullable=False)
+    role = Column(Enum(UserRoles), default=UserRoles.USER, nullable=False)
     ssh_username = Column(String(32), nullable=True)
 
 
@@ -48,7 +48,7 @@ class UserUpdate:
     password = Column(String(40), nullable=True)
     full_name = Column(String(255), nullable=True)
     is_active = Column(String, default=True, nullable=False)
-    role = Column(String, default="USER", nullable=False)
+    role = Column(Enum(UserRoles), default=UserRoles.USER, nullable=False)
     ssh_username = Column(String(32), nullable=True)
 
 
@@ -63,7 +63,7 @@ class UserPublic:
     email = Column(String(255), nullable=False)
     is_active = Column(String, default=True, nullable=False)
     full_name = Column(String(255), nullable=True)
-    role = Column(String, default="USER", nullable=False)
+    role = Column(Enum(UserRoles), default=UserRoles.USER, nullable=False)
     ssh_username = Column(String(32), nullable=True)
 
 
