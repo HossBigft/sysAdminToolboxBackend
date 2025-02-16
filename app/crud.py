@@ -14,7 +14,7 @@ from app.schemas import (
     PleskServerDomain
 )
 from app.utils import get_local_time
-from app.db.db_models import (
+from app.db.models import (
     User,
     UserCreate,
     UserUpdate,

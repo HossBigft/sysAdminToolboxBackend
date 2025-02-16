@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app import crud
 from app.core.config import settings
 from app.schemas import UserCreate, UserRoles
-from app.db.db_models import User
+from app.db.models import User
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI), echo=False)
 

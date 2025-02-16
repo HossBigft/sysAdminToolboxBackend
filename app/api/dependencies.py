@@ -13,7 +13,7 @@ from app.core.config import settings
 from app.core.db import engine
 from app.schemas import TokenPayload, UserRoles, UserPublic
 from typing import List
-import app.db.db_models
+import app.db.models
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"
@@ -41,7 +41,7 @@ def get_current_user(session: SessionDep, token: TokenDep) -> UserPublic:
             detail="Could not validate credentials",
         )
     
-    user = session.get(app.db.db_models.User, token_data.sub)
+    user = session.get(app.db.models.User, token_data.sub)
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")

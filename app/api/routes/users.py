@@ -25,7 +25,7 @@ from app.schemas import (
     UsersActivityLog,
     UserRoles,
 )
-import app.db.db_models 
+import app.db.models 
 
 from app.utils import generate_new_account_email, send_email
 
