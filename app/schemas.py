@@ -1,10 +1,20 @@
 import uuid
-from pydantic import EmailStr, BaseModel, StringConstraints, model_serializer, field_validator
-from sqlmodel import Field, SQLModel, Relationship, AutoString
+from pydantic import (
+    EmailStr,
+    BaseModel,
+    StringConstraints,
+    model_serializer,
+    field_validator,
+)
+from sqlmodel import Field, SQLModel
 from enum import Enum
 from typing import List
 from typing_extensions import Annotated
 from ipaddress import ip_address
+from sqlalchemy import Column, ForeignKey, String, UUID
+from sqlalchemy.orm import relationship, DeclarativeBase
+
+
 from app.host_lists import PLESK_SERVER_LIST
 
 SUBSCRIPTION_NAME_PATTERN = (
@@ -18,10 +28,18 @@ OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN = (
 LINUX_USERNAME_PATTERN = r"^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$"
 
 
-class UserRoles(Enum):
-    SUPERUSER = "SUPERUSER"
-    ADMIN = "ADMIN"
-    USER = "USER"
+class UserRoles(str, Enum):
+    SUPERUSER = "superuser"
+    ADMIN = "admin"
+    USER = "user"
+    
+    @classmethod
+    def _missing_(cls, value) -> str|None:
+        value = value.lower() # type: ignore
+        for member in cls:
+            if member.lower() == value:
+                return member
+        return None
 
 
 # JSON payload containing access token
@@ -41,10 +59,11 @@ class UserBase(BaseModel):
     full_name: str | None = Field(default=None, max_length=255)
     role: UserRoles = Field(default=UserRoles.USER)
     ssh_username: str | None = Field(default=None, max_length=32)
-    
+
 
 class User(UserBase):
     hashed_password: str
+
 
 class UserUpdate(UserBase):
     email: EmailStr | None = Field(default=None, max_length=255)  # type: ignore
@@ -59,11 +78,13 @@ class UserUpdateMe(BaseModel):
 
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=40)
- 
+
+
 class UserRegister(BaseModel):
     email: EmailStr = Field(max_length=255)
     password: str = Field(min_length=8, max_length=40)
-    full_name: str | None = Field(default=None, max_length=255)   
+    full_name: str | None = Field(default=None, max_length=255)
+
 
 class UserPublic(UserBase):
     id: uuid.UUID
@@ -74,10 +95,10 @@ class UsersPublic(BaseModel):
     count: int
 
 
-
 class UpdatePassword(SQLModel):
     current_password: str = Field(min_length=8, max_length=40)
     new_password: str = Field(min_length=8, max_length=40)
+
 
 # Generic message
 class Message(SQLModel):
@@ -108,6 +129,7 @@ class DomainName(BaseModel):
     def __str__(self):
         return self.domain
 
+
 class PleskServerDomain(BaseModel):
     domain: Annotated[
         str,
@@ -127,6 +149,7 @@ example.com
 
     def __str__(self):
         return self.domain
+
 
 class IPv4Address(BaseModel):
     ip: str
@@ -187,12 +210,10 @@ class UserActionType(str, Enum):
     SET_ZONE_MASTER = "SET_ZONE_MASTER"
     GENERATE_LOGIN_LINK = "GENERATE_LOGIN_LINK"
 
-import uuid
-from sqlalchemy import Column, ForeignKey, String, UUID
-from sqlalchemy.orm import relationship, DeclarativeBase
 
 class Base(DeclarativeBase):
     pass
+
 
 class UsersActivityLog(Base):
     __tablename__ = "users_activity_log"
@@ -203,23 +224,35 @@ class UsersActivityLog(Base):
     server = Column(String, nullable=False)
     timestamp = Column(String, nullable=False)
 
-    dns_zone_delete_logs = relationship("DeleteZonemasterLog", back_populates="user_action", cascade="all, delete")
-    dns_set_zone_master_logs = relationship("SetZoneMasterLog", back_populates="user_action", cascade="all, delete")
-    dns_get_zone_master_logs = relationship("GetZoneMasterLog", back_populates="user_action", cascade="all, delete")
+    dns_zone_delete_logs = relationship(
+        "DeleteZonemasterLog", back_populates="user_action", cascade="all, delete"
+    )
+    dns_set_zone_master_logs = relationship(
+        "SetZoneMasterLog", back_populates="user_action", cascade="all, delete"
+    )
+    dns_get_zone_master_logs = relationship(
+        "GetZoneMasterLog", back_populates="user_action", cascade="all, delete"
+    )
 
 
 class UserActionLogBase(Base):
     __abstract__ = True
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_action_id = Column(UUID(as_uuid=True), ForeignKey("users_activity_log.id", ondelete="CASCADE"), nullable=False)
+    user_action_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users_activity_log.id", ondelete="CASCADE"),
+        nullable=False,
+    )
 
 
 class DeleteZonemasterLog(UserActionLogBase):
     __tablename__ = "zone_master_delete_log"
 
     current_zone_master = Column(String, nullable=False)
-    user_action = relationship("UsersActivityLog", back_populates="dns_zone_delete_logs")
+    user_action = relationship(
+        "UsersActivityLog", back_populates="dns_zone_delete_logs"
+    )
 
 
 class SetZoneMasterLog(UserActionLogBase):
@@ -228,11 +261,15 @@ class SetZoneMasterLog(UserActionLogBase):
     current_zone_master = Column(String)
     target_zone_master = Column(String, nullable=False)
     domain = Column(String, nullable=False)
-    user_action = relationship("UsersActivityLog", back_populates="dns_set_zone_master_logs")
+    user_action = relationship(
+        "UsersActivityLog", back_populates="dns_set_zone_master_logs"
+    )
 
 
 class GetZoneMasterLog(UserActionLogBase):
     __tablename__ = "zone_master_get_log"
 
     domain = Column(String, nullable=False)
-    user_action = relationship("UsersActivityLog", back_populates="dns_get_zone_master_logs")
+    user_action = relationship(
+        "UsersActivityLog", back_populates="dns_get_zone_master_logs"
+    )
