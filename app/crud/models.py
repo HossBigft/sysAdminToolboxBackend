@@ -2,7 +2,7 @@ import uuid
 from sqlalchemy import Column, ForeignKey, String, UUID, Integer , Enum
 from sqlalchemy.orm import relationship, DeclarativeBase
 
-from app.models import UserRoles
+from app.schemas import UserRoles
 
 class Base(DeclarativeBase):
     pass

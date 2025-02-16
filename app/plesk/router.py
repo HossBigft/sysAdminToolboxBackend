@@ -12,7 +12,7 @@ from app.plesk.models import (
     SetZonemasterInput,
     LinuxUsername,
 )
-from app.models import UserRoles, Message, SubscriptionName, PleskServerDomain
+from app.schemas import UserRoles, Message, SubscriptionName, PleskServerDomain
 from app.plesk.ssh_utils import (
     plesk_generate_subscription_login_link,
 )

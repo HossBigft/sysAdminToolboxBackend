@@ -2,7 +2,7 @@ from httpx import AsyncClient
 from sqlmodel import Session
 
 from app import crud
-from app.models import User, UserCreate, UserUpdate
+from app.schemas import User, UserCreate, UserUpdate
 from tests.utils.utils import random_email, random_lower_string
 
 

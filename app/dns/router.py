@@ -12,7 +12,7 @@ from app.crud import (
     add_dns_get_zone_master_log_entry,
 )
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
-from app.models import (
+from app.schemas import (
     UserRoles,
     DomainName,
     DomainARecordResponse,

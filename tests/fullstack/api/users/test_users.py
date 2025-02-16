@@ -8,7 +8,7 @@ from sqlmodel import Session, select
 from app import crud
 from app.core.config import settings
 from app.core.security import verify_password
-from app.models import User, UserCreate, UserRoles
+from app.schemas import User, UserCreate, UserRoles
 from tests.utils.utils import random_email, random_lower_string
 
 

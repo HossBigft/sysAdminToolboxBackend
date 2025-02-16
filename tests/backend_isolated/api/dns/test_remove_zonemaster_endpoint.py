@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, patch, MagicMock
 
 
 from app.dns.router import delete_zone_file_for_domain
-from app.models import SubscriptionName, Message, DomainName
+from app.schemas import SubscriptionName, Message, DomainName
 from app.dns.ssh_utils import (
     build_remove_zone_master_command,
     dns_remove_domain_zone_master,

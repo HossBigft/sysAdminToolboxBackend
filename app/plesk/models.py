@@ -9,7 +9,7 @@ from pydantic import (
 from typing import List
 from typing_extensions import Annotated
 from pydantic.networks import IPvAnyAddress
-from app.models import SubscriptionName, SUBSCRIPTION_NAME_PATTERN
+from app.schemas import SubscriptionName, SUBSCRIPTION_NAME_PATTERN
 
 from app.host_lists import PLESK_SERVER_LIST
 

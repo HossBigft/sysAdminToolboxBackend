@@ -6,7 +6,7 @@ import secrets
 from app.AsyncSSHandler import execute_ssh_command, execute_ssh_commands_in_batch
 from app.plesk.models import SubscriptionName, LinuxUsername
 from app.host_lists import PLESK_SERVER_LIST
-from app.models import PleskServerDomain
+from app.schemas import PleskServerDomain
 
 PLESK_LOGLINK_CMD = "plesk login"
 REDIRECTION_HEADER = r"&success_redirect_url=%2Fadmin%2Fsubscription%2Foverview%2Fid%2F"

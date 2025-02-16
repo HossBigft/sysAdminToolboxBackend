@@ -7,7 +7,7 @@ from app.dns.ssh_utils import (
     dns_query_domain_zone_master,
 )
 from tests.test_data.hosts import HostList
-from app.models import SubscriptionName
+from app.schemas import SubscriptionName
 
 invalid_domains = [
     "ex",  # Too short
