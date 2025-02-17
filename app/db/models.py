@@ -1,7 +1,8 @@
 import uuid
 from sqlalchemy import Column, ForeignKey, String, UUID, Integer, Boolean, Enum
 from sqlalchemy.orm import relationship, DeclarativeBase
-from app.schemas import UserRoles 
+from app.schemas import UserRoles
+
 
 class Base(DeclarativeBase):
     pass
@@ -18,7 +19,6 @@ class UserBase(Base):
     ssh_username = Column(String(32), nullable=True)
 
 
-# Database model, database table inferred from class name
 class User(UserBase):
     __tablename__ = "user"
 
@@ -26,47 +26,61 @@ class User(UserBase):
     hashed_password = Column(String, nullable=False)
 
 
-# Properties to receive via API on creation
-class UserCreate:
-    email = Column(String(255), nullable=False)
-    password = Column(String(40), nullable=False)
-    full_name = Column(String(255), nullable=True)
-    is_active = Column(String, default=True, nullable=False)
-    role = Column(Enum(UserRoles), default=UserRoles.USER, nullable=False)
-    ssh_username = Column(String(32), nullable=True)
+class UsersActivityLog(Base):
+    __tablename__ = "users_activity_log"
 
-
-class UserRegister:
-    email = Column(String(255), nullable=False)
-    password = Column(String(40), nullable=False)
-    full_name = Column(String(255), nullable=True)
-
-
-# Properties to receive via API on update, all are optional
-class UserUpdate:
-    email = Column(String(255), nullable=True)
-    password = Column(String(40), nullable=True)
-    full_name = Column(String(255), nullable=True)
-    is_active = Column(String, default=True, nullable=False)
-    role = Column(Enum(UserRoles), default=UserRoles.USER, nullable=False)
-    ssh_username = Column(String(32), nullable=True)
-
-
-class UserUpdateMe:
-    full_name = Column(String(255), nullable=True)
-    email = Column(String(255), nullable=True)
-    ssh_username = Column(String(33), nullable=True)
-
-
-class UserPublic:
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    email = Column(String(255), nullable=False)
-    is_active = Column(String, default=True, nullable=False)
-    full_name = Column(String(255), nullable=True)
-    role = Column(Enum(UserRoles), default=UserRoles.USER, nullable=False)
-    ssh_username = Column(String(32), nullable=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("user.id"), nullable=False)
+    action = Column(String, nullable=False)
+    server = Column(String, nullable=False)
+    timestamp = Column(String, nullable=False)
+
+    dns_zone_delete_logs = relationship(
+        "DeleteZonemasterLog", back_populates="user_action", cascade="all, delete"
+    )
+    dns_set_zone_master_logs = relationship(
+        "SetZoneMasterLog", back_populates="user_action", cascade="all, delete"
+    )
+    dns_get_zone_master_logs = relationship(
+        "GetZoneMasterLog", back_populates="user_action", cascade="all, delete"
+    )
 
 
-class UsersPublic:
-    data = Column(String)  # JSON representation of list[UserPublic]
-    count = Column(Integer)
+class UserActionLogBase(Base):
+    __abstract__ = True
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_action_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users_activity_log.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+
+class DeleteZonemasterLog(UserActionLogBase):
+    __tablename__ = "zone_master_delete_log"
+
+    current_zone_master = Column(String, nullable=False)
+    user_action = relationship(
+        "UsersActivityLog", back_populates="dns_zone_delete_logs"
+    )
+
+
+class SetZoneMasterLog(UserActionLogBase):
+    __tablename__ = "zone_master_set_log"
+
+    current_zone_master = Column(String)
+    target_zone_master = Column(String, nullable=False)
+    domain = Column(String, nullable=False)
+    user_action = relationship(
+        "UsersActivityLog", back_populates="dns_set_zone_master_logs"
+    )
+
+
+class GetZoneMasterLog(UserActionLogBase):
+    __tablename__ = "zone_master_get_log"
+
+    domain = Column(String, nullable=False)
+    user_action = relationship(
+        "UsersActivityLog", back_populates="dns_get_zone_master_logs"
+    )

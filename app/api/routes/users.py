@@ -22,10 +22,9 @@ from app.schemas import (
     UsersPublic,
     UserUpdate,
     UserUpdateMe,
-    UsersActivityLog,
     UserRoles,
 )
-import app.db.models 
+from app.db.models import UsersActivityLog
 
 from app.utils import generate_new_account_email, send_email
 
@@ -125,7 +124,6 @@ def read_user_me(current_user: CurrentUser) -> Any:
     """
     Get current user.
     """
-    print(current_user.model_dump())
     return UserPublic.model_validate(current_user.model_dump())
 
 
@@ -230,5 +228,7 @@ def delete_user(
 
 @router.get("/{user_id}/history")
 async def get_user_actions(user_id: uuid.UUID, session: SessionDep):
-    actions = session.exec(UsersActivityLog).filter(UsersActivityLog.user_id == user_id).all()
+    actions = (
+        session.exec(UsersActivityLog).filter(UsersActivityLog.user_id == user_id).all()
+    )
     return actions
