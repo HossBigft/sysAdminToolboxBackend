@@ -1,7 +1,7 @@
 import uuid
 from sqlalchemy import Column, ForeignKey, String, UUID, Integer, Boolean, Enum
 from sqlalchemy.orm import relationship, DeclarativeBase
-from app.schemas import UserRoles
+from app.schemas import UserRoles, UserActionType
 
 
 class Base(DeclarativeBase):
@@ -31,7 +31,7 @@ class UsersActivityLog(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("user.id"), nullable=False)
-    action = Column(String, nullable=False)
+    action = Column(Enum(UserActionType), nullable=False)
     server = Column(String, nullable=False)
     timestamp = Column(String, nullable=False)
 

@@ -78,7 +78,7 @@ async def get_zone_master_from_dns_servers(
         background_tasks.add_task(
             add_dns_get_zone_master_log_entry,
             session=session,
-            db_user=current_user,
+            user=current_user,
             domain=domain,
         )
         return zone_masters_dict

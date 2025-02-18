@@ -10,6 +10,7 @@ from app.schemas import (
     PleskServerDomain,
     UserCreate,
     UserUpdate,
+    UserPublic
 )
 from app.utils import get_local_time
 from app.db.models import (
@@ -19,6 +20,7 @@ from app.db.models import (
     GetZoneMasterLog,
     SetZoneMasterLog,
 )
+
 
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
@@ -89,10 +91,10 @@ async def add_dns_remove_zone_master_log_entry(
 
 
 async def add_dns_get_zone_master_log_entry(
-    session: Session, db_user: User, domain: SubscriptionName
+    session: Session, user: UserPublic, domain: SubscriptionName
 ) -> None:
     user_log = UsersActivityLog(
-        user_id=db_user.id,
+        user_id=user.id,
         action=UserActionType.GET_ZONE_MASTER,
         timestamp=get_local_time(),
         server="DNS",
@@ -102,7 +104,7 @@ async def add_dns_get_zone_master_log_entry(
 
     user_action = GetZoneMasterLog(
         user_action_id=user_log.id,
-        domain=domain,
+        domain=domain.domain,
     )
     session.add(user_action)
     session.commit()
