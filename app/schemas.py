@@ -32,10 +32,10 @@ class UserRoles(str, Enum):
     SUPERUSER = "superuser"
     ADMIN = "admin"
     USER = "user"
-    
+
     @classmethod
-    def _missing_(cls, value) -> str|None:
-        value = value.lower() # type: ignore
+    def _missing_(cls, value) -> str | None:
+        value = value.lower()  # type: ignore
         for member in cls:
             if member.lower() == value:
                 return member
@@ -213,5 +213,3 @@ class UserActionType(str, Enum):
 
 class Base(DeclarativeBase):
     pass
-
-

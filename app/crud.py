@@ -9,9 +9,9 @@ from app.schemas import (
     DomainName,
     SubscriptionName,
     PleskServerDomain,
-    UserCreate,
+    UserRegister,
     UserUpdate,
-    UserPublic
+    UserPublic,
 )
 from app.utils import get_local_time
 from app.db.models import (
@@ -23,14 +23,10 @@ from app.db.models import (
 )
 
 
-
-def create_user(*, session: Session, user_create: UserCreate) -> User:
+def create_user(*, session: Session, user_create: UserRegister) -> User:
     db_obj = User(
         email=user_create.email,
         full_name=user_create.full_name,
-        is_active=user_create.is_active,
-        role=user_create.role,
-        ssh_username=user_create.ssh_username,
         hashed_password=get_password_hash(user_create.password),
     )
     session.add(db_obj)
@@ -39,15 +35,13 @@ def create_user(*, session: Session, user_create: UserCreate) -> User:
     return db_obj
 
 
-def update_user(
-    *, session: Session, db_user: User, user_in: UserUpdate
-) -> Any:
+def update_user(*, session: Session, db_user: User, user_in: UserUpdate) -> Any:
     user_data = user_in.model_dump(exclude_unset=True)
     if "password" in user_data:
         password = user_data.pop("password")  # Remove password from user_data
         hashed_password = get_password_hash(password)
         user_data["hashed_password"] = hashed_password
-    stmt = update(User).where(User.id==db_user.id).values(user_data)
+    stmt = update(User).where(User.id == db_user.id).values(user_data)
     session.exec(stmt)
     session.commit()
     session.refresh(db_user)
