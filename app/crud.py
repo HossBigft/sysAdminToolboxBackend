@@ -1,6 +1,7 @@
 from typing import Any
 
 from sqlmodel import Session, select
+from sqlalchemy import update
 
 from app.core.security import get_password_hash, verify_password
 from app.schemas import (
@@ -46,10 +47,8 @@ def update_user(
         password = user_data.pop("password")  # Remove password from user_data
         hashed_password = get_password_hash(password)
         user_data["hashed_password"] = hashed_password
-
-    for field, value in user_data.items():
-        setattr(db_user, field, value)
-    session.add(db_user)
+    stmt = update(User).where(User.id==db_user.id).values(user_data)
+    session.exec(stmt)
     session.commit()
     session.refresh(db_user)
     return db_user
