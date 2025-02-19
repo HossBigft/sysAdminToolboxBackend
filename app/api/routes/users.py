@@ -3,6 +3,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import func, select
+from sqlalchemy import update
 
 from app import crud
 from app.api.dependencies import (
@@ -15,7 +16,6 @@ from app.core.security import get_password_hash, verify_password
 from app.schemas import (
     Message,
     UpdatePassword,
-    User,
     UserCreate,
     UserPublic,
     UserRegister,
@@ -24,7 +24,7 @@ from app.schemas import (
     UserUpdateMe,
     UserRoles,
 )
-from app.db.models import UsersActivityLog
+from app.db.models import UsersActivityLog, User
 
 from app.utils import generate_new_account_email, send_email
 
@@ -92,10 +92,9 @@ def update_user_me(
                 status_code=409, detail="User with this email already exists"
             )
     user_data = user_in.model_dump(exclude_unset=True)
-    current_user.sqlmodel_update(user_data)
-    session.add(current_user)
+    stmt = update(User).where(User.id == current_user.id).values(user_data)
+    session.exec(stmt)
     session.commit()
-    session.refresh(current_user)
     return current_user
 
 
