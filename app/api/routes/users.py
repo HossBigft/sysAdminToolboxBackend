@@ -23,7 +23,9 @@ from app.schemas import (
     UserUpdate,
     UserUpdateMe,
     UserRoles,
+    UserUpdateMePassword,
 )
+
 from app.db.models import UsersActivityLog, User
 
 from app.utils import generate_new_account_email, send_email
@@ -108,15 +110,26 @@ def update_password_me(
     """
     Update own password.
     """
-    if not verify_password(body.current_password, current_user.hashed_password):
+    current_user_db: User = session.exec(
+        select(User).where(User.id == current_user.id)
+    ).one()
+
+    if not verify_password(body.current_password, current_user_db.hashed_password):
         raise HTTPException(status_code=400, detail="Incorrect password")
     if body.current_password == body.new_password:
         raise HTTPException(
             status_code=400, detail="New password cannot be the same as the current one"
         )
-    hashed_password = get_password_hash(body.new_password)
-    current_user.hashed_password = hashed_password
-    session.add(current_user)
+    update_user: UserUpdateMePassword = UserUpdateMePassword.model_validate(
+        current_user_db
+    )
+    update_user.hashed_password = get_password_hash(body.new_password)
+    stmt = (
+        update(User)
+        .where(User.id == current_user_db.id)
+        .values(update_user.model_dump())
+    )
+    session.exec(stmt)
     session.commit()
     return Message(message="Password updated successfully")
 

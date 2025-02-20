@@ -2,7 +2,7 @@ from httpx import AsyncClient
 from sqlmodel import Session
 
 from app import crud
-from app.schemas import User, UserCreate, UserUpdate
+from app.schemas import UserUpdateMePassword, UserCreate, UserUpdate
 from tests.utils.utils import random_email, random_lower_string
 
 
@@ -18,7 +18,7 @@ async def user_authentication_headers(
     return headers
 
 
-def create_random_user(db: Session) -> User:
+def create_random_user(db: Session) -> UserUpdateMePassword:
     email = random_email()
     password = random_lower_string()
     user_in = UserCreate(email=email, password=password)

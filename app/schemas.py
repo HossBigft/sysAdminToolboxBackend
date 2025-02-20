@@ -5,7 +5,7 @@ from pydantic import (
     StringConstraints,
     model_serializer,
     field_validator,
-    ConfigDict
+    ConfigDict,
 )
 from sqlmodel import Field, SQLModel
 from enum import Enum
@@ -54,6 +54,8 @@ class TokenPayload(SQLModel):
 
 
 class UserBase(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
     full_name: str | None = Field(default=None, max_length=255)
@@ -61,7 +63,7 @@ class UserBase(BaseModel):
     ssh_username: str | None = Field(default=None, max_length=32)
 
 
-class User(UserBase):
+class UserUpdateMePassword(UserBase):
     hashed_password: str
 
 
@@ -87,8 +89,6 @@ class UserRegister(BaseModel):
 
 
 class UserPublic(UserBase):
-    model_config = ConfigDict(from_attributes=True)
-    
     id: uuid.UUID
 
 
