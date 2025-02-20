@@ -5,14 +5,14 @@ from pydantic import (
     StringConstraints,
     model_serializer,
     field_validator,
+    ConfigDict
 )
 from sqlmodel import Field, SQLModel
 from enum import Enum
 from typing import List
 from typing_extensions import Annotated
 from ipaddress import ip_address
-from sqlalchemy import Column, ForeignKey, String, UUID
-from sqlalchemy.orm import relationship, DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase
 
 
 from app.host_lists import PLESK_SERVER_LIST
@@ -87,6 +87,8 @@ class UserRegister(BaseModel):
 
 
 class UserPublic(UserBase):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: uuid.UUID
 
 

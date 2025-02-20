@@ -151,7 +151,7 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
             status_code=400,
             detail="The user with this email already exists in the system",
         )
-    new_user = UserRegister.model_validate(user_in)
+    new_user = UserCreate.model_validate(user_in.model_dump())
     user = crud.create_user(session=session, user_create=new_user)
     return user
 
@@ -164,6 +164,7 @@ def read_user_by_id(
     Get a specific user by id.
     """
     user = session.get(User, user_id)
+    user = UserPublic.model_validate(user)
     if user == current_user:
         return user
     if not current_user.role == UserRoles.SUPERUSER:
