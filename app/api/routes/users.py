@@ -95,7 +95,10 @@ def update_user_me(
     stmt = update(User).where(User.id == current_user.id).values(user_data)
     session.exec(stmt)
     session.commit()
-    return current_user
+    updated_user = UserPublic.model_validate(
+        session.exec(select(User).where(User.id == current_user.id)).one()
+    )
+    return updated_user
 
 
 @router.patch("/me/password", response_model=Message)
