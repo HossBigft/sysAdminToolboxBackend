@@ -163,8 +163,10 @@ def read_user_by_id(
     """
     Get a specific user by id.
     """
-    user = session.get(User, user_id)
-    user = UserPublic.model_validate(user)
+    user = session.exec(select(User).where(User.id == user_id)).one_or_none()
+
+    if user:
+        user = UserPublic.model_validate(user)
     if user == current_user:
         return user
     if not current_user.role == UserRoles.SUPERUSER:
