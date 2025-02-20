@@ -8,21 +8,15 @@ class Base(DeclarativeBase):
     pass
 
 
-# Shared properties
-class UserBase(Base):
-    __abstract__ = True
-
-    email = Column(String(255), unique=True, index=True, nullable=False)
-    is_active = Column(Boolean, default=True, nullable=False)
-    full_name = Column(String(255), nullable=True)
-    role = Column(Enum(UserRoles), default=UserRoles.USER, nullable=False)
-    ssh_username = Column(String(32), nullable=True)
-
-
-class User(UserBase):
+class User(Base):
     __tablename__ = "user"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    role = Column(Enum(UserRoles), default=UserRoles.USER, nullable=False)
+    ssh_username = Column(String(32), nullable=True)
+    is_active = Column(Boolean, default=True, nullable=False)
+    full_name = Column(String(255), nullable=True)
+    email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
 
 
