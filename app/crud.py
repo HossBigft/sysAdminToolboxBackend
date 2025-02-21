@@ -1,7 +1,7 @@
 from typing import Any
 
-from sqlmodel import Session, select
-from sqlalchemy import update
+from sqlalchemy.orm import Session
+from sqlalchemy import update, select
 
 from app.core.security import get_password_hash, verify_password
 from app.schemas import (
@@ -45,7 +45,7 @@ def update_user(*, session: Session, db_user: User, user_in: UserUpdate) -> Any:
         hashed_password = get_password_hash(password)
         user_data["hashed_password"] = hashed_password
     stmt = update(User).where(User.id == db_user.id).values(user_data)
-    session.exec(stmt)
+    session.execute(stmt)
     session.commit()
     session.refresh(db_user)
     return db_user
@@ -53,7 +53,7 @@ def update_user(*, session: Session, db_user: User, user_in: UserUpdate) -> Any:
 
 def get_user_by_email(*, session: Session, email: str) -> User | None:
     statement = select(User).where(User.email == email)
-    session_user = session.exec(statement).first()
+    session_user = session.execute(statement).scalar()
     return session_user
 
 

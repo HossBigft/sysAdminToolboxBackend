@@ -1,9 +1,8 @@
 import uuid
-from typing import Any
 
+from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import func, select
-from sqlalchemy import update, delete
+from sqlalchemy import update, delete, select, func
 
 from app import crud
 from app.api.dependencies import (
@@ -44,10 +43,10 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     """
 
     count_statement = select(func.count()).select_from(User)
-    count = session.exec(count_statement).one()
+    count = session.execute(count_statement).scalar()
 
     statement = select(User).offset(skip).limit(limit)
-    users = session.exec(statement).all()
+    users = session.execute(statement).scalars()
 
     return UsersPublic(data=users, count=count)
 
@@ -95,10 +94,10 @@ def update_user_me(
             )
     user_data = user_in.model_dump(exclude_unset=True)
     stmt = update(User).where(User.id == current_user.id).values(user_data)
-    session.exec(stmt)
+    session.execute(stmt)
     session.commit()
     updated_user = UserPublic.model_validate(
-        session.exec(select(User).where(User.id == current_user.id)).one()
+        session.execute(select(User).where(User.id == current_user.id)).scalar()
     )
     return updated_user
 
@@ -110,9 +109,9 @@ def update_password_me(
     """
     Update own password.
     """
-    current_user_db: User = session.exec(
+    current_user_db: User = session.execute(
         select(User).where(User.id == current_user.id)
-    ).one()
+    ).scalar()
 
     if not verify_password(body.current_password, current_user_db.hashed_password):
         raise HTTPException(status_code=400, detail="Incorrect password")
@@ -129,7 +128,7 @@ def update_password_me(
         .where(User.id == current_user_db.id)
         .values(update_user.model_dump())
     )
-    session.exec(stmt)
+    session.execute(stmt)
     session.commit()
     return Message(message="Password updated successfully")
 
@@ -152,7 +151,7 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
     stmt = delete(User).where(User.id == current_user.id)
-    session.exec(stmt)
+    session.execute(stmt)
     session.commit()
     return Message(message="User deleted successfully")
 
@@ -180,7 +179,7 @@ def read_user_by_id(
     """
     Get a specific user by id.
     """
-    user = session.exec(select(User).where(User.id == user_id)).one_or_none()
+    user = session.execute(select(User).where(User.id == user_id)).scalar()
 
     if user:
         user = UserPublic.model_validate(user)
@@ -234,7 +233,7 @@ def delete_user(
     Delete a user.
     """
     stmt = select(User).where(User.id == user_id)
-    user = session.exec(stmt).one_or_none()
+    user = session.execute(stmt).scalar()
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -245,7 +244,7 @@ def delete_user(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
     stmt_delete = delete(User).where(User.id == user_id)
-    session.exec(stmt_delete)
+    session.execute(stmt_delete)
     session.commit()
     return Message(message="User deleted successfully")
 
@@ -253,6 +252,6 @@ def delete_user(
 @router.get("/{user_id}/history")
 async def get_user_actions(user_id: uuid.UUID, session: SessionDep):
     actions = (
-        session.exec(UsersActivityLog).filter(UsersActivityLog.user_id == user_id).all()
+        session.execute(UsersActivityLog).filter(UsersActivityLog.user_id == user_id).all()
     )
     return actions

@@ -2,13 +2,14 @@ from unittest.mock import patch
 import pytest
 
 from httpx import AsyncClient
-from sqlmodel import Session, select
-
+from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 from app.core.config import settings
 from app.core.security import verify_password
 from app.db.models import User
 from app.utils import generate_password_reset_token
+
 
 @pytest.mark.asyncio
 async def test_get_access_token(client: AsyncClient) -> None:
@@ -23,6 +24,7 @@ async def test_get_access_token(client: AsyncClient) -> None:
     assert "access_token" in tokens
     assert tokens["access_token"]
 
+
 @pytest.mark.asyncio
 async def test_get_access_token_incorrect_password(client: AsyncClient) -> None:
     login_data = {
@@ -31,6 +33,7 @@ async def test_get_access_token_incorrect_password(client: AsyncClient) -> None:
     }
     r = await client.post("/login/access-token", data=login_data)
     assert r.status_code == 400
+
 
 @pytest.mark.asyncio
 async def test_use_access_token(
@@ -43,6 +46,7 @@ async def test_use_access_token(
     result = r.json()
     assert r.status_code == 200
     assert "email" in result
+
 
 @pytest.mark.asyncio
 async def test_recovery_password(
@@ -60,6 +64,7 @@ async def test_recovery_password(
         assert r.status_code == 200
         assert r.json() == {"message": "Password recovery email sent"}
 
+
 @pytest.mark.asyncio
 async def test_recovery_password_user_not_exits(
     client: AsyncClient, normal_user_token_headers: dict[str, str]
@@ -70,6 +75,7 @@ async def test_recovery_password_user_not_exits(
         headers=normal_user_token_headers,
     )
     assert r.status_code == 404
+
 
 @pytest.mark.asyncio
 async def test_reset_password(
@@ -86,9 +92,10 @@ async def test_reset_password(
     assert r.json() == {"message": "Password updated successfully"}
 
     user_query = select(User).where(User.email == settings.FIRST_SUPERUSER)
-    user = db.exec(user_query).first()
+    user = db.execute(user_query).scalar()
     assert user
     assert verify_password(data["new_password"], user.hashed_password)
+
 
 @pytest.mark.asyncio
 async def test_reset_password_invalid_token(

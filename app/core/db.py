@@ -12,7 +12,7 @@ engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI), echo=False)
 def init_db(session: Session) -> None:
     Base.metadata.create_all(engine)
 
-    user = session.exec(
+    user = session.execute(
         select(User).where(User.email == settings.FIRST_SUPERUSER)
     ).first()
     if not user:
