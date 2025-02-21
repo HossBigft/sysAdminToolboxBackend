@@ -3,7 +3,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import func, select
-from sqlalchemy import update
+from sqlalchemy import update, delete
 
 from app import crud
 from app.api.dependencies import (
@@ -151,7 +151,8 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
-    session.delete(current_user)
+    stmt = delete(User).where(User.id == current_user.id)
+    session.exec(stmt)
     session.commit()
     return Message(message="User deleted successfully")
 
@@ -232,14 +233,19 @@ def delete_user(
     """
     Delete a user.
     """
-    user = session.get(User, user_id)
+    stmt = select(User).where(User.id == user_id)
+    user = session.exec(stmt).one_or_none()
+
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+
+    user = UserPublic.model_validate(user)
     if user == current_user:
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
-    session.delete(user)
+    stmt_delete = delete(User).where(User.id == user_id)
+    session.exec(stmt_delete)
     session.commit()
     return Message(message="User deleted successfully")
 
