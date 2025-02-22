@@ -3,7 +3,8 @@ from collections.abc import AsyncGenerator
 import pytest_asyncio
 import pytest
 from httpx import AsyncClient, ASGITransport
-from sqlmodel import Session, delete
+from sqlalchemy.orm import Session
+from sqlalchemy import delete 
 
 from app.core.config import settings
 from app.core.db import engine, init_db

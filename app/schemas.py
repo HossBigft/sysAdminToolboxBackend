@@ -6,8 +6,8 @@ from pydantic import (
     model_serializer,
     field_validator,
     ConfigDict,
+    Field
 )
-from sqlmodel import Field, SQLModel
 from enum import Enum
 from typing import List
 from typing_extensions import Annotated
@@ -41,14 +41,13 @@ class UserRoles(str, Enum):
         return None
 
 
-# JSON payload containing access token
-class Token(SQLModel):
+
+class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
 
-# Contents of JWT token
-class TokenPayload(SQLModel):
+class TokenPayload(BaseModel):
     sub: str | None = None
 
 
@@ -96,17 +95,17 @@ class UsersPublic(BaseModel):
     count: int
 
 
-class UpdatePassword(SQLModel):
+class UpdatePassword(BaseModel):
     current_password: str = Field(min_length=8, max_length=40)
     new_password: str = Field(min_length=8, max_length=40)
 
 
-# Generic message
-class Message(SQLModel):
+
+class Message(BaseModel):
     message: str
 
 
-class NewPassword(SQLModel):
+class NewPassword(BaseModel):
     token: str
     new_password: str = Field(min_length=8, max_length=40)
 

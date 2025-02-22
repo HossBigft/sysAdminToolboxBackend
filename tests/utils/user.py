@@ -1,5 +1,5 @@
 from httpx import AsyncClient
-from sqlmodel import Session
+from sqlalchemy.orm import Session
 
 from app import crud
 from app.schemas import UserUpdateMePassword, UserCreate, UserUpdate

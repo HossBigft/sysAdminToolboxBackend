@@ -1,11 +1,13 @@
+import pytest
+import pytest_asyncio
+
 from fastapi.testclient import TestClient
+from unittest.mock import patch
+
+from app.core.config import settings
 from app.main import app
 from tests.test_data.hosts import HostList
-import pytest
-from unittest.mock import patch
 from tests.utils.container_db_utils import TestMariadb, TEST_DB_CMD
-import pytest_asyncio
-from app.core.config import settings
 
 TEST_HOSTS = ["test.com"]
 

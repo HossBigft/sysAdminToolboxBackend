@@ -1,11 +1,12 @@
 from fastapi.encoders import jsonable_encoder
-from sqlmodel import Session
+from sqlalchemy.orm import Session
 
 from app import crud
 from app.core.security import verify_password
 from app.schemas import UserCreate, UserUpdate, UserRoles
 from tests.utils.utils import random_email, random_lower_string
 import app.db.models
+
 
 def test_create_user(db: Session) -> None:
     email = random_email()

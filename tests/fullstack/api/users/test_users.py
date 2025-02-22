@@ -3,7 +3,8 @@ from unittest.mock import patch
 import pytest
 
 from httpx import AsyncClient
-from sqlmodel import Session, select
+from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 from app import crud
 from app.core.config import settings

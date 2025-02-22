@@ -1,20 +1,36 @@
-from sqlmodel import Field, Session, SQLModel, create_engine
+from sqlalchemy import String, ForeignKey, Integer, create_engine
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
 from testcontainers.mysql import MySqlContainer
 
 TEST_DB_CMD = "mariadb -B --disable-column-names -p'test' -D'test' -e \\\"{}\\\""
 
 
-class Clients(SQLModel, table=True):
-    id: int = Field(default=None, primary_key=True)
-    pname: str = Field(..., max_length=255)
-    login: str = Field(..., max_length=255)
+# Base class for all models
+class Base(DeclarativeBase):
+    pass
 
 
-class Domains(SQLModel, table=True):
-    id: int = Field(default=None, primary_key=True)
-    name: str = Field(..., max_length=255)
-    webspace_id: int
-    cl_id: int = Field(default=None, foreign_key="clients.id")
+class Clients(Base):
+    __tablename__ = "clients"
+
+    id: Mapped[int | None] = mapped_column(
+        Integer, primary_key=True, autoincrement=True, nullable=True
+    )
+    pname: Mapped[str] = mapped_column(String(255), nullable=False)
+    login: Mapped[str] = mapped_column(String(255), nullable=False)
+
+
+class Domains(Base):
+    __tablename__ = "domains"
+
+    id: Mapped[int | None] = mapped_column(
+        Integer, primary_key=True, autoincrement=True, nullable=True
+    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    webspace_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    cl_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("clients.id"), nullable=True
+    )
 
 
 class TestMariadb:
@@ -26,7 +42,7 @@ class TestMariadb:
         self.engine = create_engine(self.container.get_connection_url())
 
     def __create_db_and_tables(self):
-        SQLModel.metadata.create_all(self.engine)
+        Base.metadata.create_all(self.engine)
 
     def __insert_sample_data(self):
         with Session(self.engine) as session:
