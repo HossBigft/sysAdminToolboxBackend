@@ -1,4 +1,4 @@
-from app.plesk.ssh_utils import (
+from app.api.plesk.ssh_utils import (
     build_subscription_info_query,
     extract_subscription_details,
 )

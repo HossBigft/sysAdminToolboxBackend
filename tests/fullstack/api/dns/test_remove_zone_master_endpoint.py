@@ -11,10 +11,10 @@ async def test_remove_zone_master_permissions_error(
 ) -> None:
     with (
         patch(
-            "app.dns.router.dns_get_domain_zone_master", new_callable=AsyncMock
+            "app.api.dns.dns_router.dns_get_domain_zone_master", new_callable=AsyncMock
         ) as mock_get_zone,
         patch(
-            "app.dns.router.dns_remove_domain_zone_master", new_callable=AsyncMock
+            "app.api.dns.dns_router.dns_remove_domain_zone_master", new_callable=AsyncMock
         ) as mock_remove,
     ):
         mock_remove.side_effect = RuntimeError("Zone not found")
@@ -33,10 +33,10 @@ async def test_remove_zone_master_nonexisting_domain(
 ) -> None:
     with (
         patch(
-            "app.dns.router.dns_get_domain_zone_master", new_callable=AsyncMock
+            "app.api.dns.dns_router.dns_get_domain_zone_master", new_callable=AsyncMock
         ) as mock_get_zone,
         patch(
-            "app.dns.router.dns_remove_domain_zone_master", new_callable=AsyncMock
+            "app.api.dns.dns_router.dns_remove_domain_zone_master", new_callable=AsyncMock
         ) as mock_remove,
     ):
         mock_remove.side_effect = RuntimeError("Zone not found")

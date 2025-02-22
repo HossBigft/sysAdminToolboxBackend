@@ -1,10 +1,10 @@
-from collections.abc import AsyncGenerator
-
 import pytest_asyncio
 import pytest
+
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.orm import Session
-from sqlalchemy import delete 
+from sqlalchemy import delete
+from collections.abc import AsyncGenerator
 
 from app.core.config import settings
 from app.core.db import engine, init_db
@@ -60,12 +60,10 @@ async def db() -> AsyncGenerator[Session, None]:
 
 
 @pytest_asyncio.fixture(scope="module")
-async def client() -> (
-    AsyncGenerator[
-        AsyncClient,
-        None,
-    ]
-):
+async def client() -> AsyncGenerator[
+    AsyncClient,
+    None,
+]:
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test" + settings.API_V1_STR
     ) as c:

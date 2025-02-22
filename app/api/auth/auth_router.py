@@ -10,7 +10,7 @@ from app.api.dependencies import (
     CurrentUser,
     SessionDep,
 )
-from app import crud
+from app.db import crud
 from app.core import security
 
 

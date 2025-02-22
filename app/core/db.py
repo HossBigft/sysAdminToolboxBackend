@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
-from app import crud
+from app.db import crud
 from app.core.config import settings
 from app.schemas import UserCreate, UserRoles
 from app.db.models import User, Base

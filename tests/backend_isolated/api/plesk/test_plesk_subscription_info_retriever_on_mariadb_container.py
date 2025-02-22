@@ -1,5 +1,5 @@
 import pytest
-from app.plesk.ssh_utils import (
+from app.api.plesk.ssh_utils import (
     plesk_fetch_subscription_info,
 )
 from tests.utils.container_db_utils import TestMariadb, TEST_DB_CMD
@@ -15,9 +15,9 @@ def init_test_db():
         stdout = testdb.run_cmd(command)
         return [{"host": "test", "stdout": stdout}]
 
-    with patch("app.plesk.ssh_utils.PLESK_DB_RUN_CMD_TEMPLATE", TEST_DB_CMD):
+    with patch("app.api.plesk.ssh_utils.PLESK_DB_RUN_CMD_TEMPLATE", TEST_DB_CMD):
         with patch(
-            "app.plesk.ssh_utils.batch_ssh_execute",
+            "app.api.plesk.ssh_utils.batch_ssh_execute",
             wraps=mock_batch_ssh,
         ):
             yield testdb  # Yield the test database for use in tests

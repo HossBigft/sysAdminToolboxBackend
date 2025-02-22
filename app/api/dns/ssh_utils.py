@@ -3,7 +3,7 @@ import shlex
 from app.host_lists import DNS_SERVER_LIST
 from app.AsyncSSHandler import execute_ssh_commands_in_batch
 from app.schemas import SubscriptionName, PleskServerDomain
-from app.dns.dns_utils import resolve_record
+from app.api.dns.dns_utils import resolve_record
 
 ZONEFILE_PATH = "/var/opt/isc/scls/isc-bind/zones/_default.nzf"
 DOMAIN_REGEX_PATTERN = (

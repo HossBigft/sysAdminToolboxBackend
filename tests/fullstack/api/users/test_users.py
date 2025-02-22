@@ -6,7 +6,7 @@ from httpx import AsyncClient
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
-from app import crud
+from app.db import crud
 from app.core.config import settings
 from app.core.security import verify_password
 from app.schemas import UserCreate, UserRoles

@@ -4,7 +4,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import update, delete, select, func
 
-from app import crud
+from app.db import crud
 from app.api.dependencies import (
     CurrentUser,
     SessionDep,

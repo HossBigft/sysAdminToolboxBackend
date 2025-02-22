@@ -61,25 +61,25 @@ def mock_get_plesk_subscription_login_link_by_id(arg1, arg2, arg3):
 
 
 get_zone_master_patches = [
-    patch("app.plesk.ssh_utils.PLESK_DB_RUN_CMD_TEMPLATE", TEST_DB_CMD),
+    patch("app.api.plesk.ssh_utils.PLESK_DB_RUN_CMD_TEMPLATE", TEST_DB_CMD),
     patch(
-        "app.plesk.ssh_utils.batch_ssh_execute",
+        "app.api.plesk.ssh_utils.batch_ssh_execute",
         wraps=mock_batch_ssh,
     ),
-    patch("app.dns.ssh_utils.batch_ssh_execute", wraps=mock_batch_ssh_ns),
+    patch("app.api.dns.ssh_utils.batch_ssh_execute", wraps=mock_batch_ssh_ns),
 ]
 set_zone_master_patches = [
     patch(
-        "app.plesk.router.is_domain_exist_on_server", wraps=AsyncMock(return_value=True)
+        "app.api.plesk.router.is_domain_exist_on_server", wraps=AsyncMock(return_value=True)
     ),
-    patch("app.plesk.router.dns_get_domain_zone_master", wraps=AsyncMock()),
-    patch("app.plesk.router.dns_remove_domain_zone_master", wraps=AsyncMock()),
-    patch("app.plesk.router.restart_dns_service_for_domain", wraps=AsyncMock()),
+    patch("app.api.plesk.router.dns_get_domain_zone_master", wraps=AsyncMock()),
+    patch("app.api.plesk.router.dns_remove_domain_zone_master", wraps=AsyncMock()),
+    patch("app.api.plesk.router.restart_dns_service_for_domain", wraps=AsyncMock()),
 ]
 patches = (
     [
         patch(
-            "app.plesk.router.plesk_generate_subscription_login_link",
+            "app.api.plesk.router.plesk_generate_subscription_login_link",
             wraps=mock_get_plesk_subscription_login_link_by_id,
         )
     ]

@@ -15,7 +15,7 @@ from app.api.dependencies import (
     get_current_active_superuser,
 )
 from app.schemas import Message, NewPassword
-from app import crud
+from app.db import crud
 
 router = APIRouter(tags=["password_reset"])
 

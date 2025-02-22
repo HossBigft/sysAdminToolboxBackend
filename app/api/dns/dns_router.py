@@ -1,13 +1,13 @@
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query
 from typing import Annotated
 
-from app.dns.ssh_utils import (
+from app.api.dns.ssh_utils import (
     dns_get_domain_zone_master,
     dns_remove_domain_zone_master,
     dns_query_domain_zone_master,
 )
-from app.dns.dns_utils import resolve_record, RecordNotFoundError
-from app.crud import (
+from app.api.dns.dns_utils import resolve_record, RecordNotFoundError
+from app.db.crud import (
     add_dns_remove_zone_master_log_entry,
     add_dns_get_zone_master_log_entry,
 )

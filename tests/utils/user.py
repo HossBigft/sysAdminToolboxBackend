@@ -1,7 +1,7 @@
 from httpx import AsyncClient
 from sqlalchemy.orm import Session
 
-from app import crud
+from app.db import crud
 from app.schemas import UserUpdateMePassword, UserCreate, UserUpdate
 from tests.utils.utils import random_email, random_lower_string
 

@@ -1,7 +1,7 @@
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
-from app import crud
+from app.db import crud
 from app.core.security import verify_password
 from app.schemas import UserCreate, UserUpdate, UserRoles
 from tests.utils.utils import random_email, random_lower_string

@@ -2,7 +2,7 @@ import pytest
 import shlex
 from unittest.mock import patch, AsyncMock
 
-from app.dns.ssh_utils import (
+from app.api.dns.ssh_utils import (
     build_get_zone_master_command,
     dns_query_domain_zone_master,
 )
@@ -35,7 +35,7 @@ async def test_dns_get_domain_zone_master_with_correct_domain_existing_zone_mast
     ]
 
     with patch(
-        "app.dns.ssh_utils.batch_ssh_execute", new_callable=AsyncMock
+        "app.api.dns.ssh_utils.batch_ssh_execute", new_callable=AsyncMock
     ) as mock_batch_ssh:
         mock_batch_ssh.return_value = mock_response
 
@@ -64,7 +64,7 @@ async def test_dns_get_domain_zone_master_with_correct_domain_nonexisting_zone_m
     ]
 
     with patch(
-        "app.dns.ssh_utils.batch_ssh_execute", new_callable=AsyncMock
+        "app.api.dns.ssh_utils.batch_ssh_execute", new_callable=AsyncMock
     ) as mock_batch_ssh:
         mock_batch_ssh.return_value = mock_response
         result = await dns_query_domain_zone_master(SubscriptionName(domain=domain))

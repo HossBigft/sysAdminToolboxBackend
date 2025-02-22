@@ -1,10 +1,10 @@
 from fastapi import APIRouter, HTTPException, Query, Depends, BackgroundTasks
 from typing import Annotated
 
-from app.plesk.ssh_utils import (
+from app.api.plesk.ssh_utils import (
     plesk_fetch_subscription_info,
 )
-from app.plesk.models import (
+from app.api.plesk.models import (
     SubscriptionListResponseModel,
     SubscriptionDetailsModel,
     SubscriptionLoginLinkInput,
@@ -13,16 +13,16 @@ from app.plesk.models import (
     LinuxUsername,
 )
 from app.schemas import UserRoles, Message, SubscriptionName, PleskServerDomain
-from app.plesk.ssh_utils import (
+from app.api.plesk.ssh_utils import (
     plesk_generate_subscription_login_link,
 )
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
-from app.crud import add_dns_set_zone_master_log_entry
-from app.plesk.ssh_utils import (
+from app.db.crud import add_dns_set_zone_master_log_entry
+from app.api.plesk.ssh_utils import (
     is_domain_exist_on_server,
     restart_dns_service_for_domain,
 )
-from app.dns.ssh_utils import dns_remove_domain_zone_master, dns_get_domain_zone_master
+from app.api.dns.ssh_utils import dns_remove_domain_zone_master, dns_get_domain_zone_master
 
 router = APIRouter(tags=["plesk"], prefix="/plesk")
 

@@ -3,9 +3,9 @@ from fastapi import HTTPException
 from unittest.mock import AsyncMock, patch, MagicMock
 
 
-from app.dns.router import delete_zone_file_for_domain
+from app.api.dns.dns_router import delete_zone_file_for_domain
 from app.schemas import SubscriptionName, Message, DomainName
-from app.dns.ssh_utils import (
+from app.api.dns.ssh_utils import (
     build_remove_zone_master_command,
     dns_remove_domain_zone_master,
 )
@@ -37,13 +37,13 @@ async def test_delete_zone_file_success(
     current_zone = "zonemaster.com"
     with (
         patch(
-            "app.dns.router.dns_get_domain_zone_master", new_callable=AsyncMock
+            "app.api.dns.dns_router.dns_get_domain_zone_master", new_callable=AsyncMock
         ) as mock_get_zone,
         patch(
-            "app.dns.router.dns_remove_domain_zone_master", new_callable=AsyncMock
+            "app.api.dns.dns_router.dns_remove_domain_zone_master", new_callable=AsyncMock
         ) as mock_remove,
         patch(
-            "app.dns.router.add_dns_remove_zone_master_log_entry",
+            "app.api.dns.dns_router.add_dns_remove_zone_master_log_entry",
             new_callable=AsyncMock,
         ) as mock_history,
     ):
@@ -76,10 +76,10 @@ async def test_delete_zone_file_not_found(
 
     with (
         patch(
-            "app.dns.router.dns_get_domain_zone_master", new_callable=AsyncMock
+            "app.api.dns.dns_router.dns_get_domain_zone_master", new_callable=AsyncMock
         ) as mock_get_zone,
         patch(
-            "app.dns.router.dns_remove_domain_zone_master", new_callable=AsyncMock
+            "app.api.dns.dns_router.dns_remove_domain_zone_master", new_callable=AsyncMock
         ) as mock_remove,
     ):
         mock_get_zone.return_value = None
@@ -111,7 +111,7 @@ async def test_dns_remove_domain_zone_master_success():
     mock_response = [{"host": "dns1", "stderr": ""}]
 
     with patch(
-        "app.dns.ssh_utils.batch_ssh_execute", new_callable=AsyncMock
+        "app.api.dns.ssh_utils.batch_ssh_execute", new_callable=AsyncMock
     ) as mock_execute:
         mock_execute.return_value = mock_response
         await dns_remove_domain_zone_master(domain)
@@ -124,7 +124,7 @@ async def test_dns_remove_domain_zone_master_error():
     mock_response = [{"host": "dns1", "stderr": "error occurred"}]
 
     with patch(
-        "app.dns.ssh_utils.batch_ssh_execute", new_callable=AsyncMock
+        "app.api.dns.ssh_utils.batch_ssh_execute", new_callable=AsyncMock
     ) as mock_execute:
         mock_execute.return_value = mock_response
 
