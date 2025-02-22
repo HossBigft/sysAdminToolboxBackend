@@ -12,7 +12,6 @@ from enum import Enum
 from typing import List
 from typing_extensions import Annotated
 from ipaddress import ip_address
-from sqlalchemy.orm import DeclarativeBase
 
 
 from app.host_lists import PLESK_SERVER_LIST
@@ -211,7 +210,3 @@ class UserActionType(str, Enum):
     DELETE_ZONE_MASTER = "DELETE_ZONE_MASTER"
     SET_ZONE_MASTER = "SET_ZONE_MASTER"
     GENERATE_LOGIN_LINK = "GENERATE_LOGIN_LINK"
-
-
-class Base(DeclarativeBase):
-    pass

@@ -23,14 +23,13 @@ from app.db.models import (
 )
 
 
-def create_user(*, session: Session, user_create: UserCreate ) -> User:
+def create_user(*, session: Session, user_create: UserCreate) -> User:
     db_obj = User(
         email=user_create.email,
         is_active=True,
         full_name=user_create.full_name,
         role=user_create.role,
         hashed_password=get_password_hash(user_create.password),
-        
     )
     session.add(db_obj)
     session.commit()
