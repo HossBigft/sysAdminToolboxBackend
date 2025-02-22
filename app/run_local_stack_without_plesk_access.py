@@ -70,16 +70,16 @@ get_zone_master_patches = [
 ]
 set_zone_master_patches = [
     patch(
-        "app.api.plesk.router.is_domain_exist_on_server", wraps=AsyncMock(return_value=True)
+        "app.api.plesk.plesk_router.is_domain_exist_on_server", wraps=AsyncMock(return_value=True)
     ),
-    patch("app.api.plesk.router.dns_get_domain_zone_master", wraps=AsyncMock()),
-    patch("app.api.plesk.router.dns_remove_domain_zone_master", wraps=AsyncMock()),
-    patch("app.api.plesk.router.restart_dns_service_for_domain", wraps=AsyncMock()),
+    patch("app.api.plesk.plesk_router.dns_get_domain_zone_master", wraps=AsyncMock()),
+    patch("app.api.plesk.plesk_router.dns_remove_domain_zone_master", wraps=AsyncMock()),
+    patch("app.api.plesk.plesk_router.restart_dns_service_for_domain", wraps=AsyncMock()),
 ]
 patches = (
     [
         patch(
-            "app.api.plesk.router.plesk_generate_subscription_login_link",
+            "app.api.plesk.plesk_router.plesk_generate_subscription_login_link",
             wraps=mock_get_plesk_subscription_login_link_by_id,
         )
     ]
