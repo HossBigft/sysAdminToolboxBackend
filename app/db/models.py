@@ -1,9 +1,8 @@
 import uuid
-from sqlalchemy import ForeignKey, String, UUID, Boolean, Enum
-from sqlalchemy.orm import relationship, DeclarativeBase
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
 
+from sqlalchemy import ForeignKey, String, UUID, Boolean, Enum, DateTime, func
+from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
+from datetime import datetime
 
 from app.schemas import UserRoles, UserActionType
 
@@ -39,58 +38,74 @@ class UsersActivityLog(Base):
     user_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("user.id"), nullable=False
     )
-    action: Mapped[Enum] = mapped_column(Enum(UserActionType), nullable=False)
-    server: Mapped[str] = mapped_column(String, nullable=False)
-    timestamp: Mapped[str] = mapped_column(String, nullable=False)
-
-    dns_zone_delete_logs = relationship(
-        "DeleteZonemasterLog", back_populates="user_action", cascade="all, delete"
-    )
-    dns_set_zone_master_logs = relationship(
-        "SetZoneMasterLog", back_populates="user_action", cascade="all, delete"
-    )
-    dns_get_zone_master_logs = relationship(
-        "GetZoneMasterLog", back_populates="user_action", cascade="all, delete"
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-
-class UserActionLogBase(Base):
-    __abstract__ = True
-
-    id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
-    user_action_id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("users_activity_log.id", ondelete="CASCADE"),
-        nullable=False,
+    log_type: Mapped[UserActionType] = mapped_column(
+        Enum(UserActionType), nullable=False
     )
 
+    __mapper_args__ = {
+        "polymorphic_identity": "activity_log",
+        "polymorphic_on": "log_type",
+    }
 
-class DeleteZonemasterLog(UserActionLogBase):
+
+class DeleteZonemasterLog(UsersActivityLog):
     __tablename__ = "zone_master_delete_log"
 
-    current_zone_master: Mapped[str] = mapped_column(String, nullable=False)
-    user_action = relationship(
-        "UsersActivityLog", back_populates="dns_zone_delete_logs"
+    id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users_activity_log.id", ondelete="CASCADE"),
+        primary_key=True,
     )
+    domain: Mapped[str] = mapped_column(String, nullable=False)
+    current_zone_master: Mapped[str] = mapped_column(String, nullable=False)
+
+    __mapper_args__ = {"polymorphic_identity": UserActionType.DELETE_ZONE_MASTER}
 
 
-class SetZoneMasterLog(UserActionLogBase):
+class SetZoneMasterLog(UsersActivityLog):
     __tablename__ = "zone_master_set_log"
 
-    current_zone_master: Mapped[str] = mapped_column(String)
-    target_zone_master: Mapped[str] = mapped_column(String, nullable=False)
-    domain = mapped_column(String, nullable=False)
-    user_action = relationship(
-        "UsersActivityLog", back_populates="dns_set_zone_master_logs"
+    id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users_activity_log.id", ondelete="CASCADE"),
+        primary_key=True,
     )
+    current_zone_master: Mapped[str | None] = mapped_column(String, nullable=True)
+    target_zone_master: Mapped[str] = mapped_column(String, nullable=False)
+    domain: Mapped[str] = mapped_column(String, nullable=False)
+
+    __mapper_args__ = {"polymorphic_identity": UserActionType.SET_ZONE_MASTER}
 
 
-class GetZoneMasterLog(UserActionLogBase):
+class GetZoneMasterLog(UsersActivityLog):
     __tablename__ = "zone_master_get_log"
 
-    domain: Mapped[str] = mapped_column(String, nullable=False)
-    user_action = relationship(
-        "UsersActivityLog", back_populates="dns_get_zone_master_logs"
+    id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users_activity_log.id", ondelete="CASCADE"),
+        primary_key=True,
     )
+    domain: Mapped[str] = mapped_column(String, nullable=False)
+
+    __mapper_args__ = {"polymorphic_identity": UserActionType.GET_ZONE_MASTER}
+
+
+class GetPleskLoginLinkLog(UsersActivityLog):
+    __tablename__ = "plesk_get_subscription_login_link_log"
+
+    id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users_activity_log.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    plesk_server: Mapped[str] = mapped_column(String, nullable=False)
+    ssh_username: Mapped[str] = mapped_column(String, nullable=False)
+    subscription_id: Mapped[str] = mapped_column(String, nullable=False)
+
+    __mapper_args__ = {
+        "polymorphic_identity": UserActionType.GET_SUBSCRIPTION_LOGIN_LINK
+    }

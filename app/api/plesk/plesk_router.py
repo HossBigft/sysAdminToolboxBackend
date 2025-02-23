@@ -8,21 +8,32 @@ from app.api.plesk.models import (
     SubscriptionListResponseModel,
     SubscriptionDetailsModel,
     SubscriptionLoginLinkInput,
-    DomainName,
     SetZonemasterInput,
     LinuxUsername,
 )
-from app.schemas import UserRoles, Message, SubscriptionName, PleskServerDomain
+from app.schemas import (
+    UserRoles,
+    Message,
+    SubscriptionName,
+    DomainName,
+    PleskServerDomain,
+)
 from app.api.plesk.ssh_utils import (
     plesk_generate_subscription_login_link,
 )
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
-from app.db.crud import add_dns_set_zone_master_log_entry
 from app.api.plesk.ssh_utils import (
     is_domain_exist_on_server,
     restart_dns_service_for_domain,
 )
-from app.api.dns.ssh_utils import dns_remove_domain_zone_master, dns_get_domain_zone_master
+from app.api.dns.ssh_utils import (
+    dns_remove_domain_zone_master,
+    dns_get_domain_zone_master,
+)
+from app.db.crud import (
+    add_dns_set_zone_master_log_entry,
+    add_plesk_get_subscription_login_link_log_entry,
+)
 
 router = APIRouter(tags=["plesk"], prefix="/plesk")
 
@@ -68,7 +79,7 @@ async def get_subscription_login_link(
     if not current_user.ssh_username:
         raise HTTPException(
             status_code=404,
-            detail=f"User have no Plesk SSH username",
+            detail="User have no Plesk SSH username",
         )
     login_link = await plesk_generate_subscription_login_link(
         PleskServerDomain(domain=data.host),
@@ -76,14 +87,13 @@ async def get_subscription_login_link(
         LinuxUsername(name=current_user.ssh_username),
     )
 
-    # background_tasks.add_task(
-    #     add_action_to_history,
-    #     session=session,
-    #     db_user=current_user,
-    #     action=f"generate plesk login link for subscription with ID [{data.subscription_id}] on server [{data.host}] for user [{current_user.ssh_username}]",
-    #     execution_status="200",
-    #     server="dns_servers",
-    # )
+    background_tasks.add_task(
+        add_plesk_get_subscription_login_link_log_entry,
+        session=session,
+        user=current_user,
+        plesk_server=PleskServerDomain(domain=data.host),
+        subscription_id=data.subscription_id,
+    )
     return login_link
 
 
@@ -119,9 +129,9 @@ async def set_zonemaster(
     background_tasks.add_task(
         add_dns_set_zone_master_log_entry,
         session=session,
-        db_user=current_user,
+        user=current_user,
         current_zone_master=curr_zone_master,
-        target_zone_master=data.target_plesk_server,
-        domain=data.domain,
+        target_zone_master=PleskServerDomain(domain=data.target_plesk_server),
+        domain=DomainName(domain=data.domain),
     )
     return Message(message="Zone master set successfully")

@@ -6,7 +6,7 @@ from pydantic import (
     model_serializer,
     field_validator,
     ConfigDict,
-    Field
+    Field,
 )
 from enum import Enum
 from typing import List
@@ -39,7 +39,6 @@ class UserRoles(str, Enum):
             if member.lower() == value:
                 return member
         return None
-
 
 
 class Token(BaseModel):
@@ -98,7 +97,6 @@ class UsersPublic(BaseModel):
 class UpdatePassword(BaseModel):
     current_password: str = Field(min_length=8, max_length=40)
     new_password: str = Field(min_length=8, max_length=40)
-
 
 
 class Message(BaseModel):
@@ -208,4 +206,4 @@ class UserActionType(str, Enum):
     GET_ZONE_MASTER = "GET_ZONE_MASTER"
     DELETE_ZONE_MASTER = "DELETE_ZONE_MASTER"
     SET_ZONE_MASTER = "SET_ZONE_MASTER"
-    GENERATE_LOGIN_LINK = "GENERATE_LOGIN_LINK"
+    GET_SUBSCRIPTION_LOGIN_LINK = "GET_SUBSCRIPTION_LOGIN_LINK"

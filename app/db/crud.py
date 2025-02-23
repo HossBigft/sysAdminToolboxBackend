@@ -20,6 +20,7 @@ from app.db.models import (
     DeleteZonemasterLog,
     GetZoneMasterLog,
     SetZoneMasterLog,
+    GetPleskLoginLinkLog,
 )
 
 
@@ -66,20 +67,15 @@ def authenticate(*, session: Session, email: str, password: str) -> User | None:
 
 
 async def add_dns_remove_zone_master_log_entry(
-    session: Session, db_user: User, current_zone_master: DomainName
+    session: Session,
+    user: UserPublic,
+    current_zone_master: PleskServerDomain,
+    domain: DomainName,
 ) -> None:
-    user_log = UsersActivityLog(
-        user_id=db_user.id,
-        action=UserActionType.DELETE_ZONE_MASTER,
-        timestamp=get_local_time(),
-        server="DNS",
-    )
-    session.add(user_log)
-    session.commit()
-
     user_action = DeleteZonemasterLog(
-        user_action_id=user_log.id,
-        current_zone_master=current_zone_master,
+        user_id=user.id,
+        current_zone_master=current_zone_master.domain,
+        domain=domain,
     )
     session.add(user_action)
     session.commit()
@@ -88,44 +84,39 @@ async def add_dns_remove_zone_master_log_entry(
 async def add_dns_get_zone_master_log_entry(
     session: Session, user: UserPublic, domain: SubscriptionName
 ) -> None:
-    user_log = UsersActivityLog(
-        user_id=user.id,
-        action=UserActionType.GET_ZONE_MASTER,
-        timestamp=get_local_time(),
-        server="DNS",
-    )
-    session.add(user_log)
-    session.commit()
-
-    user_action = GetZoneMasterLog(
-        user_action_id=user_log.id,
-        domain=domain.domain,
-    )
+    user_action = GetZoneMasterLog(user_id=user.id, domain=domain.domain)
     session.add(user_action)
     session.commit()
 
 
 async def add_dns_set_zone_master_log_entry(
     session: Session,
-    db_user: User,
+    user: UserPublic,
     current_zone_master: PleskServerDomain,
     target_zone_master: PleskServerDomain,
     domain: DomainName,
 ) -> None:
-    user_log = UsersActivityLog(
-        user_id=db_user.id,
-        action=UserActionType.SET_ZONE_MASTER,
-        timestamp=get_local_time(),
-        server="DNS",
+    user_action = SetZoneMasterLog(
+        user_id=user.id,
+        current_zone_master=current_zone_master.domain,
+        target_zone_master=target_zone_master.domain,
+        domain=domain.domain,
     )
-    session.add(user_log)
+    session.add(user_action)
     session.commit()
 
-    user_action = SetZoneMasterLog(
-        user_action_id=user_log.id,
-        current_zone_master="".join(current_zone_master),
-        target_zone_master=target_zone_master,
-        domain=domain,
+
+async def add_plesk_get_subscription_login_link_log_entry(
+    session: Session,
+    user: UserPublic,
+    plesk_server: PleskServerDomain,
+    subscription_id: int,
+) -> None:
+    user_action = GetPleskLoginLinkLog(
+        user_id=user.id,
+        plesk_server=plesk_server.domain,
+        subscription_id=subscription_id,
+        ssh_username=user.ssh_username,
     )
     session.add(user_action)
     session.commit()

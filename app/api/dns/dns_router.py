@@ -134,7 +134,7 @@ async def delete_zone_file_for_domain(
     session: SessionDep,
     background_tasks: BackgroundTasks,
     current_user: CurrentUser,
-    domain: Annotated[SubscriptionName, Query()],
+    domain: Annotated[DomainName, Query()],
 ):
     try:
         curr_zonemaster = await dns_get_domain_zone_master(domain)
@@ -142,8 +142,9 @@ async def delete_zone_file_for_domain(
         background_tasks.add_task(
             add_dns_remove_zone_master_log_entry,
             session=session,
-            db_user=current_user,
-            current_zone_master=DomainName(domain=str(curr_zonemaster)),
+            user=current_user,
+            current_zone_master=curr_zonemaster,
+            domain=domain,
         )
         return Message(message="Zone master deleted successfully")
     except RuntimeError as e:

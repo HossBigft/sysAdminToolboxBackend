@@ -9,7 +9,7 @@ from pydantic import (
 from typing import List
 from typing_extensions import Annotated
 from pydantic.networks import IPvAnyAddress
-from app.schemas import SubscriptionName, SUBSCRIPTION_NAME_PATTERN
+from app.schemas import SubscriptionName, SUBSCRIPTION_NAME_PATTERN, DomainName
 
 from app.host_lists import PLESK_SERVER_LIST
 
@@ -18,23 +18,6 @@ OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN = (
 )
 
 LINUX_USERNAME_PATTERN = r"^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$"
-
-
-class DomainName(BaseModel):
-    domain: Annotated[
-        str,
-        StringConstraints(
-            min_length=3,
-            max_length=253,
-            pattern=OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN,
-        ),
-    ]
-
-    model_config = {"json_schema_extra": {"examples": ["example.com."]}}
-
-    @model_serializer(mode="wrap")
-    def ser_model(self, _handler):
-        return self.domain
 
 
 class IPv4Address(BaseModel):
@@ -130,6 +113,3 @@ class LinuxUsername(BaseModel):
         ]
         | None
     )
-
-
-
