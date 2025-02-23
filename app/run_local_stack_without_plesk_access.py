@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from starlette.middleware.cors import CORSMiddleware
@@ -7,7 +7,7 @@ from app.api.main import api_router
 from app.core.config import settings
 from tests.utils.container_db_utils import TestMariadb, TEST_DB_CMD
 from tests.utils.container_unix_utils import UnixContainer
-from unittest.mock import AsyncMock
+from app.schemas import PleskServerDomain
 
 
 example.com
@@ -60,6 +60,10 @@ def mock_get_plesk_subscription_login_link_by_id(arg1, arg2, arg3):
     return f"https://{TEST_SSH_HOST}/login?secret=sdfdfsdfSECRET&success_redirect_url=%2Fadmin%2Fsubscription%2Foverview%2Fid%2F12345"
 
 
+def mock_dns_get_domain_zone_master(domain: str):
+    return PleskServerDomain(domain=TEST_SSH_HOST)
+
+
 get_zone_master_patches = [
     patch("app.api.plesk.ssh_utils.PLESK_DB_RUN_CMD_TEMPLATE", TEST_DB_CMD),
     patch(
@@ -70,11 +74,19 @@ get_zone_master_patches = [
 ]
 set_zone_master_patches = [
     patch(
-        "app.api.plesk.plesk_router.is_domain_exist_on_server", wraps=AsyncMock(return_value=True)
+        "app.api.plesk.plesk_router.is_domain_exist_on_server",
+        wraps=AsyncMock(return_value=True),
     ),
-    patch("app.api.plesk.plesk_router.dns_get_domain_zone_master", wraps=AsyncMock()),
-    patch("app.api.plesk.plesk_router.dns_remove_domain_zone_master", wraps=AsyncMock()),
-    patch("app.api.plesk.plesk_router.restart_dns_service_for_domain", wraps=AsyncMock()),
+    patch(
+        "app.api.plesk.plesk_router.dns_get_domain_zone_master",
+        wraps=mock_dns_get_domain_zone_master,
+    ),
+    patch(
+        "app.api.plesk.plesk_router.dns_remove_domain_zone_master", wraps=AsyncMock()
+    ),
+    patch(
+        "app.api.plesk.plesk_router.restart_dns_service_for_domain", wraps=AsyncMock()
+    ),
 ]
 patches = (
     [
