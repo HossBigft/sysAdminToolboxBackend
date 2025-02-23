@@ -8,8 +8,8 @@ from app.api.dns.ssh_utils import (
 )
 from app.api.dns.dns_utils import resolve_record, RecordNotFoundError
 from app.db.crud import (
-    add_dns_remove_zone_master_log_entry,
-    add_dns_get_zone_master_log_entry,
+    log_dns_zone_master_removal,
+    log_dns_zone_master_fetch,
 )
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
 from app.schemas import (
@@ -76,7 +76,7 @@ async def get_zone_master_from_dns_servers(
                 detail=f"Zone master for domain [{domain.domain}] not found.",
             )
         background_tasks.add_task(
-            add_dns_get_zone_master_log_entry,
+            log_dns_zone_master_fetch,
             session=session,
             user=current_user,
             domain=domain,
@@ -140,7 +140,7 @@ async def delete_zone_file_for_domain(
         curr_zonemaster = await dns_get_domain_zone_master(domain)
         await dns_remove_domain_zone_master(domain)
         background_tasks.add_task(
-            add_dns_remove_zone_master_log_entry,
+            log_dns_zone_master_removal,
             session=session,
             user=current_user,
             current_zone_master=curr_zonemaster,

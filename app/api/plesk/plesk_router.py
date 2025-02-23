@@ -31,8 +31,8 @@ from app.api.dns.ssh_utils import (
     dns_get_domain_zone_master,
 )
 from app.db.crud import (
-    add_dns_set_zone_master_log_entry,
-    add_plesk_get_subscription_login_link_log_entry,
+    log_dns_zone_master_set,
+    log_plesk_login_link_get,
 )
 
 router = APIRouter(tags=["plesk"], prefix="/plesk")
@@ -88,7 +88,7 @@ async def get_subscription_login_link(
     )
 
     background_tasks.add_task(
-        add_plesk_get_subscription_login_link_log_entry,
+        log_plesk_login_link_get,
         session=session,
         user=current_user,
         plesk_server=PleskServerDomain(domain=data.host),
@@ -127,7 +127,7 @@ async def set_zonemaster(
             detail=f"Subscription with domain [{data.domain}] not found.",
         )
     background_tasks.add_task(
-        add_dns_set_zone_master_log_entry,
+        log_dns_zone_master_set,
         session=session,
         user=current_user,
         current_zone_master=curr_zone_master,

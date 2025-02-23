@@ -30,7 +30,7 @@ class User(Base):
 
 
 class UsersActivityLog(Base):
-    __tablename__ = "users_activity_log"
+    __tablename__ = "user_log"
 
     id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -53,11 +53,11 @@ class UsersActivityLog(Base):
 
 
 class DeleteZonemasterLog(UsersActivityLog):
-    __tablename__ = "zone_master_delete_log"
+    __tablename__ = "dns_zone_master_delete"
 
     id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("users_activity_log.id", ondelete="CASCADE"),
+        ForeignKey("user_log.id", ondelete="CASCADE"),
         primary_key=True,
     )
     domain: Mapped[str] = mapped_column(String, nullable=False)
@@ -67,11 +67,11 @@ class DeleteZonemasterLog(UsersActivityLog):
 
 
 class SetZoneMasterLog(UsersActivityLog):
-    __tablename__ = "zone_master_set_log"
+    __tablename__ = "dns_zone_master_set"
 
     id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("users_activity_log.id", ondelete="CASCADE"),
+        ForeignKey("user_log.id", ondelete="CASCADE"),
         primary_key=True,
     )
     current_zone_master: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -82,11 +82,11 @@ class SetZoneMasterLog(UsersActivityLog):
 
 
 class GetZoneMasterLog(UsersActivityLog):
-    __tablename__ = "zone_master_get_log"
+    __tablename__ = "dns_zone_master_get"
 
     id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("users_activity_log.id", ondelete="CASCADE"),
+        ForeignKey("user_log.id", ondelete="CASCADE"),
         primary_key=True,
     )
     domain: Mapped[str] = mapped_column(String, nullable=False)
@@ -95,11 +95,11 @@ class GetZoneMasterLog(UsersActivityLog):
 
 
 class GetPleskLoginLinkLog(UsersActivityLog):
-    __tablename__ = "plesk_get_subscription_login_link_log"
+    __tablename__ = "plesk_get_subscription_login_link"
 
     id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("users_activity_log.id", ondelete="CASCADE"),
+        ForeignKey("user_log.id", ondelete="CASCADE"),
         primary_key=True,
     )
     plesk_server: Mapped[str] = mapped_column(String, nullable=False)

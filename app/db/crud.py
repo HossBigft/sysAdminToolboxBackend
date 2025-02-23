@@ -66,7 +66,7 @@ def authenticate(*, session: Session, email: str, password: str) -> User | None:
     return db_user
 
 
-async def add_dns_remove_zone_master_log_entry(
+async def log_dns_zone_master_removal(
     session: Session,
     user: UserPublic,
     current_zone_master: PleskServerDomain,
@@ -81,7 +81,7 @@ async def add_dns_remove_zone_master_log_entry(
     session.commit()
 
 
-async def add_dns_get_zone_master_log_entry(
+async def log_dns_zone_master_fetch(
     session: Session, user: UserPublic, domain: SubscriptionName
 ) -> None:
     user_action = GetZoneMasterLog(user_id=user.id, domain=domain.domain)
@@ -89,7 +89,7 @@ async def add_dns_get_zone_master_log_entry(
     session.commit()
 
 
-async def add_dns_set_zone_master_log_entry(
+async def log_dns_zone_master_set(
     session: Session,
     user: UserPublic,
     current_zone_master: PleskServerDomain,
@@ -106,7 +106,7 @@ async def add_dns_set_zone_master_log_entry(
     session.commit()
 
 
-async def add_plesk_get_subscription_login_link_log_entry(
+async def log_plesk_login_link_get(
     session: Session,
     user: UserPublic,
     plesk_server: PleskServerDomain,
