@@ -4,7 +4,7 @@ from typing import Annotated
 from app.api.plesk.ssh_utils import (
     plesk_fetch_subscription_info,
 )
-from app.api.plesk.models import (
+from app.api.plesk.schemas import (
     SubscriptionListResponseModel,
     SubscriptionDetailsModel,
     SubscriptionLoginLinkInput,
