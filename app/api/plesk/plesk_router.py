@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query, Depends, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Query, Depends, BackgroundTasks, Request
 from typing import Annotated
 
 from app.api.plesk.ssh_utils import (
@@ -75,6 +75,7 @@ async def get_subscription_login_link(
     current_user: CurrentUser,
     background_tasks: BackgroundTasks,
     session: SessionDep,
+    request: Request,
 ):
     if not current_user.ssh_username:
         raise HTTPException(
@@ -86,13 +87,14 @@ async def get_subscription_login_link(
         data.subscription_id,
         LinuxUsername(name=current_user.ssh_username),
     )
-
+    request_ip = IPv4Address(request.client.host)
     background_tasks.add_task(
         log_plesk_login_link_get,
         session=session,
         user=current_user,
         plesk_server=PleskServerDomain(domain=data.host),
         subscription_id=data.subscription_id,
+        ip=request_ip,
     )
     return login_link
 
@@ -106,6 +108,7 @@ async def set_zonemaster(
     current_user: CurrentUser,
     background_tasks: BackgroundTasks,
     session: SessionDep,
+    request: Request,
 ) -> Message:
     curr_zone_master: set[PleskServerDomain] | None
     if await is_domain_exist_on_server(
@@ -126,6 +129,7 @@ async def set_zonemaster(
             status_code=404,
             detail=f"Subscription with domain [{data.domain}] not found.",
         )
+    request_ip = IPv4Address(request.client.host)
     background_tasks.add_task(
         log_dns_zone_master_set,
         session=session,
@@ -133,5 +137,6 @@ async def set_zonemaster(
         current_zone_master=curr_zone_master,
         target_zone_master=PleskServerDomain(domain=data.target_plesk_server),
         domain=DomainName(domain=data.domain),
+        ip=request_ip,
     )
     return Message(message="Zone master set successfully")

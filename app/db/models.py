@@ -38,10 +38,12 @@ class UsersActivityLog(Base):
     user_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("user.id"), nullable=False
     )
+    ip: Mapped[str] = mapped_column(String(15), nullable=False)
+
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
-
+    
     log_type: Mapped[UserActionType] = mapped_column(
         Enum(UserActionType), nullable=False
     )

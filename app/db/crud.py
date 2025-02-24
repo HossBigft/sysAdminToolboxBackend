@@ -11,6 +11,7 @@ from app.schemas import (
     UserCreate,
     UserUpdate,
     UserPublic,
+    IPv4Address,
 )
 from app.db.models import (
     User,
@@ -68,20 +69,22 @@ async def log_dns_zone_master_removal(
     user: UserPublic,
     current_zone_master: PleskServerDomain,
     domain: DomainName,
+    ip: IPv4Address,
 ) -> None:
     user_action = DeleteZonemasterLog(
         user_id=user.id,
         current_zone_master=current_zone_master.domain,
         domain=domain,
+        ip=ip,
     )
     session.add(user_action)
     session.commit()
 
 
 async def log_dns_zone_master_fetch(
-    session: Session, user: UserPublic, domain: SubscriptionName
+    session: Session, user: UserPublic, domain: SubscriptionName, ip: IPv4Address
 ) -> None:
-    user_action = GetZoneMasterLog(user_id=user.id, domain=domain.domain)
+    user_action = GetZoneMasterLog(user_id=user.id, domain=domain.domain, ip=ip)
     session.add(user_action)
     session.commit()
 
@@ -92,12 +95,14 @@ async def log_dns_zone_master_set(
     current_zone_master: PleskServerDomain,
     target_zone_master: PleskServerDomain,
     domain: DomainName,
+    ip: IPv4Address,
 ) -> None:
     user_action = SetZoneMasterLog(
         user_id=user.id,
         current_zone_master=current_zone_master.domain,
         target_zone_master=target_zone_master.domain,
         domain=domain.domain,
+        ip=ip,
     )
     session.add(user_action)
     session.commit()
@@ -108,12 +113,14 @@ async def log_plesk_login_link_get(
     user: UserPublic,
     plesk_server: PleskServerDomain,
     subscription_id: int,
+    ip: IPv4Address,
 ) -> None:
     user_action = GetPleskLoginLinkLog(
         user_id=user.id,
         plesk_server=plesk_server.domain,
         subscription_id=subscription_id,
         ssh_username=user.ssh_username,
+        ip=ip,
     )
     session.add(user_action)
     session.commit()

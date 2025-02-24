@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query, Request
 from typing import Annotated
 
 from app.api.dns.ssh_utils import (
@@ -67,6 +67,7 @@ async def get_zone_master_from_dns_servers(
     background_tasks: BackgroundTasks,
     current_user: CurrentUser,
     domain: Annotated[SubscriptionName, Query()],
+    request: Request
 ):
     try:
         zone_masters_dict = await dns_query_domain_zone_master(domain)
@@ -75,11 +76,14 @@ async def get_zone_master_from_dns_servers(
                 status_code=404,
                 detail=f"Zone master for domain [{domain.domain}] not found.",
             )
+            
+        request_ip=IPv4Address(request.client.host)
         background_tasks.add_task(
             log_dns_zone_master_fetch,
             session=session,
             user=current_user,
             domain=domain,
+            ip=request_ip
         )
         return zone_masters_dict
     except RecordNotFoundError as e:
@@ -135,16 +139,19 @@ async def delete_zone_file_for_domain(
     background_tasks: BackgroundTasks,
     current_user: CurrentUser,
     domain: Annotated[DomainName, Query()],
+    request: Request
 ):
     try:
         curr_zonemaster = await dns_get_domain_zone_master(domain)
         await dns_remove_domain_zone_master(domain)
+        request_ip=IPv4Address(request.client.host)
         background_tasks.add_task(
             log_dns_zone_master_removal,
             session=session,
             user=current_user,
             current_zone_master=curr_zonemaster,
             domain=domain,
+            ip=request_ip
         )
         return Message(message="Zone master deleted successfully")
     except RuntimeError as e:
