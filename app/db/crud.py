@@ -5,7 +5,6 @@ from sqlalchemy import update, select
 
 from app.core.security import get_password_hash, verify_password
 from app.schemas import (
-    UserActionType,
     DomainName,
     SubscriptionName,
     PleskServerDomain,
@@ -13,10 +12,8 @@ from app.schemas import (
     UserUpdate,
     UserPublic,
 )
-from app.utils import get_local_time
 from app.db.models import (
     User,
-    UsersActivityLog,
     DeleteZonemasterLog,
     GetZoneMasterLog,
     SetZoneMasterLog,
