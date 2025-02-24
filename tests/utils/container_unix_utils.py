@@ -23,7 +23,6 @@ class UnixContainer:
 
     def __run_command(self, command):
         cmd = ["bash", "-c", f"{command}"]
-        print(cmd)
         execRes = self.container.exec(cmd)
         output = execRes.output.decode("utf-8").strip()
         return output
