@@ -3,6 +3,7 @@ import uuid
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import update, delete, select, func
+from sqlalchemy.orm import with_polymorphic
 
 from app.db import crud
 from app.api.dependencies import (
@@ -249,9 +250,28 @@ def delete_user(
     return Message(message="User deleted successfully")
 
 
+@router.get("/me/history")
+async def get_own_actions(current_user: CurrentUser, session: SessionDep):
+    actions = (
+        session.execute(
+            select(UsersActivityLog, User)
+            .where(UsersActivityLog.user_id == current_user.id)
+            .join(User, User.id == UsersActivityLog.user_id)
+        )
+        .all()
+    )
+
+    return [row._asdict() for row in actions]
+
+
 @router.get("/{user_id}/history")
 async def get_user_actions(user_id: uuid.UUID, session: SessionDep):
     actions = (
-        session.execute(UsersActivityLog).filter(UsersActivityLog.user_id == user_id).all()
+        session.execute(
+            select(UsersActivityLog).where(UsersActivityLog.user_id == user_id)
+        )
+        .scalars()
+        .all()
     )
+
     return actions
