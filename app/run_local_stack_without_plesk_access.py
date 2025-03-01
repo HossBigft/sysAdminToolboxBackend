@@ -103,4 +103,4 @@ for p in patches:
     p.start()
 
 # Include API router
-app.include_router(api_router, prefix=settings.API_V1_STR)
+app.include_router(api_router)
