@@ -47,16 +47,16 @@ if settings.all_cors_origins:
     )
 
 
-router = APIRouter(prefix=settings.API_V1_STR)
+api_router = APIRouter(prefix=settings.API_V1_STR)
 
-router.include_router(dns.router)
-router.include_router(users.router)
-router.include_router(plesk.router)
-router.include_router(utils.router)
-router.include_router(password_reset.router)
-router.include_router(login.router)
+api_router.include_router(dns.router)
+api_router.include_router(users.router)
+api_router.include_router(plesk.router)
+api_router.include_router(utils.router)
+api_router.include_router(password_reset.router)
+api_router.include_router(login.router)
 
-app.include_router(router)
+app.include_router(api_router)
 
 logging.basicConfig(
     level=logging.INFO,
