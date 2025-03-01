@@ -3,7 +3,7 @@ import uuid
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import update, delete, select, func
-from sqlalchemy.orm import with_polymorphic
+
 
 from app.db import crud
 from app.api.dependencies import (
@@ -24,10 +24,9 @@ from app.schemas import (
     UserUpdateMe,
     UserRoles,
     UserUpdateMePassword,
+    UserLogEntryPublic,
 )
-
 from app.db.models import UsersActivityLog, User
-
 from app.utils import generate_new_account_email, send_email
 
 router = APIRouter(tags=["users"], prefix="/users")
@@ -252,16 +251,7 @@ def delete_user(
 
 @router.get("/me/history")
 async def get_own_actions(current_user: CurrentUser, session: SessionDep):
-    actions = (
-        session.execute(
-            select(UsersActivityLog, User)
-            .where(UsersActivityLog.user_id == current_user.id)
-            .join(User, User.id == UsersActivityLog.user_id)
-        )
-        .all()
-    )
-
-    return [row._asdict() for row in actions]
+    return await crud.get_user_log_entries_by_id(session, current_user.id)
 
 
 @router.get("/{user_id}/history")

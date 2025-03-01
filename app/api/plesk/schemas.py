@@ -2,13 +2,11 @@ from pydantic import (
     BaseModel,
     RootModel,
     StringConstraints,
-    model_serializer,
     field_validator,
 )
 
 from typing import List
 from typing_extensions import Annotated
-from pydantic.networks import IPvAnyAddress
 from app.schemas import SubscriptionName, SUBSCRIPTION_NAME_PATTERN, DomainName
 
 from app.host_lists import PLESK_SERVER_LIST
@@ -18,19 +16,6 @@ OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN = (
 )
 
 LINUX_USERNAME_PATTERN = r"^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$"
-
-
-class IPv4Address(BaseModel):
-    ip: IPvAnyAddress
-
-    def __str__(self) -> str:
-        return str(self.ip)
-
-    @model_serializer(mode="wrap")
-    def ser_model(self, _handler):
-        return str(self.ip)
-
-    model_config = {"json_schema_extra": {"examples": ["IP_PLACEHOLDER"]}}
 
 
 class SubscriptionLoginLinkInput(BaseModel):

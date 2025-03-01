@@ -1,7 +1,12 @@
-from typing import Any
+import uuid
 
+from typing import Any
+from ipaddress import IPv4Address
 from sqlalchemy.orm import Session
 from sqlalchemy import update, select
+from sqlalchemy.orm import with_polymorphic
+from fastapi.encoders import jsonable_encoder
+
 
 from app.core.security import get_password_hash, verify_password
 from app.schemas import (
@@ -11,7 +16,7 @@ from app.schemas import (
     UserCreate,
     UserUpdate,
     UserPublic,
-    IPv4Address,
+    UserLogEntryPublic,
 )
 from app.db.models import (
     User,
@@ -19,6 +24,7 @@ from app.db.models import (
     GetZoneMasterLog,
     SetZoneMasterLog,
     GetPleskLoginLinkLog,
+    UsersActivityLog,
 )
 
 
@@ -124,3 +130,17 @@ async def log_plesk_login_link_get(
     )
     session.add(user_action)
     session.commit()
+
+
+async def get_user_log_entries_by_id(session: Session, id: uuid.UUID):
+    actions = session.execute(
+        select(with_polymorphic(UsersActivityLog, "*"), User.ssh_username)
+        .where(UsersActivityLog.user_id == id)
+        .join(User, User.id == UsersActivityLog.user_id)
+    ).all()
+    results = [
+        jsonable_encoder({**log.__dict__, "ssh_username": ssh_username})
+        for log, ssh_username in actions
+    ]
+    results = [UserLogEntryPublic.validate_python(result) for result in results]
+    return results

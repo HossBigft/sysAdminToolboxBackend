@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query, Depends, BackgroundTasks, Request
 from typing import Annotated
+from ipaddress import IPv4Address
 
 from app.api.plesk.ssh_utils import (
     plesk_fetch_subscription_info,

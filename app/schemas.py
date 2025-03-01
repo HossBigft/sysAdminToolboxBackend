@@ -1,4 +1,5 @@
 import uuid
+
 from pydantic import (
     EmailStr,
     BaseModel,
@@ -7,11 +8,14 @@ from pydantic import (
     field_validator,
     ConfigDict,
     Field,
+    TypeAdapter,
 )
+
 from enum import Enum
 from typing import List
 from typing_extensions import Annotated
-from ipaddress import ip_address
+from datetime import datetime
+from ipaddress import IPv4Address
 
 
 from app.host_lists import PLESK_SERVER_LIST
@@ -53,7 +57,7 @@ class TokenPayload(BaseModel):
 class UserBase(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    email: EmailStr = Field(unique=True, index=True, max_length=255)
+    email: EmailStr = Field(max_length=255)
     is_active: bool = True
     full_name: str | None = Field(default=None, max_length=255)
     role: UserRoles = Field(default=UserRoles.USER)
@@ -149,22 +153,6 @@ example.com
         return self.domain
 
 
-class IPv4Address(BaseModel):
-    ip: str
-
-    def __init__(self, ip: str):
-        super().__init__(ip=str(ip_address(ip)))
-
-    def __str__(self) -> str:
-        return self.ip
-
-    @model_serializer
-    def serialize(self) -> str:
-        return self.ip
-
-    model_config = {"json_schema_extra": {"examples": ["IP_PLACEHOLDER"]}}
-
-
 class DomainARecordResponse(BaseModel):
     domain: DomainName
     records: List[IPv4Address]
@@ -207,3 +195,54 @@ class UserActionType(str, Enum):
     DELETE_ZONE_MASTER = "DELETE_ZONE_MASTER"
     SET_ZONE_MASTER = "SET_ZONE_MASTER"
     GET_SUBSCRIPTION_LOGIN_LINK = "GET_SUBSCRIPTION_LOGIN_LINK"
+
+
+class UserLogEntryBase(BaseModel):
+    log_type: UserActionType
+    ip: IPv4Address
+    timestamp: datetime
+    ssh_username: (
+        Annotated[
+            str,
+            StringConstraints(
+                min_length=3,
+                max_length=32,
+                pattern=LINUX_USERNAME_PATTERN,
+            ),
+        ]
+        | None
+    )
+
+
+class DeleteZonemasterLogSchema(UserLogEntryBase):
+    domain: str
+    current_zone_master: str
+
+    log_type: UserActionType = UserActionType.DELETE_ZONE_MASTER
+
+
+class SetZoneMasterLogSchema(UserLogEntryBase):
+    domain: str
+    target_zone_master: str
+    current_zone_master: str | None
+
+    log_type: UserActionType = UserActionType.SET_ZONE_MASTER
+
+
+class GetZoneMasterLogSchema(UserLogEntryBase):
+    domain: str
+    log_type: UserActionType = UserActionType.GET_ZONE_MASTER
+
+
+class GetPleskLoginLinkLogSchema(UserLogEntryBase):
+    plesk_server: str
+    subscription_id: str
+    log_type: UserActionType = UserActionType.GET_SUBSCRIPTION_LOGIN_LINK
+
+
+UserLogEntryPublic = TypeAdapter(
+    DeleteZonemasterLogSchema
+    | SetZoneMasterLogSchema
+    | GetZoneMasterLogSchema
+    | GetPleskLoginLinkLogSchema
+)
