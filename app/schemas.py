@@ -197,39 +197,40 @@ class UserActionType(str, Enum):
     GET_SUBSCRIPTION_LOGIN_LINK = "GET_SUBSCRIPTION_LOGIN_LINK"
 
 
-class UserLogEntryBase(UserPublic):
+class UserLogBaseSchema(BaseModel):
     ip: IPv4Address
     timestamp: datetime
-    email: SkipJsonSchema[EmailStr] = Field(exclude=True)
-    is_active: SkipJsonSchema[bool] = Field(default=False, exclude=True)
 
 
-class DeleteZonemasterLogSchema(UserLogEntryBase):
+class DeleteZonemasterLogSchema(UserLogBaseSchema):
     domain: str
     current_zone_master: str
     log_type: Literal[UserActionType.DELETE_ZONE_MASTER]
 
 
-class SetZoneMasterLogSchema(UserLogEntryBase):
+class SetZoneMasterLogSchema(UserLogBaseSchema):
     domain: str
     target_zone_master: str
     current_zone_master: str | None
     log_type: Literal[UserActionType.SET_ZONE_MASTER]
 
 
-class GetZoneMasterLogSchema(UserLogEntryBase):
+class GetZoneMasterLogSchema(UserLogBaseSchema):
     domain: str
     log_type: Literal[UserActionType.GET_ZONE_MASTER]
 
 
-class GetPleskLoginLinkLogSchema(UserLogEntryBase):
+class GetPleskLoginLinkLogSchema(UserLogBaseSchema):
     plesk_server: str
     subscription_id: str
     log_type: Literal[UserActionType.GET_SUBSCRIPTION_LOGIN_LINK]
 
 
-class UserLogEntryPublic(RootModel):
-    root: (
+class UserLogEntryPublic(UserPublic):
+    email: SkipJsonSchema[EmailStr] = Field(exclude=True)
+    is_active: SkipJsonSchema[bool] = Field(default=False, exclude=True)
+
+    details: (
         DeleteZonemasterLogSchema
         | SetZoneMasterLogSchema
         | GetZoneMasterLogSchema

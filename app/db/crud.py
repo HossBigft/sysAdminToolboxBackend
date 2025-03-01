@@ -139,7 +139,8 @@ async def get_user_log_entries_by_id(session: Session, id: uuid.UUID):
         .join(User, User.id == UsersActivityLog.user_id)
     ).all()
     results = [
-        jsonable_encoder({**log.__dict__, **user.__dict__}) for log, user in actions
+        jsonable_encoder({**user.__dict__, "details": {**log_details.__dict__}})
+        for log_details, user in actions
     ]
     results = [UserLogEntryPublic.model_validate(result) for result in results]
     return results
