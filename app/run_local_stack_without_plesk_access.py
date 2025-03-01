@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from starlette.middleware.cors import CORSMiddleware
 
-from app.api.main import api_router
+from app.main import api_router
 from app.core.config import settings
 from tests.utils.container_db_utils import TestMariadb, TEST_DB_CMD
 from tests.utils.container_unix_utils import UnixContainer
