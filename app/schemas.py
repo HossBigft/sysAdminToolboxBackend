@@ -8,11 +8,11 @@ from pydantic import (
     field_validator,
     ConfigDict,
     Field,
-    TypeAdapter,
+    RootModel,
 )
-
+from pydantic.json_schema import SkipJsonSchema
 from enum import Enum
-from typing import List
+from typing import List, Literal
 from typing_extensions import Annotated
 from datetime import datetime
 from ipaddress import IPv4Address
@@ -197,52 +197,45 @@ class UserActionType(str, Enum):
     GET_SUBSCRIPTION_LOGIN_LINK = "GET_SUBSCRIPTION_LOGIN_LINK"
 
 
-class UserLogEntryBase(BaseModel):
-    log_type: UserActionType
+class UserLogEntryBase(UserPublic):
     ip: IPv4Address
     timestamp: datetime
-    ssh_username: (
-        Annotated[
-            str,
-            StringConstraints(
-                min_length=3,
-                max_length=32,
-                pattern=LINUX_USERNAME_PATTERN,
-            ),
-        ]
-        | None
-    )
+    email: SkipJsonSchema[EmailStr] = Field(exclude=True)
+    is_active: SkipJsonSchema[bool] = Field(default=False, exclude=True)
 
 
 class DeleteZonemasterLogSchema(UserLogEntryBase):
     domain: str
     current_zone_master: str
-
-    log_type: UserActionType = UserActionType.DELETE_ZONE_MASTER
+    log_type: Literal[UserActionType.DELETE_ZONE_MASTER]
 
 
 class SetZoneMasterLogSchema(UserLogEntryBase):
     domain: str
     target_zone_master: str
     current_zone_master: str | None
-
-    log_type: UserActionType = UserActionType.SET_ZONE_MASTER
+    log_type: Literal[UserActionType.SET_ZONE_MASTER]
 
 
 class GetZoneMasterLogSchema(UserLogEntryBase):
     domain: str
-    log_type: UserActionType = UserActionType.GET_ZONE_MASTER
+    log_type: Literal[UserActionType.GET_ZONE_MASTER]
 
 
 class GetPleskLoginLinkLogSchema(UserLogEntryBase):
     plesk_server: str
     subscription_id: str
-    log_type: UserActionType = UserActionType.GET_SUBSCRIPTION_LOGIN_LINK
+    log_type: Literal[UserActionType.GET_SUBSCRIPTION_LOGIN_LINK]
 
 
-UserLogEntryPublic = TypeAdapter(
-    DeleteZonemasterLogSchema
-    | SetZoneMasterLogSchema
-    | GetZoneMasterLogSchema
-    | GetPleskLoginLinkLogSchema
-)
+class UserLogEntryPublic(RootModel):
+    root: (
+        DeleteZonemasterLogSchema
+        | SetZoneMasterLogSchema
+        | GetZoneMasterLogSchema
+        | GetPleskLoginLinkLogSchema
+    ) = Field(discriminator="log_type")
+
+
+class UserLogsPublic(RootModel):
+    root: List[UserLogEntryPublic]

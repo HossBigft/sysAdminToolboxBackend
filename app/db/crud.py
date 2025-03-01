@@ -134,13 +134,12 @@ async def log_plesk_login_link_get(
 
 async def get_user_log_entries_by_id(session: Session, id: uuid.UUID):
     actions = session.execute(
-        select(with_polymorphic(UsersActivityLog, "*"), User.ssh_username)
+        select(with_polymorphic(UsersActivityLog, "*"), User)
         .where(UsersActivityLog.user_id == id)
         .join(User, User.id == UsersActivityLog.user_id)
     ).all()
     results = [
-        jsonable_encoder({**log.__dict__, "ssh_username": ssh_username})
-        for log, ssh_username in actions
+        jsonable_encoder({**log.__dict__, **user.__dict__}) for log, user in actions
     ]
-    results = [UserLogEntryPublic.validate_python(result) for result in results]
+    results = [UserLogEntryPublic.model_validate(result) for result in results]
     return results
