@@ -41,7 +41,7 @@ class UsersActivityLog(Base):
     ip: Mapped[str] = mapped_column(String(15), nullable=False)
 
     timestamp: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+        DateTime(timezone=True), server_default=func.now()
     )
     
     log_type: Mapped[UserActionType] = mapped_column(
