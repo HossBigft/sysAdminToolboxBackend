@@ -4,7 +4,7 @@ from typing import TypedDict, List
 import secrets
 
 from app.AsyncSSHandler import execute_ssh_command, execute_ssh_commands_in_batch
-from app.api.plesk.schemas import SubscriptionName, LinuxUsername
+from app.api.plesk.plesk_schemas import SubscriptionName, LinuxUsername
 from app.host_lists import PLESK_SERVER_LIST
 from app.schemas import PleskServerDomain
 
