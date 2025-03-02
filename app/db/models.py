@@ -1,7 +1,7 @@
 import uuid
 
 from sqlalchemy import ForeignKey, String, UUID, Boolean, Enum, DateTime, func
-from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from datetime import datetime
 
 from app.schemas import UserRoles, UserActionType
