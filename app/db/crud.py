@@ -1,7 +1,6 @@
 import uuid
 
 from typing import Any, List
-from ipaddress import IPv4Address
 from sqlalchemy.orm import Session
 from sqlalchemy import update, select
 from sqlalchemy.orm import with_polymorphic
@@ -16,7 +15,8 @@ from app.schemas import (
     UserCreate,
     UserUpdate,
     UserPublic,
-    UserLogEntryPublic,
+    UserLogPublic,
+    IPv4Address
 )
 from app.db.models import (
     User,
@@ -132,7 +132,7 @@ async def log_plesk_login_link_get(
     session.commit()
 
 
-async def get_user_log_entries_by_id(session: Session, id: uuid.UUID) -> List[UserLogEntryPublic]:
+async def get_user_log_entries_by_id(session: Session, id: uuid.UUID) -> List[UserLogPublic]:
     actions = session.execute(
         select(with_polymorphic(UsersActivityLog, "*"), User)
         .where(UsersActivityLog.user_id == id)
@@ -142,5 +142,5 @@ async def get_user_log_entries_by_id(session: Session, id: uuid.UUID) -> List[Us
         jsonable_encoder({**user.__dict__, "details": {**log_details.__dict__}})
         for log_details, user in actions
     ]
-    results = [UserLogEntryPublic.model_validate(result) for result in results]
+    results = [UserLogPublic.model_validate(result) for result in results]
     return results

@@ -2,9 +2,10 @@ import uuid
 
 from sqlalchemy import ForeignKey, String, UUID, Boolean, Enum, DateTime, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+import sqlalchemy.types as types
 from datetime import datetime
 
-from app.schemas import UserRoles, UserActionType
+from app.schemas import UserRoles, UserActionType, IPv4Address
 
 
 class Base(DeclarativeBase):
@@ -29,6 +30,23 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
 
 
+class IPv4AddressType(types.TypeDecorator):
+    """Custom SQLAlchemy type to store IPv4Address as a string."""
+    
+    impl = String(15)
+
+    def process_bind_param(self, value, dialect):
+        """Convert Python IPv4Address to string before saving to DB."""
+        if isinstance(value, IPv4Address):
+            return str(value)
+        return value  # Assume it's already a string
+
+    def process_result_value(self, value, dialect):
+        """Convert string from DB back to Python IPv4Address."""
+        if value is not None:
+            return IPv4Address(ip=value)
+        return value
+
 class UsersActivityLog(Base):
     __tablename__ = "log_user_activity"
 
@@ -38,7 +56,7 @@ class UsersActivityLog(Base):
     user_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("user.id"), nullable=False
     )
-    ip: Mapped[str] = mapped_column(String(15), nullable=False)
+    ip: Mapped[IPv4AddressType] = mapped_column(IPv4AddressType, nullable=False)
 
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

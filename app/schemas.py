@@ -15,7 +15,7 @@ from enum import Enum
 from typing import List, Literal
 from typing_extensions import Annotated
 from datetime import datetime
-from ipaddress import IPv4Address
+from pydantic.networks import IPvAnyAddress
 
 
 from app.host_lists import PLESK_SERVER_LIST
@@ -152,6 +152,16 @@ example.com
     def __str__(self):
         return self.domain
 
+class IPv4Address(BaseModel):
+    ip: IPvAnyAddress
+
+    def __str__(self) -> str:
+        return str(self.ip)
+
+    @model_serializer(mode="wrap")
+    def ser_model(self, _handler):
+        return str(self.ip)
+    model_config = {"json_schema_extra": {"examples": ["IP_PLACEHOLDER"]}} 
 
 class DomainARecordResponse(BaseModel):
     domain: DomainName
@@ -226,7 +236,7 @@ class GetPleskLoginLinkLogSchema(UserLogBaseSchema):
     log_type: Literal[UserActionType.GET_SUBSCRIPTION_LOGIN_LINK]
 
 
-class UserLogEntryPublic(UserPublic):
+class UserLogPublic(UserPublic):
     email: SkipJsonSchema[EmailStr] = Field(exclude=True)
     is_active: SkipJsonSchema[bool] = Field(default=False, exclude=True)
 
@@ -238,5 +248,3 @@ class UserLogEntryPublic(UserPublic):
     ) = Field(discriminator="log_type")
 
 
-class UserLogsPublic(RootModel):
-    root: List[UserLogEntryPublic]

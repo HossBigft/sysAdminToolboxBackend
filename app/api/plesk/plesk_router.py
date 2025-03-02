@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query, Depends, BackgroundTasks, Request
 from typing import Annotated
-from ipaddress import IPv4Address
 
 from app.api.plesk.ssh_utils import (
     plesk_fetch_subscription_info,
@@ -18,6 +17,7 @@ from app.schemas import (
     SubscriptionName,
     DomainName,
     PleskServerDomain,
+    IPv4Address
 )
 from app.api.plesk.ssh_utils import (
     plesk_generate_subscription_login_link,
@@ -88,7 +88,7 @@ async def get_subscription_login_link(
         data.subscription_id,
         LinuxUsername(name=current_user.ssh_username),
     )
-    request_ip = IPv4Address(request.client.host)
+    request_ip = IPv4Address(ip=request.client.host)
     background_tasks.add_task(
         log_plesk_login_link_get,
         session=session,
@@ -130,7 +130,7 @@ async def set_zonemaster(
             status_code=404,
             detail=f"Subscription with domain [{data.domain}] not found.",
         )
-    request_ip = IPv4Address(request.client.host)
+    request_ip = IPv4Address(ip=request.client.host)
     background_tasks.add_task(
         log_dns_zone_master_set,
         session=session,
