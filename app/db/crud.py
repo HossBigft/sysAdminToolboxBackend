@@ -1,6 +1,6 @@
 import uuid
 
-from typing import Any
+from typing import Any, List
 from ipaddress import IPv4Address
 from sqlalchemy.orm import Session
 from sqlalchemy import update, select
@@ -132,7 +132,7 @@ async def log_plesk_login_link_get(
     session.commit()
 
 
-async def get_user_log_entries_by_id(session: Session, id: uuid.UUID):
+async def get_user_log_entries_by_id(session: Session, id: uuid.UUID) -> List[UserLogEntryPublic]:
     actions = session.execute(
         select(with_polymorphic(UsersActivityLog, "*"), User)
         .where(UsersActivityLog.user_id == id)
