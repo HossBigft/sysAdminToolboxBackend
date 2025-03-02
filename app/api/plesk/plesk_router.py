@@ -17,7 +17,7 @@ from app.schemas import (
     SubscriptionName,
     DomainName,
     PleskServerDomain,
-    IPv4Address
+    IPv4Address,
 )
 from app.api.plesk.ssh_utils import (
     plesk_generate_subscription_login_link,

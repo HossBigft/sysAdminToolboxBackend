@@ -25,6 +25,7 @@ from app.schemas import (
     UserRoles,
     UserUpdateMePassword,
     UserLogPublic,
+    UserLogSearchSchema,
 )
 from app.db.models import UsersActivityLog, User
 from app.utils import generate_new_account_email, send_email
@@ -249,7 +250,7 @@ def delete_user(
     return Message(message="User deleted successfully")
 
 
-@router.get("/me/history", response_model=List[UserLogPublic])
+@router.post("/me/history", response_model=List[UserLogPublic])
 async def get_own_actions(current_user: CurrentUser, session: SessionDep):
     return await crud.get_user_log_entries_by_id(session, current_user.id)
 

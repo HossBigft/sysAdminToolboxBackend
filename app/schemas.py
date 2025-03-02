@@ -9,10 +9,11 @@ from pydantic import (
     ConfigDict,
     Field,
     model_validator,
+    create_model,
 )
 from pydantic.json_schema import SkipJsonSchema
 from enum import Enum
-from typing import List, Literal, Any
+from typing import List, Literal, Any, Optional
 from typing_extensions import Annotated
 from datetime import datetime
 from pydantic.networks import IPvAnyAddress
@@ -124,6 +125,14 @@ class DomainName(BaseModel):
 
     model_config = {"json_schema_extra": {"examples": ["example.com."]}}
 
+    @model_validator(mode="before")
+    @classmethod
+    def validate_ip_input(cls, data: Any) -> Any:
+        """Convert string inputs to proper dict structure."""
+        if isinstance(data, str):
+            return {"domain": data}
+        return data
+
     @model_serializer(mode="wrap")
     def ser_model(self, _handler):
         return self.domain
@@ -148,6 +157,14 @@ example.com
         if v not in PLESK_SERVER_LIST:
             raise ValueError(f"Domain '{v}' is not in the list of Plesk servers.")
         return v
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_ip_input(cls, data: Any) -> Any:
+        """Convert string inputs to proper dict structure."""
+        if isinstance(data, str):
+            return {"domain": data}
+        return data
 
     def __str__(self):
         return self.domain
@@ -224,26 +241,26 @@ class UserLogBaseSchema(BaseModel):
 
 
 class DeleteZonemasterLogSchema(UserLogBaseSchema):
-    domain: str
+    domain: DomainName
     current_zone_master: str
     log_type: Literal[UserActionType.DELETE_ZONE_MASTER]
 
 
 class SetZoneMasterLogSchema(UserLogBaseSchema):
-    domain: str
-    target_zone_master: str
-    current_zone_master: str | None
+    domain: DomainName
+    target_zone_master: PleskServerDomain
+    current_zone_master: PleskServerDomain | None
     log_type: Literal[UserActionType.SET_ZONE_MASTER]
 
 
 class GetZoneMasterLogSchema(UserLogBaseSchema):
-    domain: str
+    domain: DomainName
     log_type: Literal[UserActionType.GET_ZONE_MASTER]
 
 
 class GetPleskLoginLinkLogSchema(UserLogBaseSchema):
-    plesk_server: str
-    subscription_id: str
+    plesk_server: PleskServerDomain
+    subscription_id: int
     log_type: Literal[UserActionType.GET_SUBSCRIPTION_LOGIN_LINK]
 
 
@@ -257,3 +274,13 @@ class UserLogPublic(UserPublic):
         | GetZoneMasterLogSchema
         | GetPleskLoginLinkLogSchema
     ) = Field(discriminator="log_type")
+
+
+class UserLogSearchSchema(BaseModel):
+    id: uuid.UUID | None = None
+    ip: IPv4Address | None = None
+    timestamp: datetime | None = None
+    log_type: UserActionType | None = None
+    domain: DomainName | None = None
+    plesk_server: PleskServerDomain | None = None
+    subscription_id: int | None = None
