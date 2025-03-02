@@ -8,11 +8,11 @@ from pydantic import (
     field_validator,
     ConfigDict,
     Field,
-    RootModel,
+    model_validator,
 )
 from pydantic.json_schema import SkipJsonSchema
 from enum import Enum
-from typing import List, Literal
+from typing import List, Literal, Any
 from typing_extensions import Annotated
 from datetime import datetime
 from pydantic.networks import IPvAnyAddress
@@ -152,16 +152,27 @@ example.com
     def __str__(self):
         return self.domain
 
+
 class IPv4Address(BaseModel):
     ip: IPvAnyAddress
 
     def __str__(self) -> str:
         return str(self.ip)
 
+    @model_validator(mode="before")
+    @classmethod
+    def validate_ip_input(cls, data: Any) -> Any:
+        """Convert string inputs to proper dict structure."""
+        if isinstance(data, str):
+            return {"ip": data}
+        return data
+
     @model_serializer(mode="wrap")
     def ser_model(self, _handler):
         return str(self.ip)
-    model_config = {"json_schema_extra": {"examples": ["IP_PLACEHOLDER"]}} 
+
+    model_config = {"json_schema_extra": {"examples": ["IP_PLACEHOLDER"]}}
+
 
 class DomainARecordResponse(BaseModel):
     domain: DomainName
@@ -246,5 +257,3 @@ class UserLogPublic(UserPublic):
         | GetZoneMasterLogSchema
         | GetPleskLoginLinkLogSchema
     ) = Field(discriminator="log_type")
-
-
