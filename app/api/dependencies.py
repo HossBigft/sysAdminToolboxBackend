@@ -7,6 +7,8 @@ from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
+from sqlalchemy import exc
+
 
 from app.core import security
 from app.core.config import settings
@@ -22,7 +24,11 @@ reusable_oauth2 = OAuth2PasswordBearer(
 
 def get_db() -> Generator[Session, None, None]:
     with Session(engine) as session:
-        yield session
+        try:
+            yield session
+        except exc.SQLAlchemyError:
+            session.rollback()
+            raise
 
 
 SessionDep = Annotated[Session, Depends(get_db)]
