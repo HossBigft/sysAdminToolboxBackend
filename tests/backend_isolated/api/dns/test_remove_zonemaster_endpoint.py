@@ -35,15 +35,18 @@ async def test_delete_zone_file_success(
 ):
     domain = SubscriptionName(domain=TEST_DOMAIN)
     current_zone = "zonemaster.com"
+    mock_request = MagicMock()
+    mock_request.client.host = "IP_PLACEHOLDER"
     with (
         patch(
             "app.api.dns.dns_router.dns_get_domain_zone_master", new_callable=AsyncMock
         ) as mock_get_zone,
         patch(
-            "app.api.dns.dns_router.dns_remove_domain_zone_master", new_callable=AsyncMock
+            "app.api.dns.dns_router.dns_remove_domain_zone_master",
+            new_callable=AsyncMock,
         ) as mock_remove,
         patch(
-            "app.api.dns.dns_router.add_dns_remove_zone_master_log_entry",
+            "app.api.dns.dns_router.log_dns_zone_master_removal",
             new_callable=AsyncMock,
         ) as mock_history,
     ):
@@ -53,6 +56,7 @@ async def test_delete_zone_file_success(
             background_tasks=mock_background_tasks,
             current_user=mock_current_user,
             domain=domain,
+            request=mock_request,
         )
 
         assert isinstance(response, Message)
@@ -79,7 +83,8 @@ async def test_delete_zone_file_not_found(
             "app.api.dns.dns_router.dns_get_domain_zone_master", new_callable=AsyncMock
         ) as mock_get_zone,
         patch(
-            "app.api.dns.dns_router.dns_remove_domain_zone_master", new_callable=AsyncMock
+            "app.api.dns.dns_router.dns_remove_domain_zone_master",
+            new_callable=AsyncMock,
         ) as mock_remove,
     ):
         mock_get_zone.return_value = None
