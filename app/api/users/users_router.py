@@ -251,8 +251,8 @@ def delete_user(
 
 
 @router.post("/me/history", response_model=List[UserLogPublic])
-async def get_own_actions(current_user: CurrentUser, session: SessionDep):
-    return await crud.get_user_log_entries_by_id(session, current_user.id)
+async def get_own_actions(current_user: CurrentUser, session: SessionDep, filters:UserLogSearchSchema):
+    return await crud.get_user_log_entries_by_id(session, current_user.id, filters=filters)
 
 
 @router.get("/{user_id}/history")

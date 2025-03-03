@@ -277,7 +277,7 @@ class UserLogPublic(UserPublic):
 
 
 class UserLogSearchSchema(BaseModel):
-    id: uuid.UUID | None = None
+    user_id: uuid.UUID | None = None
     ip: IPv4Address | None = None
     timestamp: datetime | None = None
     log_type: UserActionType | None = None

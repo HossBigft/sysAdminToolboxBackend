@@ -16,7 +16,8 @@ from app.schemas import (
     UserUpdate,
     UserPublic,
     UserLogPublic,
-    IPv4Address
+    IPv4Address,
+    UserLogSearchSchema,
 )
 from app.db.models import (
     User,
@@ -132,12 +133,24 @@ async def log_plesk_login_link_get(
     session.commit()
 
 
-async def get_user_log_entries_by_id(session: Session, id: uuid.UUID) -> List[UserLogPublic]:
-    actions = session.execute(
+async def get_user_log_entries_by_id(
+    session: Session, id: uuid.UUID, filters: UserLogSearchSchema
+) -> List[UserLogPublic]:
+    conditions = []
+
+    # Dynamically build conditions
+    for field, value in filters.model_dump(exclude_none=True).items():
+        if hasattr(UsersActivityLog, field):
+            conditions.append(getattr(UsersActivityLog, field) == value)
+
+    print("Generated Conditions:", [str(cond) for cond in conditions])
+    query = (
         select(with_polymorphic(UsersActivityLog, "*"), User)
-        .where(UsersActivityLog.user_id == id)
         .join(User, User.id == UsersActivityLog.user_id)
-    ).all()
+        .where(*conditions)
+    )
+    print(query.compile().params)
+    actions = session.execute(query).all()
     results = [
         jsonable_encoder({**user.__dict__, "details": {**log_details.__dict__}})
         for log_details, user in actions
