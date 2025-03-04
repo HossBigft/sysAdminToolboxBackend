@@ -37,7 +37,7 @@ router = APIRouter(tags=["dns"], prefix="/dns")
 async def get_a_record(domain: Annotated[DomainName, Query()]) -> DomainARecordResponse:
     try:
         a_records = resolve_record(domain.domain, "A")
-        records = [IPv4Address(ip) for ip in a_records]
+        records = [IPv4Address(ip=ip) for ip in a_records]
         return DomainARecordResponse(domain=domain, records=records)
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -77,7 +77,7 @@ async def get_zone_master_from_dns_servers(
                 detail=f"Zone master for domain [{domain.domain}] not found.",
             )
             
-        request_ip=IPv4Address(request.client.host)
+        request_ip=IPv4Address(ip=request.client.host)
         background_tasks.add_task(
             log_dns_zone_master_fetch,
             session=session,
@@ -144,7 +144,7 @@ async def delete_zone_file_for_domain(
     try:
         curr_zonemaster = await dns_get_domain_zone_master(domain)
         await dns_remove_domain_zone_master(domain)
-        request_ip=IPv4Address(request.client.host)
+        request_ip=IPv4Address(ip=request.client.host)
         background_tasks.add_task(
             log_dns_zone_master_removal,
             session=session,
