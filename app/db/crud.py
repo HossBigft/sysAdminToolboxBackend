@@ -4,6 +4,7 @@ from typing import Any, List
 from sqlalchemy.orm import Session
 from sqlalchemy import update, select
 from sqlalchemy.orm import with_polymorphic
+from sqlalchemy.inspection import inspect
 from fastapi.encoders import jsonable_encoder
 
 
@@ -136,16 +137,23 @@ async def log_plesk_login_link_get(
 async def get_user_log_entries_by_id(
     session: Session, id: uuid.UUID, filters: UserLogSearchSchema
 ) -> List[UserLogPublic]:
+    polymorphic_log = with_polymorphic(UsersActivityLog, "*")
+    available_columns = set()
+    for class_mapper in inspect(UsersActivityLog).self_and_descendants:
+        available_columns.update({column.key for column in class_mapper.column_attrs})
+    print("available_columns", available_columns)
+    
+    
     conditions = []
 
-    # Dynamically build conditions
     for field, value in filters.model_dump(exclude_none=True).items():
-        if hasattr(UsersActivityLog, field):
-            conditions.append(getattr(UsersActivityLog, field) == value)
+        if field in available_columns:  # Ensure field exists in any subclass
+            if hasattr(polymorphic_log, field):  # Ensure it is accessible
+                conditions.append(getattr(polymorphic_log, field) == value)
 
     print("Generated Conditions:", [str(cond) for cond in conditions])
     query = (
-        select(with_polymorphic(UsersActivityLog, "*"), User)
+        select(polymorphic_log, User)
         .join(User, User.id == UsersActivityLog.user_id)
         .where(*conditions)
     )
