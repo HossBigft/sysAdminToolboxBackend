@@ -32,8 +32,9 @@ class User(Base):
 
 class IPv4AddressType(types.TypeDecorator):
     """Custom SQLAlchemy type to store IPv4Address as a string."""
-    
+
     impl = String(15)
+    cache_ok = True
 
     def process_bind_param(self, value, dialect):
         """Convert Python IPv4Address to string before saving to DB."""
@@ -46,6 +47,7 @@ class IPv4AddressType(types.TypeDecorator):
         if value is not None:
             return IPv4Address(ip=value)
         return value
+
 
 class UsersActivityLog(Base):
     __tablename__ = "log_user_activity"
@@ -61,7 +63,7 @@ class UsersActivityLog(Base):
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
-    
+
     log_type: Mapped[UserActionType] = mapped_column(
         Enum(UserActionType), nullable=False
     )
