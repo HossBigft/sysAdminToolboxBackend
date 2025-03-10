@@ -32,6 +32,24 @@ OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN = (
 LINUX_USERNAME_PATTERN = r"^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$"
 
 
+class LinuxUsername(RootModel):
+    root: Annotated[
+        str,
+        StringConstraints(
+            min_length=3,
+            max_length=32,
+            pattern=LINUX_USERNAME_PATTERN,
+        ),
+    ]
+
+    @model_serializer(mode="wrap")
+    def ser_model(self, _handler):
+        return str(self.root)
+
+    def __str__(self) -> str:
+        return str(self.root)
+
+
 class UserRoles(str, Enum):
     SUPERUSER = "superuser"
     ADMIN = "admin"
@@ -262,6 +280,7 @@ class GetPleskLoginLinkLogSchema(UserLogBaseSchema):
     plesk_server: PleskServerDomain
     subscription_id: int
     log_type: Literal[UserActionType.GET_SUBSCRIPTION_LOGIN_LINK]
+    ssh_username: LinuxUsername
 
 
 class UserLogPublic(UserPublic):
@@ -274,24 +293,6 @@ class UserLogPublic(UserPublic):
         | GetZoneMasterLogSchema
         | GetPleskLoginLinkLogSchema
     ) = Field(discriminator="log_type")
-
-
-class LinuxUsername(RootModel):
-    root: Annotated[
-        str,
-        StringConstraints(
-            min_length=3,
-            max_length=32,
-            pattern=LINUX_USERNAME_PATTERN,
-        ),
-    ]
-
-    @model_serializer(mode="wrap")
-    def ser_model(self, _handler):
-        return str(self.root)
-
-    def __str__(self) -> str:
-        return str(self.root)
 
 
 class UserLogSearchSchema(BaseModel):
