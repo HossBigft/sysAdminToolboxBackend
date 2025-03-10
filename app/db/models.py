@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import ForeignKey, String, UUID, Boolean, Enum, DateTime, func
+from sqlalchemy import ForeignKey, String, UUID, Boolean, Enum, DateTime, func, Integer
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 import sqlalchemy.types as types
 from datetime import datetime
@@ -126,7 +126,7 @@ class GetPleskLoginLinkLog(UsersActivityLog):
     )
     plesk_server: Mapped[str] = mapped_column(String, nullable=False)
     ssh_username: Mapped[str] = mapped_column(String, nullable=False)
-    subscription_id: Mapped[str] = mapped_column(String, nullable=False)
+    subscription_id: Mapped[int] = mapped_column(Integer, nullable=False)
 
     __mapper_args__ = {
         "polymorphic_identity": UserActionType.GET_SUBSCRIPTION_LOGIN_LINK
