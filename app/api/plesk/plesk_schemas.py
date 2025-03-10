@@ -15,8 +15,6 @@ OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN = (
     r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}\.?$"
 )
 
-LINUX_USERNAME_PATTERN = r"^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$"
-
 
 class SubscriptionLoginLinkInput(BaseModel):
     host: Annotated[
@@ -84,17 +82,3 @@ example.com
         if v not in PLESK_SERVER_LIST:
             raise ValueError(f"Host '{v}' is not Plesk server.")
         return v
-
-
-class LinuxUsername(BaseModel):
-    name: (
-        Annotated[
-            str,
-            StringConstraints(
-                min_length=3,
-                max_length=32,
-                pattern=LINUX_USERNAME_PATTERN,
-            ),
-        ]
-        | None
-    )

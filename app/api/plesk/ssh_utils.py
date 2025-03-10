@@ -4,9 +4,9 @@ from typing import TypedDict, List
 import secrets
 
 from app.AsyncSSHandler import execute_ssh_command, execute_ssh_commands_in_batch
-from app.api.plesk.plesk_schemas import SubscriptionName, LinuxUsername
+from app.api.plesk.plesk_schemas import SubscriptionName
 from app.host_lists import PLESK_SERVER_LIST
-from app.schemas import PleskServerDomain
+from app.schemas import PleskServerDomain, LinuxUsername
 
 PLESK_LOGLINK_CMD = "plesk login"
 REDIRECTION_HEADER = r"&success_redirect_url=%2Fadmin%2Fsubscription%2Foverview%2Fid%2F"
@@ -152,7 +152,7 @@ async def plesk_fetch_subscription_info(
 
 
 async def _build_plesk_login_command(ssh_username: LinuxUsername) -> str:
-    return f"{PLESK_LOGLINK_CMD} {ssh_username.name}"
+    return f"{PLESK_LOGLINK_CMD} {ssh_username}"
 
 
 async def _is_subscription_id_exist(

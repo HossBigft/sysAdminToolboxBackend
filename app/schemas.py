@@ -277,17 +277,14 @@ class UserLogPublic(UserPublic):
 
 
 class LinuxUsername(RootModel):
-    root: (
-        Annotated[
-            str,
-            StringConstraints(
-                min_length=3,
-                max_length=32,
-                pattern=LINUX_USERNAME_PATTERN,
-            ),
-        ]
-        | None
-    )
+    root: Annotated[
+        str,
+        StringConstraints(
+            min_length=3,
+            max_length=32,
+            pattern=LINUX_USERNAME_PATTERN,
+        ),
+    ]
 
     @model_serializer(mode="wrap")
     def ser_model(self, _handler):

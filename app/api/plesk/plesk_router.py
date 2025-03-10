@@ -9,7 +9,6 @@ from app.api.plesk.plesk_schemas import (
     SubscriptionDetailsModel,
     SubscriptionLoginLinkInput,
     SetZonemasterInput,
-    LinuxUsername,
 )
 from app.schemas import (
     UserRoles,
@@ -18,6 +17,7 @@ from app.schemas import (
     DomainName,
     PleskServerDomain,
     IPv4Address,
+    LinuxUsername,
 )
 from app.api.plesk.ssh_utils import (
     plesk_generate_subscription_login_link,
@@ -86,7 +86,7 @@ async def get_subscription_login_link(
     login_link = await plesk_generate_subscription_login_link(
         PleskServerDomain(domain=data.host),
         data.subscription_id,
-        LinuxUsername(name=current_user.ssh_username),
+        LinuxUsername(current_user.ssh_username),
     )
     request_ip = IPv4Address(ip=request.client.host)
     background_tasks.add_task(
