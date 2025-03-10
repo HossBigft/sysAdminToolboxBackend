@@ -1,8 +1,6 @@
-import uuid
-
-from typing import Any, List
+from typing import Any
 from sqlalchemy.orm import Session
-from sqlalchemy import update, select, or_
+from sqlalchemy import update, select, and_, func
 from sqlalchemy.orm import with_polymorphic
 from sqlalchemy.inspection import inspect
 from fastapi.encoders import jsonable_encoder
@@ -16,9 +14,9 @@ from app.schemas import (
     UserCreate,
     UserUpdate,
     UserPublic,
-    UserLogPublic,
     IPv4Address,
-    UserLogSearchSchema,
+    UserLogFilterSchema,
+    PaginatedUserLogListSchema,
 )
 from app.db.models import (
     User,
@@ -135,9 +133,8 @@ async def log_plesk_login_link_get(
 
 
 async def get_user_log_entries_by_id(
-    session: Session, id: uuid.UUID, filters: UserLogSearchSchema
-) -> List[UserLogPublic]:
-    print("Filters", filters.model_dump(exclude_none=True))
+    session: Session, filters: UserLogFilterSchema, page: int = 1, page_size: int = 10
+) -> PaginatedUserLogListSchema | None:
     polymorphic_log = with_polymorphic(UsersActivityLog, "*")
     conditions = []
 
@@ -147,14 +144,25 @@ async def get_user_log_entries_by_id(
             if filter in {column.key for column in mapper.column_attrs}:
                 subclass_entity = getattr(polymorphic_log, subclass.__name__)
                 conditions.append(getattr(subclass_entity, filter) == value)
-
     query = select(polymorphic_log, User).join(User, polymorphic_log.user_id == User.id)
-    query = query.where(or_(*conditions))
+    query = query.where(and_(*conditions))
 
+    count_query = select(func.count()).select_from(query.subquery())
+    total_count = session.execute(count_query).scalar()
+    if not total_count:
+        return None
+
+    query = query.limit(page_size).offset((page - 1) * page_size)
     actions = session.execute(query).all()
     results = [
         jsonable_encoder({**user.__dict__, "details": {**log_details.__dict__}})
         for log_details, user in actions
     ]
-    results = [UserLogPublic.model_validate(result) for result in results]
-    return results
+
+    return PaginatedUserLogListSchema(
+        total_count=total_count,
+        page=page,
+        page_size=page_size,
+        total_pages=(total_count + page_size - 1) // page_size,
+        data=results,
+    )

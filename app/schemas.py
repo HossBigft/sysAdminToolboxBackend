@@ -295,8 +295,7 @@ class UserLogPublic(UserPublic):
     ) = Field(discriminator="log_type")
 
 
-class UserLogSearchSchema(BaseModel):
-    user_id: uuid.UUID | None = None
+class UserActivityLogFilterSchema(BaseModel):
     ip: IPv4Address | None = None
     timestamp: datetime | None = None
     log_type: UserActionType | None = None
@@ -304,3 +303,21 @@ class UserLogSearchSchema(BaseModel):
     plesk_server: PleskServerDomain | None = None
     subscription_id: int | None = None
     ssh_username: LinuxUsername | None = None
+
+
+class UserLogFilterSchema(UserActivityLogFilterSchema):
+    user_id: uuid.UUID | None = None
+
+
+class PaginatedUserLogListSchema(BaseModel):
+    total_count: int
+    page: int
+    page_size: int = Field(default=10, ge=1, le=100)
+    total_pages: int
+    data: List[UserLogPublic]
+
+
+class UserLogSearchRequestSchema(BaseModel):
+    page: int = Field(default=1)
+    page_size: int = Field(default=10, ge=1, le=100)
+    filters: UserActivityLogFilterSchema
