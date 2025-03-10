@@ -9,11 +9,11 @@ from pydantic import (
     ConfigDict,
     Field,
     model_validator,
-    create_model,
+    RootModel,
 )
 from pydantic.json_schema import SkipJsonSchema
 from enum import Enum
-from typing import List, Literal, Any, Optional
+from typing import List, Literal, Any
 from typing_extensions import Annotated
 from datetime import datetime
 from pydantic.networks import IPvAnyAddress
@@ -276,6 +276,27 @@ class UserLogPublic(UserPublic):
     ) = Field(discriminator="log_type")
 
 
+class LinuxUsername(RootModel):
+    root: (
+        Annotated[
+            str,
+            StringConstraints(
+                min_length=3,
+                max_length=32,
+                pattern=LINUX_USERNAME_PATTERN,
+            ),
+        ]
+        | None
+    )
+
+    @model_serializer(mode="wrap")
+    def ser_model(self, _handler):
+        return str(self.root)
+
+    def __str__(self) -> str:
+        return str(self.root)
+
+
 class UserLogSearchSchema(BaseModel):
     user_id: uuid.UUID | None = None
     ip: IPv4Address | None = None
@@ -284,3 +305,4 @@ class UserLogSearchSchema(BaseModel):
     domain: DomainName | None = None
     plesk_server: PleskServerDomain | None = None
     subscription_id: int | None = None
+    ssh_username: LinuxUsername | None = None

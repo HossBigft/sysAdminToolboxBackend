@@ -2,7 +2,7 @@ import uuid
 
 from typing import Any, List
 from sqlalchemy.orm import Session
-from sqlalchemy import update, select
+from sqlalchemy import update, select, or_
 from sqlalchemy.orm import with_polymorphic
 from sqlalchemy.inspection import inspect
 from fastapi.encoders import jsonable_encoder
@@ -137,27 +137,20 @@ async def log_plesk_login_link_get(
 async def get_user_log_entries_by_id(
     session: Session, id: uuid.UUID, filters: UserLogSearchSchema
 ) -> List[UserLogPublic]:
+    print("Filters", filters.model_dump(exclude_none=True))
     polymorphic_log = with_polymorphic(UsersActivityLog, "*")
-    available_columns = set()
-    for class_mapper in inspect(UsersActivityLog).self_and_descendants:
-        available_columns.update({column.key for column in class_mapper.column_attrs})
-    print("available_columns", available_columns)
-    
-    
     conditions = []
 
-    for field, value in filters.model_dump(exclude_none=True).items():
-        if field in available_columns:  # Ensure field exists in any subclass
-            if hasattr(polymorphic_log, field):  # Ensure it is accessible
-                conditions.append(getattr(polymorphic_log, field) == value)
+    for filter, value in filters.model_dump(exclude_none=True).items():
+        for subclass in UsersActivityLog.__subclasses__():
+            mapper = inspect(subclass)
+            if filter in {column.key for column in mapper.column_attrs}:
+                subclass_entity = getattr(polymorphic_log, subclass.__name__)
+                conditions.append(getattr(subclass_entity, filter) == value)
 
-    print("Generated Conditions:", [str(cond) for cond in conditions])
-    query = (
-        select(polymorphic_log, User)
-        .join(User, User.id == UsersActivityLog.user_id)
-        .where(*conditions)
-    )
-    print(query.compile().params)
+    query = select(polymorphic_log, User).join(User, polymorphic_log.user_id == User.id)
+    query = query.where(or_(*conditions))
+
     actions = session.execute(query).all()
     results = [
         jsonable_encoder({**user.__dict__, "details": {**log_details.__dict__}})
