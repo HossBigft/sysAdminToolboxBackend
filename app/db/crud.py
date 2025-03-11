@@ -98,7 +98,7 @@ async def log_dns_zone_master_fetch(
 async def log_dns_zone_master_set(
     session: Session,
     user: UserPublic,
-    current_zone_master: PleskServerDomain,
+    current_zone_master: PleskServerDomain | None,
     target_zone_master: PleskServerDomain,
     domain: DomainName,
     ip: IPv4Address,
