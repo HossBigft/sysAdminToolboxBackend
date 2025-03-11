@@ -166,7 +166,7 @@ async def _is_subscription_id_exist(
 
 async def plesk_fetch_plesk_login_link(
     host: PleskServerDomain, ssh_username: LinuxUsername
-) -> str:
+) -> str | None:
     cmd_to_run = await _build_plesk_login_command(ssh_username)
     result = await execute_ssh_command(host.domain, cmd_to_run)
     login_link = result["stdout"]
