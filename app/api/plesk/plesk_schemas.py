@@ -7,7 +7,13 @@ from pydantic import (
 
 from typing import List
 from typing_extensions import Annotated
-from app.schemas import SubscriptionName, SUBSCRIPTION_NAME_PATTERN, DomainName
+from app.schemas import (
+    SubscriptionName,
+    SUBSCRIPTION_NAME_PATTERN,
+    DomainName,
+    PleskServerDomain,
+)
+from fastapi import Depends, Query
 
 from app.host_lists import PLESK_SERVER_LIST
 
@@ -82,3 +88,8 @@ example.com
         if v not in PLESK_SERVER_LIST:
             raise ValueError(f"Host '{v}' is not Plesk server.")
         return v
+
+
+class CreateTestMailSchema(BaseModel):
+    domain: DomainName = Query()
+    server: PleskServerDomain = Query()

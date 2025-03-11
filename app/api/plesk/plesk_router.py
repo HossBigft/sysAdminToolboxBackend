@@ -9,6 +9,7 @@ from app.api.plesk.plesk_schemas import (
     SubscriptionDetailsModel,
     SubscriptionLoginLinkInput,
     SetZonemasterInput,
+    CreateTestMailSchema,
 )
 from app.schemas import (
     UserRoles,
@@ -26,6 +27,7 @@ from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
 from app.api.plesk.ssh_utils import (
     is_domain_exist_on_server,
     restart_dns_service_for_domain,
+    plesk_get_testmail_login_data,
 )
 from app.api.dns.ssh_utils import (
     dns_remove_domain_zone_master,
@@ -140,4 +142,40 @@ async def set_zonemaster(
         domain=DomainName(domain=data.domain),
         ip=request_ip,
     )
+    return Message(message="Zone master set successfully")
+
+
+@router.get(
+    "/subscription/testmail",
+    dependencies=[Depends(RoleChecker([UserRoles.SUPERUSER, UserRoles.ADMIN]))],
+)
+async def create_testmail_for_domain(
+    query: Annotated[CreateTestMailSchema, Depends()],
+    current_user: CurrentUser,
+    background_tasks: BackgroundTasks,
+    session: SessionDep,
+    request: Request,
+) -> Message:
+    mail_host = CreateTestMailSchema.server
+    mail_domain = SubscriptionName(domain=CreateTestMailSchema.domain.domain)
+    
+    if await is_domain_exist_on_server(
+        host=mail_host,
+        domain=mail_domain,
+    ):
+        login_data = await plesk_get_testmail_login_data(mail_host, mail_domain=mail_domain)
+        return login_data
+    else:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Subscription with domain [{data.domain}] not found.",
+        )
+    # request_ip = IPv4Address(ip=request.client.host)
+    # background_tasks.add_task(
+    #     log_dns_zone_master_set,
+    #     session=session,
+    #     user=current_user,
+    #     domain=DomainName(domain=data.domain),
+    #     ip=request_ip,
+    # )
     return Message(message="Zone master set successfully")
