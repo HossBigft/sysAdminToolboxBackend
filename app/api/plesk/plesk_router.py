@@ -172,7 +172,7 @@ async def create_testmail_for_domain(
     else:
         raise HTTPException(
             status_code=404,
-            detail=f"Subscription with domain [{data.domain}] not found.",
+            detail=f"Subscription with domain [{mail_domain.name}] not found.",
         )
     # request_ip = IPv4Address(ip=request.client.host)
     # background_tasks.add_task(
