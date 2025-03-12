@@ -178,6 +178,8 @@ example.com
 
     @field_validator("name")
     def validate_domain(cls, v):
+        if not v.endswith("."):
+            v += "."
         if v not in PLESK_SERVER_LIST:
             raise ValueError(f"Domain '{v}' is not in the list of Plesk servers.")
         return v
