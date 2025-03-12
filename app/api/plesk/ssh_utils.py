@@ -50,7 +50,7 @@ async def build_plesk_db_command(query: str) -> str:
 
 
 async def build_restart_dns_service_command(domain: SubscriptionName) -> str:
-    escaped_domain = shlex.quote(f'"{domain.domain.lower()}"')
+    escaped_domain = shlex.quote(f'"{domain.name.lower()}"')
     return (
         f"plesk bin dns --off {escaped_domain} && plesk bin dns --on {escaped_domain}"
     )
@@ -59,12 +59,12 @@ async def build_restart_dns_service_command(domain: SubscriptionName) -> str:
 async def fetch_subscription_id_by_domain(
     host: PleskServerDomain, domain: SubscriptionName
 ) -> int | None:
-    query_subscription_id_by_domain = f"SELECT CASE WHEN webspace_id = 0 THEN id ELSE webspace_id END AS result FROM domains WHERE name LIKE '{domain.domain}'"
+    query_subscription_id_by_domain = f"SELECT CASE WHEN webspace_id = 0 THEN id ELSE webspace_id END AS result FROM domains WHERE name LIKE '{domain.name}'"
 
     fetch_subscription_id_by_domain_cmd = await build_plesk_db_command(
         query_subscription_id_by_domain
     )
-    result = await execute_ssh_command(host.domain, fetch_subscription_id_by_domain_cmd)
+    result = await execute_ssh_command(host.name, fetch_subscription_id_by_domain_cmd)
 
     if result["stdout"]:
         subscription_id = int(result["stdout"])
@@ -84,7 +84,7 @@ async def restart_dns_service_for_domain(
 ) -> None:
     restart_dns_cmd = await build_restart_dns_service_command(domain)
     result = await execute_ssh_command(
-        host=host.domain, command=restart_dns_cmd, verbose=True
+        host=host.name, command=restart_dns_cmd, verbose=True
     )
     match result["returncode"]:
         case 4:
@@ -133,7 +133,7 @@ async def batch_ssh_execute(cmd: str):
 async def plesk_fetch_subscription_info(
     domain: SubscriptionName, partial_search=False
 ) -> List[SubscriptionDetails] | None:
-    lowercate_domain_name = domain.domain.lower()
+    lowercate_domain_name = domain.name.lower()
     query = build_subscription_info_query(
         lowercate_domain_name if not partial_search else lowercate_domain_name + "%"
     )
@@ -159,7 +159,7 @@ async def _is_subscription_id_exist(
     host: PleskServerDomain, subscriptionId: int
 ) -> bool:
     get_subscription_name_cmd = f'plesk db -Ne "SELECT name FROM domains WHERE webspace_id=0 AND id={subscriptionId}"'
-    result = await execute_ssh_command(host.domain, get_subscription_name_cmd)
+    result = await execute_ssh_command(host.name, get_subscription_name_cmd)
     subscription_name = result["stdout"]
     return not subscription_name == ""
 
@@ -168,7 +168,7 @@ async def plesk_fetch_plesk_login_link(
     host: PleskServerDomain, ssh_username: LinuxUsername
 ) -> str | None:
     cmd_to_run = await _build_plesk_login_command(ssh_username)
-    result = await execute_ssh_command(host.domain, cmd_to_run)
+    result = await execute_ssh_command(host.name, cmd_to_run)
     login_link = result["stdout"]
     return login_link
 
@@ -189,7 +189,7 @@ async def plesk_generate_subscription_login_link(
 
 
 async def _build_fetch_testmail_password_command(domain: SubscriptionName) -> str:
-    return f"/usr/local/psa/admin/bin/mail_auth_view | grep -F '{TEST_MAIL_LOGIN}@{domain.domain}' | tr -d '[:space:]' | awk -F'|' '{{print \\$4}}'"
+    return f"/usr/local/psa/admin/bin/mail_auth_view | grep -F '{TEST_MAIL_LOGIN}@{domain.name}' | tr -d '[:space:]' | awk -F'|' '{{print \\$4}}'"
 
 
 async def _build_create_testmail_command(
@@ -207,7 +207,7 @@ async def _get_testmail_password(
     host: PleskServerDomain, mail_domain: SubscriptionName
 ) -> str | None:
     command = await _build_fetch_testmail_password_command(mail_domain)
-    result = await execute_ssh_command(host=host.domain, command=command)
+    result = await execute_ssh_command(host=host.name, command=command)
     password = result["stdout"]
     return password if password else None
 
@@ -216,7 +216,7 @@ async def _create_testmail(
     host: PleskServerDomain, mail_domain: SubscriptionName, password: str
 ) -> None:
     command = await _build_create_testmail_command(mail_domain, password)
-    result = await execute_ssh_command(host=host.domain, command=command)
+    result = await execute_ssh_command(host=host.name, command=command)
     if result["returncode"] != 0:
         raise RuntimeError(
             f"Test mail creation failed on Plesk server: {result['host']} "
@@ -227,7 +227,7 @@ async def _create_testmail(
 async def plesk_get_testmail_login_data(
     host: PleskServerDomain, mail_domain: SubscriptionName
 ) -> list[str]:
-    login_link = f"https://webmail.{mail_domain.domain}/roundcube/index.php?_user={TEST_MAIL_LOGIN}%40{mail_domain.domain}"
+    login_link = f"https://webmail.{mail_domain.name}/roundcube/index.php?_user={TEST_MAIL_LOGIN}%40{mail_domain.name}"
 
     password = await _get_testmail_password(host=host, mail_domain=mail_domain)
     if not password:

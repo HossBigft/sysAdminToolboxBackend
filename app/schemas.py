@@ -142,7 +142,7 @@ ValidatedDomainName = Annotated[
 
 
 class DomainName(BaseModel):
-    domain: ValidatedDomainName
+    name: ValidatedDomainName
 
     model_config = {"json_schema_extra": {"examples": ["example.com."]}}
 
@@ -156,10 +156,10 @@ class DomainName(BaseModel):
 
     @model_serializer(mode="wrap")
     def ser_model(self, _handler):
-        return self.domain
+        return self.name
 
     def __str__(self):
-        return self.domain
+        return self.name
 
 
 ValidatedPleskServerDomain = Annotated[
@@ -173,10 +173,10 @@ ValidatedPleskServerDomain = Annotated[
 
 
 class PleskServerDomain(BaseModel):
-    domain: ValidatedPleskServerDomain
+    name: ValidatedPleskServerDomain
 example.com
 
-    @field_validator("domain")
+    @field_validator("name")
     def validate_domain(cls, v):
         if v not in PLESK_SERVER_LIST:
             raise ValueError(f"Domain '{v}' is not in the list of Plesk servers.")
@@ -187,11 +187,11 @@ example.com
     def validate_ip_input(cls, data: Any) -> Any:
         """Convert string inputs to proper dict structure."""
         if isinstance(data, str):
-            return {"domain": data}
+            return {"name": data}
         return data
 
     def __str__(self):
-        return self.domain
+        return self.name
 
 
 class IPv4Address(BaseModel):
@@ -236,7 +236,7 @@ class DomainNsRecordResponse(BaseModel):
 
 
 class SubscriptionName(BaseModel):
-    domain: Annotated[
+    name: Annotated[
         str,
         StringConstraints(
             min_length=3,
@@ -249,7 +249,7 @@ class SubscriptionName(BaseModel):
 
     @model_serializer(mode="wrap")
     def ser_model(self, _handler):
-        return self.domain
+        return self.name
 
 
 class UserActionType(str, Enum):

@@ -25,7 +25,7 @@ def init_test_db():
 
 @pytest.mark.asyncio
 async def test_get_existing_subscription_info(init_test_db):
-    result = await plesk_fetch_subscription_info(SubscriptionName(domain=HostList.CORRECT_EXISTING_DOMAIN))
+    result = await plesk_fetch_subscription_info(SubscriptionName(name=HostList.CORRECT_EXISTING_DOMAIN))
 
     expected_output = [
         {
@@ -54,5 +54,5 @@ google.com
 
 @pytest.mark.asyncio
 async def test_get_nonexisting_subscription_info(init_test_db):
-    result = await plesk_fetch_subscription_info(SubscriptionName(domain="zless.kz"))
+    result = await plesk_fetch_subscription_info(SubscriptionName(name="zless.kz"))
     assert result is None

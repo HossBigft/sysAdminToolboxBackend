@@ -36,7 +36,7 @@ router = APIRouter(tags=["dns"], prefix="/dns")
 )
 async def get_a_record(domain: Annotated[DomainName, Query()]) -> DomainARecordResponse:
     try:
-        a_records = resolve_record(domain.domain, "A")
+        a_records = resolve_record(domain.name, "A")
         records = [IPv4Address(ip=ip) for ip in a_records]
         return DomainARecordResponse(domain=domain, records=records)
     except RecordNotFoundError as e:
@@ -52,7 +52,7 @@ async def get_a_record(domain: Annotated[DomainName, Query()]) -> DomainARecordR
 async def get_ptr_record(ip: Annotated[IPv4Address, Query()]):
     try:
         ptr_records = resolve_record(str(ip), "PTR")
-        records = [DomainName(domain=domain) for domain in ptr_records]
+        records = [DomainName(name=domain) for domain in ptr_records]
         return PtrRecordResponse(ip=ip, records=records)
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -74,7 +74,7 @@ async def get_zone_master_from_dns_servers(
         if not zone_masters_dict:
             raise HTTPException(
                 status_code=404,
-                detail=f"Zone master for domain [{domain.domain}] not found.",
+                detail=f"Zone master for domain [{domain.name}] not found.",
             )
             
         request_ip=IPv4Address(ip=request.client.host)
@@ -99,12 +99,12 @@ async def get_zone_master_from_dns_servers(
 async def get_mx_record(
     domain: Annotated[DomainName, Query()],
 ) -> DomainMxRecordResponse:
-    domain_str = domain.domain
+    domain_str = domain.name
     try:
         mx_records = resolve_record(domain_str, "MX")
-        records = [DomainName(domain=domain) for domain in mx_records]
+        records = [DomainName(name=domain) for domain in mx_records]
         return DomainMxRecordResponse(
-            domain=DomainName(domain=domain_str), records=records
+            domain=DomainName(name=domain_str), records=records
         )
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -119,12 +119,12 @@ async def get_mx_record(
 async def get_ns_records(
     domain: Annotated[DomainName, Query()],
 ) -> DomainNsRecordResponse:
-    domain_str = domain.domain
+    domain_str = domain.name
     try:
         ns_records = resolve_record(domain_str, "NS")
-        records = [DomainName(domain=domain) for domain in ns_records]
+        records = [DomainName(name=domain) for domain in ns_records]
         return DomainNsRecordResponse(
-            domain=DomainName(domain=domain_str), records=records
+            domain=DomainName(name=domain_str), records=records
         )
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))

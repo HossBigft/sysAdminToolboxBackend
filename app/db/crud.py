@@ -79,7 +79,7 @@ async def log_dns_zone_master_removal(
 ) -> None:
     user_action = DeleteZonemasterLog(
         user_id=user.id,
-        current_zone_master=current_zone_master.domain,
+        current_zone_master=current_zone_master.name,
         domain=domain,
         ip=ip,
     )
@@ -90,7 +90,7 @@ async def log_dns_zone_master_removal(
 async def log_dns_zone_master_fetch(
     session: Session, user: UserPublic, domain: SubscriptionName, ip: IPv4Address
 ) -> None:
-    user_action = GetZoneMasterLog(user_id=user.id, domain=domain.domain, ip=ip)
+    user_action = GetZoneMasterLog(user_id=user.id, domain=domain.name, ip=ip)
     session.add(user_action)
     session.commit()
 
@@ -105,9 +105,9 @@ async def log_dns_zone_master_set(
 ) -> None:
     user_action = SetZoneMasterLog(
         user_id=user.id,
-        current_zone_master=current_zone_master.domain,
-        target_zone_master=target_zone_master.domain,
-        domain=domain.domain,
+        current_zone_master=current_zone_master.name,
+        target_zone_master=target_zone_master.name,
+        domain=domain.name,
         ip=ip,
     )
     session.add(user_action)
@@ -123,7 +123,7 @@ async def log_plesk_login_link_get(
 ) -> None:
     user_action = GetPleskLoginLinkLog(
         user_id=user.id,
-        plesk_server=plesk_server.domain,
+        plesk_server=plesk_server.name,
         subscription_id=subscription_id,
         ssh_username=user.ssh_username,
         ip=ip,

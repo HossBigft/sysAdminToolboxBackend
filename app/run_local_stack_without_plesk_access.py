@@ -61,7 +61,7 @@ def mock_get_plesk_subscription_login_link_by_id(arg1, arg2, arg3):
 
 
 def mock_dns_get_domain_zone_master(domain: str):
-    return PleskServerDomain(domain=TEST_SSH_HOST)
+    return PleskServerDomain(name=TEST_SSH_HOST)
 
 
 get_zone_master_patches = [

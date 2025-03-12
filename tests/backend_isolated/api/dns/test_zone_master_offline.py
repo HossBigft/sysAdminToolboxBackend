@@ -39,7 +39,7 @@ async def test_dns_get_domain_zone_master_with_correct_domain_existing_zone_mast
     ) as mock_batch_ssh:
         mock_batch_ssh.return_value = mock_response
 
-        result = await dns_query_domain_zone_master(SubscriptionName(domain=domain))
+        result = await dns_query_domain_zone_master(SubscriptionName(name=domain))
 
         expected_result = {
             "domain": domain,
@@ -67,7 +67,7 @@ async def test_dns_get_domain_zone_master_with_correct_domain_nonexisting_zone_m
         "app.api.dns.ssh_utils.batch_ssh_execute", new_callable=AsyncMock
     ) as mock_batch_ssh:
         mock_batch_ssh.return_value = mock_response
-        result = await dns_query_domain_zone_master(SubscriptionName(domain=domain))
+        result = await dns_query_domain_zone_master(SubscriptionName(name=domain))
 
         assert result is None
         mock_batch_ssh.assert_called_once()

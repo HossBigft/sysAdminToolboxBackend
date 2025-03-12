@@ -53,16 +53,16 @@ async def find_plesk_subscription_by_domain(
     if not subscriptions:
         raise HTTPException(
             status_code=404,
-            detail=f"Subscription with domain [{domain.domain}] not found.",
+            detail=f"Subscription with domain [{domain.name}] not found.",
         )
     subscription_models = [
         SubscriptionDetailsModel(
-            host=DomainName(domain=sub["host"]),
+            host=DomainName(name=sub["host"]),
             id=sub["id"],
             name=sub["name"],
             username=sub["username"],
             userlogin=sub["userlogin"],
-            domains=[SubscriptionName(domain=d) for d in sub["domains"]],
+            domains=[SubscriptionName(name=d) for d in sub["domains"]],
         )
         for sub in subscriptions
     ]
@@ -87,7 +87,7 @@ async def get_subscription_login_link(
             detail="User have no Plesk SSH username",
         )
     login_link = await plesk_generate_subscription_login_link(
-        PleskServerDomain(domain=data.host),
+        PleskServerDomain(name=data.host),
         data.subscription_id,
         LinuxUsername(current_user.ssh_username),
     )
@@ -96,7 +96,7 @@ async def get_subscription_login_link(
         log_plesk_login_link_get,
         session=session,
         user=current_user,
-        plesk_server=PleskServerDomain(domain=data.host),
+        plesk_server=PleskServerDomain(name=data.host),
         subscription_id=data.subscription_id,
         ip=request_ip,
     )
@@ -116,17 +116,17 @@ async def set_zonemaster(
 ) -> Message:
     curr_zone_master: set[PleskServerDomain] | None
     if await is_domain_exist_on_server(
-        host=PleskServerDomain(domain=data.target_plesk_server),
-        domain=SubscriptionName(domain=data.domain),
+        host=PleskServerDomain(name=data.target_plesk_server),
+        domain=SubscriptionName(name=data.domain),
     ):
         curr_zone_master = await dns_get_domain_zone_master(
-            SubscriptionName(domain=data.domain)
+            SubscriptionName(name=data.domain)
         )
 
-        await dns_remove_domain_zone_master(SubscriptionName(domain=data.domain))
+        await dns_remove_domain_zone_master(SubscriptionName(name=data.domain))
         await restart_dns_service_for_domain(
-            host=PleskServerDomain(domain=data.target_plesk_server),
-            domain=SubscriptionName(domain=data.domain),
+            host=PleskServerDomain(name=data.target_plesk_server),
+            domain=SubscriptionName(name=data.domain),
         )
     else:
         raise HTTPException(
@@ -139,8 +139,8 @@ async def set_zonemaster(
         session=session,
         user=current_user,
         current_zone_master=curr_zone_master,
-        target_zone_master=PleskServerDomain(domain=data.target_plesk_server),
-        domain=DomainName(domain=data.domain),
+        target_zone_master=PleskServerDomain(name=data.target_plesk_server),
+        domain=DomainName(name=data.domain),
         ip=request_ip,
     )
     return Message(message="Zone master set successfully")
@@ -158,8 +158,8 @@ async def create_testmail_for_domain(
     session: SessionDep,
     request: Request,
 ) -> list[str]:
-    mail_host = PleskServerDomain(domain=server)
-    mail_domain = SubscriptionName(domain=maildomain)
+    mail_host = PleskServerDomain(name=server)
+    mail_domain = SubscriptionName(name=maildomain)
 
     if await is_domain_exist_on_server(
         host=mail_host,

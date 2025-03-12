@@ -33,7 +33,7 @@ def mock_current_user():
 async def test_delete_zone_file_success(
     mock_session, mock_background_tasks, mock_current_user
 ):
-    domain = SubscriptionName(domain=TEST_DOMAIN)
+    domain = SubscriptionName(name=TEST_DOMAIN)
     current_zone = "zonemaster.com"
     mock_request = MagicMock()
     mock_request.client.host = "IP_PLACEHOLDER"
@@ -68,7 +68,7 @@ async def test_delete_zone_file_success(
             mock_history,
             session=mock_session,
             db_user=mock_current_user,
-            current_zone_master=DomainName(domain="zonemaster.com"),
+            current_zone_master=DomainName(name="zonemaster.com"),
         )
 
 
@@ -76,7 +76,7 @@ async def test_delete_zone_file_success(
 async def test_delete_zone_file_not_found(
     mock_session, mock_background_tasks, mock_current_user
 ):
-    domain = SubscriptionName(domain="nonexistent.com")
+    domain = SubscriptionName(name="nonexistent.com")
 
     with (
         patch(
@@ -104,7 +104,7 @@ async def test_delete_zone_file_not_found(
 
 @pytest.mark.asyncio
 async def test_build_remove_zone_master_command():
-    domain = SubscriptionName(domain="test.com")
+    domain = SubscriptionName(name="test.com")
     command = await build_remove_zone_master_command(domain)
     expected = "/opt/isc/isc-bind/root/usr/sbin/rndc delzone -clean test.com"
     assert command == expected
@@ -112,7 +112,7 @@ async def test_build_remove_zone_master_command():
 
 @pytest.mark.asyncio
 async def test_dns_remove_domain_zone_master_success():
-    domain = SubscriptionName(domain="test.com")
+    domain = SubscriptionName(name="test.com")
     mock_response = [{"host": "dns1", "stderr": ""}]
 
     with patch(
@@ -125,7 +125,7 @@ async def test_dns_remove_domain_zone_master_success():
 
 @pytest.mark.asyncio
 async def test_dns_remove_domain_zone_master_error():
-    domain = SubscriptionName(domain="test.com")
+    domain = SubscriptionName(name="test.com")
     mock_response = [{"host": "dns1", "stderr": "error occurred"}]
 
     with patch(

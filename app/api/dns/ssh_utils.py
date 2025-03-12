@@ -12,7 +12,7 @@ DOMAIN_REGEX_PATTERN = (
 
 
 async def build_get_zone_master_command(domain: SubscriptionName | DomainName) -> str:
-    escaped_domain = shlex.quote(domain.domain.lower())
+    escaped_domain = shlex.quote(domain.name.lower())
     return (
         f"cat {ZONEFILE_PATH} | "
         f"grep -F {escaped_domain} | "
@@ -39,13 +39,13 @@ async def dns_query_domain_zone_master(domain: SubscriptionName | DomainName):
     ]
     if not dnsAnswers:
         return None
-    return {"domain": f"{domain.domain}", "answers": dnsAnswers}
+    return {"domain": f"{domain.name}", "answers": dnsAnswers}
 
 
 async def build_remove_zone_master_command(
     domain: SubscriptionName | DomainName,
 ) -> str:
-    escaped_domain = shlex.quote(domain.domain.lower())
+    escaped_domain = shlex.quote(domain.name.lower())
     return f"/opt/isc/isc-bind/root/usr/sbin/rndc delzone -clean {escaped_domain}"
 
 
