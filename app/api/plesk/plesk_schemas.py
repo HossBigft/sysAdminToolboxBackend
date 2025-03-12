@@ -11,13 +11,14 @@ from app.schemas import (
     SubscriptionName,
     SUBSCRIPTION_NAME_PATTERN,
     DomainName,
+    OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN,
 )
 
 from app.host_lists import PLESK_SERVER_LIST
 
-OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN = (
-    r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}\.?$"
-)
+WEBMAIL_LOGIN_LINK_PATTERN = r"^https:\/\/webmail\.(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}\/roundcube\/index\.php\?_user=[a-zA-Z0-9._%+-]+%40(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}$"
+
+EMAIL_PASSWORD_PATTERN = r"^[a-zA-Z0-9_-]+$"
 
 
 class SubscriptionLoginLinkInput(BaseModel):
@@ -86,3 +87,16 @@ example.com
         if v not in PLESK_SERVER_LIST:
             raise ValueError(f"Host '{v}' is not Plesk server.")
         return v
+
+
+class TestMailLoginData(BaseModel):
+    login_link: Annotated[
+        str,
+        StringConstraints(
+            pattern=WEBMAIL_LOGIN_LINK_PATTERN,
+        ),
+    ]
+    password: Annotated[
+        str,
+        StringConstraints(min_length=5, max_length=255, pattern=EMAIL_PASSWORD_PATTERN),
+    ]

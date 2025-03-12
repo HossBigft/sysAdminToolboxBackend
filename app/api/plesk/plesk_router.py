@@ -8,7 +8,8 @@ from app.api.plesk.plesk_schemas import (
     SubscriptionListResponseModel,
     SubscriptionDetailsModel,
     SubscriptionLoginLinkInput,
-    SetZonemasterInput
+    SetZonemasterInput,
+    TestMailLoginData,
 )
 from app.schemas import (
     UserRoles,
@@ -149,6 +150,7 @@ async def set_zonemaster(
 @router.get(
     "/subscription/testmail",
     dependencies=[Depends(RoleChecker([UserRoles.SUPERUSER, UserRoles.ADMIN]))],
+    response_model=TestMailLoginData,
 )
 async def create_testmail_for_domain(
     maildomain: Annotated[ValidatedDomainName, Query()],
@@ -157,7 +159,7 @@ async def create_testmail_for_domain(
     background_tasks: BackgroundTasks,
     session: SessionDep,
     request: Request,
-) -> list[str]:
+) -> TestMailLoginData:
     mail_host = PleskServerDomain(name=server)
     mail_domain = SubscriptionName(name=maildomain)
 
@@ -165,10 +167,7 @@ async def create_testmail_for_domain(
         host=mail_host,
         domain=mail_domain,
     ):
-        login_data = await plesk_get_testmail_login_data(
-            mail_host, mail_domain=mail_domain
-        )
-        return login_data
+        return await plesk_get_testmail_login_data(mail_host, mail_domain=mail_domain)
     else:
         raise HTTPException(
             status_code=404,

@@ -1,12 +1,15 @@
 import shlex
+import secrets
+import string
+
 from fastapi import HTTPException
 from typing import TypedDict, List
-import secrets
+
 
 from app.AsyncSSHandler import execute_ssh_command, execute_ssh_commands_in_batch
-from app.api.plesk.plesk_schemas import SubscriptionName
 from app.host_lists import PLESK_SERVER_LIST
 from app.schemas import PleskServerDomain, LinuxUsername
+from app.api.plesk.plesk_schemas import SubscriptionName, TestMailLoginData
 
 PLESK_LOGLINK_CMD = "plesk login"
 REDIRECTION_HEADER = r"&success_redirect_url=%2Fadmin%2Fsubscription%2Foverview%2Fid%2F"
@@ -199,7 +202,10 @@ example.com
 
 
 async def _generate_password(password_length: int) -> str:
-    password = secrets.token_urlsafe(password_length)
+    characters = (
+        string.ascii_letters + string.digits + string.punctuation
+    )  # Includes specials
+    password = "".join(secrets.choice(characters) for _ in range(password_length))
     return password
 
 
@@ -226,12 +232,11 @@ async def _create_testmail(
 
 async def plesk_get_testmail_login_data(
     host: PleskServerDomain, mail_domain: SubscriptionName
-) -> list[str]:
-    login_link = f"https://webmail.{mail_domain.name}/roundcube/index.php?_user={TEST_MAIL_LOGIN}%40{mail_domain.name}"
+) -> TestMailLoginData:
+    generated_login_link = f"https://webmail.{mail_domain.name}/roundcube/index.php?_user={TEST_MAIL_LOGIN}%40{mail_domain.name}"
 
     password = await _get_testmail_password(host=host, mail_domain=mail_domain)
     if not password:
         password = await _generate_password(TEST_MAIL_PASSWORD_LENGTH)
         await _create_testmail(host=host, mail_domain=mail_domain, password=password)
-
-    return [login_link, password]
+    return TestMailLoginData(login_link=generated_login_link, password=password)
