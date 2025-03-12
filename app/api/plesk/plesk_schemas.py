@@ -1,8 +1,12 @@
+import re
+import string
+
 from pydantic import (
     BaseModel,
     RootModel,
     StringConstraints,
     field_validator,
+    ConfigDict,
 )
 
 from typing import List
@@ -18,7 +22,12 @@ from app.host_lists import PLESK_SERVER_LIST
 
 WEBMAIL_LOGIN_LINK_PATTERN = r"^https:\/\/webmail\.(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}\/roundcube\/index\.php\?_user=[a-zA-Z0-9._%+-]+%40(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}$"
 
-EMAIL_PASSWORD_PATTERN = r"^[a-zA-Z0-9_-]+$"
+
+SPECIAL_CHARS = re.escape(string.punctuation)  # Escapes all special chars
+
+EMAIL_PASSWORD_PATTERN = re.compile(
+    rf"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[{SPECIAL_CHARS}])[A-Za-z\d{SPECIAL_CHARS}]*$"
+)
 
 
 class SubscriptionLoginLinkInput(BaseModel):
@@ -90,6 +99,7 @@ example.com
 
 
 class TestMailLoginData(BaseModel):
+    model_config = ConfigDict(regex_engine="python-re")
     login_link: Annotated[
         str,
         StringConstraints(
