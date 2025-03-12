@@ -189,13 +189,13 @@ async def plesk_generate_subscription_login_link(
 
 
 async def _build_fetch_testmail_password_command(domain: SubscriptionName) -> str:
-    return f"plesk bin mail --info {TEST_MAIL_LOGIN}@{domain} 2>/dev/null| grep Description | string replace -r ' +' ' ' | string split \\\" \\\" -f2"
+    return f"/usr/local/psa/admin/bin/mail_auth_view | grep -F '{TEST_MAIL_LOGIN}@{domain.domain}' | tr -d '[:space:]' | awk -F'|' '{{print \\$4}}'"
 
 
 async def _build_create_testmail_command(
     domain: SubscriptionName, password: str
 ) -> str:
-    return f'plesk bin mail --create {TEST_MAIL_LOGIN}@{domain} -passwd \\"$password\\" -mailbox true -description \\"{password}\\"'
+example.com
 
 
 async def _generate_password(password_length: int) -> str:
@@ -227,7 +227,7 @@ async def _create_testmail(
 async def plesk_get_testmail_login_data(
     host: PleskServerDomain, mail_domain: SubscriptionName
 ) -> list[str]:
-    login_link = f"https://webmail.{mail_domain}/roundcube/index.php?_user={TEST_MAIL_LOGIN}%40{mail_domain}"
+    login_link = f"https://webmail.{mail_domain.domain}/roundcube/index.php?_user={TEST_MAIL_LOGIN}%40{mail_domain.domain}"
 
     password = await _get_testmail_password(host=host, mail_domain=mail_domain)
     if not password:
