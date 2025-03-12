@@ -11,9 +11,7 @@ from app.schemas import (
     SubscriptionName,
     SUBSCRIPTION_NAME_PATTERN,
     DomainName,
-    PleskServerDomain,
 )
-from fastapi import Depends, Query
 
 from app.host_lists import PLESK_SERVER_LIST
 
