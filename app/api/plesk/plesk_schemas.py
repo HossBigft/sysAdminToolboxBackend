@@ -88,8 +88,3 @@ example.com
         if v not in PLESK_SERVER_LIST:
             raise ValueError(f"Host '{v}' is not Plesk server.")
         return v
-
-
-class CreateTestMailSchema(BaseModel):
-    domain: DomainName = Query()
-    server: PleskServerDomain = Query()

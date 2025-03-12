@@ -131,15 +131,18 @@ class NewPassword(BaseModel):
     new_password: str = Field(min_length=8, max_length=40)
 
 
+ValidatedDomainName = Annotated[
+    str,
+    StringConstraints(
+        min_length=3,
+        max_length=253,
+        pattern=OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN,
+    ),
+]
+
+
 class DomainName(BaseModel):
-    domain: Annotated[
-        str,
-        StringConstraints(
-            min_length=3,
-            max_length=253,
-            pattern=OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN,
-        ),
-    ]
+    domain: ValidatedDomainName
 
     model_config = {"json_schema_extra": {"examples": ["example.com."]}}
 
@@ -159,15 +162,18 @@ class DomainName(BaseModel):
         return self.domain
 
 
+ValidatedPleskServerDomain = Annotated[
+    str,
+    StringConstraints(
+        min_length=3,
+        max_length=253,
+        pattern=OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN,
+    ),
+]
+
+
 class PleskServerDomain(BaseModel):
-    domain: Annotated[
-        str,
-        StringConstraints(
-            min_length=3,
-            max_length=253,
-            pattern=OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN,
-        ),
-    ]
+    domain: ValidatedPleskServerDomain
 example.com
 
     @field_validator("domain")

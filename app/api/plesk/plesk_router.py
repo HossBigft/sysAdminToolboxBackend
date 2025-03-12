@@ -8,8 +8,7 @@ from app.api.plesk.plesk_schemas import (
     SubscriptionListResponseModel,
     SubscriptionDetailsModel,
     SubscriptionLoginLinkInput,
-    SetZonemasterInput,
-    CreateTestMailSchema,
+    SetZonemasterInput
 )
 from app.schemas import (
     UserRoles,
@@ -19,6 +18,8 @@ from app.schemas import (
     PleskServerDomain,
     IPv4Address,
     LinuxUsername,
+    ValidatedDomainName,
+    ValidatedPleskServerDomain,
 )
 from app.api.plesk.ssh_utils import (
     plesk_generate_subscription_login_link,
@@ -150,20 +151,23 @@ async def set_zonemaster(
     dependencies=[Depends(RoleChecker([UserRoles.SUPERUSER, UserRoles.ADMIN]))],
 )
 async def create_testmail_for_domain(
-    query: Annotated[CreateTestMailSchema, Depends()],
+    maildomain: Annotated[ValidatedDomainName, Query()],
+    server: Annotated[ValidatedPleskServerDomain, Query()],
     current_user: CurrentUser,
     background_tasks: BackgroundTasks,
     session: SessionDep,
     request: Request,
-) -> Message:
-    mail_host = CreateTestMailSchema.server
-    mail_domain = SubscriptionName(domain=CreateTestMailSchema.domain.domain)
-    
+) -> list[str]:
+    mail_host = PleskServerDomain(domain=server)
+    mail_domain = SubscriptionName(domain=maildomain)
+
     if await is_domain_exist_on_server(
         host=mail_host,
         domain=mail_domain,
     ):
-        login_data = await plesk_get_testmail_login_data(mail_host, mail_domain=mail_domain)
+        login_data = await plesk_get_testmail_login_data(
+            mail_host, mail_domain=mail_domain
+        )
         return login_data
     else:
         raise HTTPException(
