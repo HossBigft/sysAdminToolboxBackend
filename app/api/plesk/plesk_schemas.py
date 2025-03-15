@@ -98,7 +98,7 @@ example.com
         return v
 
 
-class TestMailLoginData(BaseModel):
+class TestMailCredentials(BaseModel):
     model_config = ConfigDict(regex_engine="python-re")
     login_link: Annotated[
         str,
@@ -110,3 +110,6 @@ class TestMailLoginData(BaseModel):
         str,
         StringConstraints(min_length=5, max_length=255, pattern=EMAIL_PASSWORD_PATTERN),
     ]
+
+class TestMailData(TestMailCredentials):
+    new_email_created: bool
