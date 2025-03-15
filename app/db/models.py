@@ -131,3 +131,19 @@ class GetPleskLoginLinkLog(UsersActivityLog):
     __mapper_args__ = {
         "polymorphic_identity": UserActionType.GET_SUBSCRIPTION_LOGIN_LINK
     }
+
+
+class PleskMailGetTestMailLog(UsersActivityLog):
+    __tablename__ = "log_plesk_mail_get_test_mail"
+
+    id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("log_user_activity.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    plesk_server: Mapped[str] = mapped_column(String, nullable=False)
+    domain: Mapped[str] = mapped_column(String, nullable=False)
+    new_email_created: Mapped[Boolean] = mapped_column(
+        Boolean, default=True, nullable=False
+    )
+    __mapper_args__ = {"polymorphic_identity": UserActionType.PLESK_MAIL_GET_TEST_MAIL}

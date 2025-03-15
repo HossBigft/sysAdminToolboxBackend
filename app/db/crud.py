@@ -25,6 +25,7 @@ from app.db.models import (
     SetZoneMasterLog,
     GetPleskLoginLinkLog,
     UsersActivityLog,
+    PleskMailGetTestMailLog,
 )
 
 
@@ -166,3 +167,22 @@ async def get_user_log_entries_by_id(
         total_pages=(total_count + page_size - 1) // page_size,
         data=results,
     )
+
+
+async def log_plesk_mail_test_get(
+    session: Session,
+    user: UserPublic,
+    ip: IPv4Address,
+    plesk_server: PleskServerDomain,
+    domain: DomainName,
+    new_email_created: bool,
+) -> None:
+    user_action = PleskMailGetTestMailLog(
+        user_id=user.id,
+        ip=ip,
+        plesk_server=plesk_server.name,
+        domain=domain,
+        new_email_created=new_email_created,
+    )
+    session.add(user_action)
+    session.commit()

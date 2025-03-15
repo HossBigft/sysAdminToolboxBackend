@@ -39,6 +39,7 @@ from app.api.dns.ssh_utils import (
 from app.db.crud import (
     log_dns_zone_master_set,
     log_plesk_login_link_get,
+    log_plesk_mail_test_get,
 )
 
 router = APIRouter(tags=["plesk"], prefix="/plesk")
@@ -168,19 +169,24 @@ async def create_testmail_for_domain(
         host=mail_host,
         domain=mail_domain,
     ):
-        data = await plesk_get_testmail_login_data(mail_host, mail_domain=mail_domain)
-        return TestMailCredentials.model_validate(data)
+        data: TestMailData = await plesk_get_testmail_login_data(
+            mail_host, mail_domain=mail_domain
+        )
+
     else:
         raise HTTPException(
             status_code=404,
             detail=f"Subscription with domain [{mail_domain.name}] not found.",
         )
-    # request_ip = IPv4Address(ip=request.client.host)
-    # background_tasks.add_task(
-    #     log_dns_zone_master_set,
-    #     session=session,
-    #     user=current_user,
-    #     domain=DomainName(domain=data.domain),
-    #     ip=request_ip,
-    # )
-    return Message(message="Zone master set successfully")
+    request_ip = IPv4Address(ip=request.client.host)
+    background_tasks.add_task(
+        log_plesk_mail_test_get,
+        session=session,
+        ip=request_ip,
+        user=current_user,
+        plesk_server=mail_host,
+        domain=DomainName(name=maildomain),
+        new_email_created=data.new_email_created,
+    )
+
+    return TestMailCredentials.model_validate(data)
