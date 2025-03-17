@@ -181,7 +181,7 @@ async def log_plesk_mail_test_get(
         user_id=user.id,
         ip=ip,
         plesk_server=plesk_server.name,
-        domain=domain,
+        domain=domain.name,
         new_email_created=new_email_created,
     )
     session.add(user_action)
