@@ -4,6 +4,7 @@ import string
 
 from fastapi import HTTPException
 from typing import TypedDict, List
+from enum import IntEnum
 
 
 from app.AsyncSSHandler import execute_ssh_command, execute_ssh_commands_in_batch
@@ -18,6 +19,18 @@ TEST_MAIL_LOGIN = "testhoster"
 TEST_MAIL_PASSWORD_LENGTH = 14
 
 
+class DomainStatus(IntEnum):
+    ONLINE = 0
+    SUBSCRIPTION_DISABLED = 2
+    DISABLED_BY_ADMIN = 16
+    DISABLED_BY_CLIENT = 64
+
+
+class DomainState(TypedDict):
+    domain: str
+    status: str
+
+
 class SubscriptionDetails(TypedDict):
     host: str
     id: str
@@ -25,6 +38,31 @@ class SubscriptionDetails(TypedDict):
     username: str
     userlogin: str
     domains: List[str]
+    domain_states: List[DomainState]
+    is_space_overused: bool
+    subscription_size_mb: int
+    subscription_status: str
+
+
+class DomainQueryResult(TypedDict):
+    host: str
+    id: str
+    name: str
+    username: str
+    userlogin: str
+    domains: List[str]
+    domain_states: List[DomainState]
+    is_space_overused: bool
+    subscription_size_mb: int
+    subscription_status: str
+
+
+STATUS_MAPPING = {
+    DomainStatus.ONLINE: "online",
+    DomainStatus.SUBSCRIPTION_DISABLED: "subscription_is_disabled",
+    DomainStatus.DISABLED_BY_ADMIN: "domain_disabled_by_admin",
+    DomainStatus.DISABLED_BY_CLIENT: "domain_disabled_by_client",
+}
 
 
 class PleskServiceError(Exception):
@@ -101,27 +139,80 @@ async def restart_dns_service_for_domain(
 
 
 def build_subscription_info_query(domain_to_find: str) -> str:
-    return (
-        "SELECT CASE WHEN webspace_id = 0 THEN id ELSE webspace_id END AS result "
-        "FROM domains WHERE name LIKE '{0}'; "
-        "SELECT name FROM domains WHERE id=(SELECT CASE WHEN webspace_id = 0 THEN id ELSE webspace_id END AS result FROM domains WHERE name LIKE '{0}'); "
-        "SELECT pname, login FROM clients WHERE id=(SELECT cl_id FROM domains WHERE name LIKE '{0}'); "
-        "SELECT name FROM domains WHERE webspace_id=(SELECT CASE WHEN webspace_id = 0 THEN id ELSE webspace_id END AS result FROM domains WHERE name LIKE '{0}');"
-    ).format(domain_to_find)
+    """
+    Builds a SQL query string to search for domain information.
+    Compatible with MySQL 5.7.
+    """
+    return f"""
+    SELECT 
+        base.subscription_id AS result,
+        (SELECT name FROM domains WHERE id = base.subscription_id) AS name,
+        (SELECT pname FROM clients WHERE id = base.cl_id) AS username,
+        (SELECT login FROM clients WHERE id = base.cl_id) AS userlogin,
+        (SELECT GROUP_CONCAT(CONCAT(d2.name, ':', d2.status) SEPARATOR ',')
+        FROM domains d2 
+        WHERE base.subscription_id IN (d2.id, d2.webspace_id)) AS domains,
+        (SELECT overuse FROM domains WHERE id = base.subscription_id) as is_space_overused,
+        (SELECT ROUND(real_size/1024/1024) FROM domains WHERE id = base.subscription_id) as subscription_size_mb,
+        (SELECT status FROM domains WHERE id = base.subscription_id) as subscription_status
+    FROM (
+        SELECT 
+            CASE 
+                WHEN webspace_id = 0 THEN id 
+                ELSE webspace_id 
+            END AS subscription_id,
+            cl_id,
+            name
+        FROM domains 
+        WHERE name LIKE '{domain_to_find}'
+    ) AS base;
+    """
+
+
+def get_domain_status_string(status_code: int) -> str:
+    """Convert numeric status code to string representation."""
+    try:
+        domain_status = DomainStatus(status_code)
+        return STATUS_MAPPING.get(domain_status, "unknown_status")
+    except ValueError:
+        return "unknown_status"
+
+
+def parse_domain_states(domain_states_str: str) -> List[DomainState]:
+    """Parse domain states string into list of dictionaries."""
+    if not domain_states_str:
+        return []
+
+    domain_states = []
+    for domain_status in domain_states_str.split(","):
+        try:
+            domain, status = domain_status.split(":")
+            status_code = int(status)
+            domain_states.append(
+                {"domain": domain, "status": get_domain_status_string(status_code)}
+            )
+        except (ValueError, IndexError):
+            continue
+    return domain_states
 
 
 def extract_subscription_details(answer) -> SubscriptionDetails | None:
-    stdout_lines = answer["stdout"].strip().split("\n")
-    if len(stdout_lines) == 1:
-        return None
-    subscription_details: SubscriptionDetails = {
-        "host": answer["host"],
-        "id": stdout_lines[0],
-        "name": stdout_lines[1],
-        "username": stdout_lines[2].split("\t")[0],
-        "userlogin": stdout_lines[2].split("\t")[1],
-        "domains": [stdout_lines[1]] + stdout_lines[3:],
-    }
+    result_lines = answer["stdout"].strip().split("\n")[0].split("\t")
+
+    domain_states = parse_domain_states(result_lines[4])
+    subscription_details = SubscriptionDetails(
+        host=answer["host"],
+        id=result_lines[0],
+        name=result_lines[1],
+        username=result_lines[2],
+        userlogin=result_lines[3],
+        domains=[state["domain"] for state in domain_states],
+        domain_states=domain_states,
+        is_space_overused=result_lines[5].lower() == "true",
+        subscription_size_mb=int(result_lines[6]),
+        subscription_status=get_domain_status_string(int(result_lines[7])),
+    )
+
     return subscription_details
 
 
@@ -150,7 +241,6 @@ async def plesk_fetch_subscription_info(
         for answer in answers
         if answer.get("stdout") and (details := extract_subscription_details(answer))
     ]
-
     return results if results else None
 
 
