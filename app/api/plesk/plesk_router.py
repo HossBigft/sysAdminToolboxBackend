@@ -117,7 +117,7 @@ async def set_zonemaster(
     session: SessionDep,
     request: Request,
 ) -> Message:
-    curr_zone_master: set[PleskServerDomain] | None
+    curr_zone_master: PleskServerDomain | str | None
     if await is_domain_exist_on_server(
         host=PleskServerDomain(name=data.target_plesk_server),
         domain=SubscriptionName(name=data.domain),

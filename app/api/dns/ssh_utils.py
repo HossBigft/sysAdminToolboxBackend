@@ -62,7 +62,7 @@ async def dns_remove_domain_zone_master(domain: SubscriptionName | DomainName):
 
 async def dns_get_domain_zone_master(
     domain: SubscriptionName | DomainName,
-) -> set[PleskServerDomain] | None:
+) -> PleskServerDomain | str | None:
     zonemaster_data = await dns_query_domain_zone_master(domain=domain)
     if zonemaster_data is None:
         return None
@@ -70,6 +70,9 @@ async def dns_get_domain_zone_master(
     zonemaster_ip_set = {answer["zone_master"] for answer in zonemaster_data["answers"]}
     zonemaster_domains_set = set()
     for zonemaster in zonemaster_ip_set:
-        zonemaster_domains_set.update(resolve_record(record=zonemaster, type="PTR"))
-
-    return zonemaster_domains_set
+        zonemaster_domain = resolve_record(record=zonemaster, type="PTR")
+        if zonemaster_domain:
+            zonemaster_domains_set.update(zonemaster_domain)
+    if not zonemaster_domains_set:
+        return ",".join(str(ip) for ip in zonemaster_ip_set)
+    return ",".join(str(ip) for ip in zonemaster_domains_set)

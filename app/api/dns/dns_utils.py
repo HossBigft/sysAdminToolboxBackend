@@ -51,5 +51,5 @@ def resolve_record(record: str, type: str, dns_list="internal"):
                 return ns_records
             case _:
                 raise rdatatype.UnknownRdatatype
-    except (resolver.NoAnswer, resolver.NXDOMAIN, resolver.NoNameservers) as exc:
-        raise RecordNotFoundError(f"{type} record not found for {record}") from exc
+    except (resolver.NoAnswer, resolver.NXDOMAIN, resolver.NoNameservers):
+        return None

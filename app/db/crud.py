@@ -106,7 +106,7 @@ async def log_dns_zone_master_set(
 ) -> None:
     user_action = SetZoneMasterLog(
         user_id=user.id,
-        current_zone_master=current_zone_master.name,
+        current_zone_master=str(current_zone_master),
         target_zone_master=target_zone_master.name,
         domain=domain.name,
         ip=ip,
