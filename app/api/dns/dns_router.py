@@ -66,7 +66,7 @@ async def get_zone_master_from_dns_servers(
     session: SessionDep,
     background_tasks: BackgroundTasks,
     current_user: CurrentUser,
-    domain: Annotated[SubscriptionName, Query()],
+    domain: Annotated[SubscriptionName, Depends()],
     request: Request
 ):
     try:
