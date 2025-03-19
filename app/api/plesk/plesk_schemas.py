@@ -9,7 +9,7 @@ from pydantic import (
     ConfigDict,
 )
 
-from typing import List
+from typing import List, Dict
 from typing_extensions import Annotated
 from app.schemas import (
     SubscriptionName,
@@ -60,6 +60,10 @@ class SubscriptionDetailsModel(BaseModel):
     username: str
     userlogin: str
     domains: List[SubscriptionName]
+    domain_states: List[Dict[str, str]]
+    is_space_overused: bool
+    subscription_size_mb: int
+    subscription_status: str
 
 
 class SubscriptionListResponseModel(RootModel):
@@ -110,6 +114,7 @@ class TestMailCredentials(BaseModel):
         str,
         StringConstraints(min_length=5, max_length=255, pattern=EMAIL_PASSWORD_PATTERN),
     ]
+
 
 class TestMailData(TestMailCredentials):
     new_email_created: bool

@@ -66,6 +66,10 @@ async def find_plesk_subscription_by_domain(
             username=sub["username"],
             userlogin=sub["userlogin"],
             domains=[SubscriptionName(name=d) for d in sub["domains"]],
+            domain_states=sub["domain_states"],
+            is_space_overused=sub["is_space_overused"],
+            subscription_size_mb=sub["subscription_size_mb"],
+            subscription_status=sub["subscription_status"],
         )
         for sub in subscriptions
     ]
