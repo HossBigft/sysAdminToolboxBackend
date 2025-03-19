@@ -77,10 +77,19 @@ example.com
 example.com
 example.com
 example.com
+example.com
+example.com
+example.com
 )
 
 example.com
 
-TEST_SERVER_LIST = ("IP_PLACEHOLDER", "IP_PLACEHOLDER", "google.com", "vgruzo", "ogruzo")
+TEST_SERVER_LIST = (
+    "IP_PLACEHOLDER",
+    "IP_PLACEHOLDER",
+    "google.com",
+    "vgruzo",
+    "ogruzo",
+)
 
 example.com
