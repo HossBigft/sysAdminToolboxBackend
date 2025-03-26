@@ -25,4 +25,5 @@ dependencies = [
     "tldextract>=5.1.2",
     "coverage>=7.6.9",
     "fastapi-utils[all]>=0.8.0",
+    "cryptography>=44.0.2",
 ]

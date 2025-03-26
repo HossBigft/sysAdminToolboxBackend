@@ -1,4 +1,12 @@
-from fastapi import APIRouter, HTTPException, Query, Depends, BackgroundTasks, Request
+from fastapi import (
+    APIRouter,
+    HTTPException,
+    Query,
+    Depends,
+    BackgroundTasks,
+    Request,
+    Response,
+)
 from typing import Annotated
 
 from app.api.plesk.ssh_utils import (
@@ -31,6 +39,8 @@ from app.api.plesk.ssh_utils import (
     is_domain_exist_on_server,
     restart_dns_service_for_domain,
     plesk_get_testmail_login_data,
+    get_public_key,
+    sign,
 )
 from app.api.dns.ssh_utils import (
     dns_remove_domain_zone_master,
@@ -194,3 +204,17 @@ async def create_testmail_for_domain(
     )
 
     return TestMailCredentials.model_validate(data)
+
+
+@router.get(
+    "/publickey",
+)
+async def share_public_key():
+    return Response(content=await get_public_key(), media_type="text/plain")
+
+
+@router.get(
+    "/token",
+)
+async def get_token(command: str):
+    return await sign(command)

@@ -11,6 +11,7 @@ from app.AsyncSSHandler import execute_ssh_command, execute_ssh_commands_in_batc
 from app.host_lists import PLESK_SERVER_LIST
 from app.schemas import PleskServerDomain, LinuxUsername
 from app.api.plesk.plesk_schemas import SubscriptionName, TestMailData
+from app.api.plesk.token_generator import TokenSigner
 
 PLESK_LOGLINK_CMD = "plesk login"
 REDIRECTION_HEADER = r"&success_redirect_url=%2Fadmin%2Fsubscription%2Foverview%2Fid%2F"
@@ -18,6 +19,7 @@ PLESK_DB_RUN_CMD_TEMPLATE = 'plesk db -Ne \\"{}\\"'
 TEST_MAIL_LOGIN = "testhoster"
 TEST_MAIL_PASSWORD_LENGTH = 14
 
+Signer = TokenSigner()
 
 class DomainStatus(IntEnum):
     ONLINE = 0
@@ -333,3 +335,9 @@ async def plesk_get_testmail_login_data(
         password=password,
         new_email_created=new_email_created,
     )
+
+async def get_public_key():
+    return Signer.public_key_pem()
+
+async def sign(command:str):
+    return Signer.generate_command_token(command)
