@@ -1,13 +1,20 @@
 from sqlalchemy import String, ForeignKey, Integer, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
 from testcontainers.mysql import MySqlContainer
+from enum import IntEnum
 
 TEST_DB_CMD = "mariadb -B --disable-column-names -p'test' -D'test' -e \\\"{}\\\""
 
 
-# Base class for all models
 class Base(DeclarativeBase):
     pass
+
+
+class DomainStatus(IntEnum):
+    ONLINE = 0
+    SUBSCRIPTION_DISABLED = 2
+    DISABLED_BY_ADMIN = 16
+    DISABLED_BY_CLIENT = 64
 
 
 class Clients(Base):
@@ -31,6 +38,13 @@ class Domains(Base):
     cl_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("clients.id"), nullable=True
     )
+    status: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=DomainStatus.ONLINE.value
+    )
+    overuse: Mapped[bool] = mapped_column(Integer, nullable=False, default=0)
+    real_size: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=317 * 1024 * 1024
+    )
 
 
 class TestMariadb:
@@ -46,51 +60,82 @@ class TestMariadb:
 
     def __insert_sample_data(self):
         with Session(self.engine) as session:
-            client_b = Clients(pname="FIO", login="p-2342343")
+            client_b = Clients(pname="USER_NAME", login="p-341161")
             session.add(client_b)
             session.commit()
 
             main_domain = Domains(
+                id=1184,
 google.com
+                webspace_id=0,
+                cl_id=client_b.id,
+                status=DomainStatus.ONLINE.value,
             )
             session.add(main_domain)
 
             subdomains = [
                 Domains(
+                    id=1185,
 google.com
+                    webspace_id=1184,
+                    cl_id=client_b.id,
+                    status=DomainStatus.SUBSCRIPTION_DISABLED.value,
                 ),
                 Domains(
                     id=1186,
 google.com
                     webspace_id=1184,
                     cl_id=client_b.id,
+                    status=DomainStatus.DISABLED_BY_ADMIN.value,
                 ),
                 Domains(
+                    id=1187,
 google.com
+                    webspace_id=1184,
+                    cl_id=client_b.id,
+                    status=DomainStatus.DISABLED_BY_CLIENT.value,
                 ),
                 Domains(
                     id=1188,
 google.com
                     webspace_id=1184,
                     cl_id=client_b.id,
+                    status=DomainStatus.ONLINE.value,
                 ),
                 Domains(
+                    id=1189,
 google.com
+                    webspace_id=1184,
+                    cl_id=client_b.id,
+                    status=DomainStatus.SUBSCRIPTION_DISABLED.value,
                 ),
                 Domains(
                     id=1190,
 google.com
                     webspace_id=1184,
                     cl_id=client_b.id,
+                    status=DomainStatus.DISABLED_BY_ADMIN.value,
                 ),
                 Domains(
+                    id=1378,
 google.com
+                    webspace_id=1184,
+                    cl_id=client_b.id,
+                    status=DomainStatus.DISABLED_BY_CLIENT.value,
                 ),
                 Domains(
+                    id=1379,
 google.com
+                    webspace_id=1184,
+                    cl_id=client_b.id,
+                    status=DomainStatus.ONLINE.value,
                 ),
                 Domains(
+                    id=1383,
 google.com
+                    webspace_id=1184,
+                    cl_id=client_b.id,
+                    status=DomainStatus.SUBSCRIPTION_DISABLED.value,
                 ),
             ]
             session.add_all(subdomains)
