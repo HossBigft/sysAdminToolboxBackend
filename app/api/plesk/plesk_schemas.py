@@ -16,9 +16,9 @@ from app.schemas import (
     SUBSCRIPTION_NAME_PATTERN,
     DomainName,
     OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN,
+    PLESK_SERVER_LIST
 )
 
-from app.host_lists import PLESK_SERVER_LIST
 
 WEBMAIL_LOGIN_LINK_PATTERN = r"^https:\/\/webmail\.(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}\/roundcube\/index\.php\?_user=[a-zA-Z0-9._%+-]+%40(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,6}$"
 

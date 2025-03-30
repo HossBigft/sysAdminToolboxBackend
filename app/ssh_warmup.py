@@ -1,8 +1,6 @@
 from fastapi_utils.tasks import repeat_every
-
-from app.host_lists import DNS_SERVER_LIST
 from app.AsyncSSHandler import execute_ssh_commands_in_batch
-from app.host_lists import PLESK_SERVER_LIST
+from app.schemas import PLESK_SERVER_LIST, DNS_SERVER_LIST
 
 
 @repeat_every(seconds=60 * 5)

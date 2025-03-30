@@ -1,6 +1,6 @@
 import uuid
 
-from typing import Any, List
+from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import update, delete, select, func
 
