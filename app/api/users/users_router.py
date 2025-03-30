@@ -10,6 +10,7 @@ from app.api.dependencies import (
     CurrentUser,
     SessionDep,
     get_current_active_superuser,
+    RoleChecker,
 )
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
@@ -27,6 +28,7 @@ from app.schemas import (
     UserLogSearchRequestSchema,
     PaginatedUserLogListSchema,
     UserLogFilterSchema,
+    SuperUserUpdateMe,
 )
 from app.db.models import UsersActivityLog, User
 from app.utils import generate_new_account_email, send_email
@@ -273,3 +275,31 @@ async def get_user_actions(user_id: uuid.UUID, session: SessionDep):
     )
 
     return actions
+
+
+@router.patch(
+    "/superuser/me",
+    response_model=UserPublic,
+    dependencies=[Depends(RoleChecker([UserRoles.SUPERUSER]))],
+)
+def update_superuser_me(
+    *, session: SessionDep, user_in: SuperUserUpdateMe, current_user: CurrentUser
+) -> Any:
+    """
+    Update own superuser.
+    """
+
+    if user_in.email:
+        existing_user = crud.get_user_by_email(session=session, email=user_in.email)
+        if existing_user and existing_user.id != current_user.id:
+            raise HTTPException(
+                status_code=409, detail="User with this email already exists"
+            )
+    user_data = user_in.model_dump(exclude_unset=True)
+    stmt = update(User).where(User.id == current_user.id).values(user_data)
+    session.execute(stmt)
+    session.commit()
+    updated_user = UserPublic.model_validate(
+        session.execute(select(User).where(User.id == current_user.id)).scalar()
+    )
+    return updated_user

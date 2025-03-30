@@ -95,7 +95,6 @@ class UserUpdate(UserBase):
 class UserUpdateMe(BaseModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
-    ssh_username: str | None = Field(default=None, max_length=33)
 
 
 class UserCreate(UserBase):
@@ -330,3 +329,8 @@ class UserLogSearchRequestSchema(BaseModel):
     page: int = Field(default=1)
     page_size: int = Field(default=10, ge=1, le=100)
     filters: UserActivityLogFilterSchema
+
+class SuperUserUpdateMe(BaseModel):
+    full_name: str | None = Field(default=None, max_length=255)
+    email: EmailStr | None = Field(default=None, max_length=255)
+    ssh_username: str | None = Field(default=None, max_length=33)
