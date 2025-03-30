@@ -1,5 +1,6 @@
 import secrets
 import warnings
+import json
 from typing import Annotated, Any, Literal
 
 from pydantic import (
@@ -9,6 +10,7 @@ from pydantic import (
     PostgresDsn,
     computed_field,
     model_validator,
+    field_validator,
 )
 from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -96,6 +98,14 @@ class Settings(BaseSettings):
     # TODO: update type to EmailStr when sqlmodel supports it
     FIRST_SUPERUSER: str
     FIRST_SUPERUSER_PASSWORD: str
+    PLESK_SERVERS: dict[str, list[str]] = {}
+
+    @field_validator("PLESK_SERVERS", mode="before")
+    @classmethod
+    def parse_json(cls, value):
+        if isinstance(value, str):
+            return json.loads(value)
+        return value  # Already a dict
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":
