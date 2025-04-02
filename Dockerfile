@@ -53,4 +53,10 @@ ENV LANG ru_RU.UTF-8
 ENV LANGUAGE ru_RU:ru
 ENV LC_LANG ru_RU.UTF-8
 ENV LC_ALL ru_RU.UTF-8
+
+# keep shell english
+RUN echo "export LANG=C.UTF-8" >> /etc/profile && \
+    echo "export LANGUAGE=C.UTF-8:en" >> /etc/profile && \
+    echo "export LANG=C.UTF-8" >> ~/.bashrc && \
+    echo "export LANGUAGE=C.UTF-8:en" >> ~/.bashrc
 CMD ["fastapi", "run", "--workers", "4", "app/main.py"]
