@@ -39,12 +39,15 @@ COPY ./app /app/app
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync
-RUN apt-get update && apt-get install -y locales
 
-    # Locale
+# add support for cyrillic symbols
+RUN apt-get update && apt-get install -y locales
 RUN sed -i -e \
  's/# ru_RU.UTF-8 UTF-8/ru_RU.UTF-8 UTF-8/' /etc/locale.gen \
  && locale-gen
+
+# avoid error suppress /bin/sh: warning: setlocale: LC_ALL: cannot change locale
+RUN sed -i 's/^\s*SendEnv LANG LC_\*/#&/' /etc/ssh/ssh_config
 
 ENV LANG ru_RU.UTF-8
 ENV LANGUAGE ru_RU:ru
