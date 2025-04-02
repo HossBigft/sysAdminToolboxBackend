@@ -21,6 +21,7 @@ TEST_MAIL_PASSWORD_LENGTH = 14
 
 Signer = SshToKenSigner()
 
+
 class DomainStatus(IntEnum):
     ONLINE = 0
     SUBSCRIPTION_DISABLED = 2
@@ -212,7 +213,11 @@ def extract_subscription_details(answer) -> SubscriptionDetails | None:
         domain_states=domain_states,
         is_space_overused=result_lines[5].lower() == "true",
         subscription_size_mb=int(result_lines[6]),
-        subscription_status=get_domain_status_string(int(result_lines[7])),
+        subscription_status=(
+            get_domain_status_string(DomainStatus.SUBSCRIPTION_DISABLED)
+            if int(result_lines[7]) == DomainStatus.SUBSCRIPTION_DISABLED
+            else get_domain_status_string(DomainStatus.ONLINE)
+        ),
     )
 
     return subscription_details
@@ -336,8 +341,10 @@ async def plesk_get_testmail_login_data(
         new_email_created=new_email_created,
     )
 
+
 async def get_public_key():
     return Signer.get_public_key_pem()
 
-async def sign(command:str):
+
+async def sign(command: str):
     return Signer.create_signed_token(command)
