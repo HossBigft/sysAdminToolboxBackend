@@ -13,8 +13,6 @@ GLOBAL_SETTINGS = f"""Host *
         UserKnownHostsFile /dev/null
         PasswordAuthentication=no """
 
-config = "./root/ssh_config/config"
-
 
 def generate_ssh_hosts(servers, ssh_user):
     """
@@ -28,15 +26,19 @@ def generate_ssh_hosts(servers, ssh_user):
     for host, ips in servers.items():
         for ip in ips:
             ssh_config += f"""
-Host {host}
+Host {host}.
     HostName {ip}
     User {ssh_user}
 """
     return ssh_config
 
+def main() -> None:
+    config = "/root/ssh_config/config"
+    os.makedirs(os.path.dirname(config), exist_ok=True)
+    with open(config, "w") as f:
+        f.write(GLOBAL_SETTINGS)
+        f.write(generate_ssh_hosts(settings.DNS_SLAVE_SERVERS, "root"))
+        f.write(generate_ssh_hosts(settings.PLESK_SERVERS, settings.SSH_USER))
 
-os.makedirs(os.path.dirname(config), exist_ok=True)
-with open(config, "w") as f:
-    f.write(GLOBAL_SETTINGS)
-    f.write(generate_ssh_hosts(settings.DNS_SLAVE_SERVERS, "root"))
-    f.write(generate_ssh_hosts(settings.PLESK_SERVERS, settings.SSH_USER))
+if __name__ == "__main__":
+    main()
