@@ -99,7 +99,8 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER: str
     FIRST_SUPERUSER_PASSWORD: str
     PLESK_SERVERS: dict[str, list[str]] = {}
-    DNS_SLAVE_SERVERS: dict[str, list[str]] = {}    
+    DNS_SLAVE_SERVERS: dict[str, list[str]] = {} 
+    SSH_USER: str   
     @field_validator("PLESK_SERVERS", mode="before")
     @classmethod
     def parse_json(cls, value):
