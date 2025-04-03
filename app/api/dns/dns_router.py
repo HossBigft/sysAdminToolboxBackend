@@ -35,12 +35,11 @@ router = APIRouter(tags=["dns"], prefix="/dns")
     ],
 )
 async def get_a_record(domain: Annotated[DomainName, Query()]) -> DomainARecordResponse:
-    try:
-        a_records = resolve_record(domain.name, "A")
-        records = [IPv4Address(ip=ip) for ip in a_records]
-        return DomainARecordResponse(domain=domain, records=records)
-    except RecordNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    a_records = resolve_record(domain.name, "A")
+    if not a_records:
+        raise HTTPException(status_code=404, detail=f"A record for {domain} not found.")
+    records = [IPv4Address(ip=ip) for ip in a_records]
+    return DomainARecordResponse(domain=domain, records=records)
 
 
 @router.get(
@@ -50,12 +49,11 @@ async def get_a_record(domain: Annotated[DomainName, Query()]) -> DomainARecordR
     ],
 )
 async def get_ptr_record(ip: Annotated[IPv4Address, Query()]):
-    try:
-        ptr_records = resolve_record(str(ip), "PTR")
-        records = [DomainName(name=domain) for domain in ptr_records]
-        return PtrRecordResponse(ip=ip, records=records)
-    except RecordNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    ptr_records = resolve_record(str(ip), "PTR")
+    if not ptr_records:
+        raise HTTPException(status_code=404, detail=f"PTR record for {ip} not found.")
+    records = [DomainName(name=domain) for domain in ptr_records]
+    return PtrRecordResponse(ip=ip, records=records)
 
 
 @router.get(
@@ -100,14 +98,13 @@ async def get_mx_record(
     domain: Annotated[DomainName, Query()],
 ) -> DomainMxRecordResponse:
     domain_str = domain.name
-    try:
-        mx_records = resolve_record(domain_str, "MX")
-        records = [DomainName(name=domain) for domain in mx_records]
-        return DomainMxRecordResponse(
-            domain=DomainName(name=domain_str), records=records
+    mx_records = resolve_record(domain_str, "MX")
+    if not mx_records:
+        raise HTTPException(
+            status_code=404, detail=f"MX record for {domain} not found."
         )
-    except RecordNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    records = [DomainName(name=domain) for domain in mx_records]
+    return DomainMxRecordResponse(domain=DomainName(name=domain_str), records=records)
 
 
 @router.get(
@@ -120,14 +117,13 @@ async def get_ns_records(
     domain: Annotated[DomainName, Query()],
 ) -> DomainNsRecordResponse:
     domain_str = domain.name
-    try:
-        ns_records = resolve_record(domain_str, "NS")
-        records = [DomainName(name=domain) for domain in ns_records]
-        return DomainNsRecordResponse(
-            domain=DomainName(name=domain_str), records=records
+    ns_records = resolve_record(domain_str, "NS")
+    if not ns_records:
+        raise HTTPException(
+            status_code=404, detail=f"NS record for {domain} not found."
         )
-    except RecordNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    records = [DomainName(name=domain) for domain in ns_records]
+    return DomainNsRecordResponse(domain=DomainName(name=domain_str), records=records)
 
 
 @router.delete(

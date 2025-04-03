@@ -299,7 +299,12 @@ example.com
 
 
 async def _generate_password(password_length: int) -> str:
-    characters = string.ascii_letters + string.digits + string.punctuation
+    shell_quotation = {"'", '"', "`"}
+    characters = "".join(
+        c
+        for c in (string.ascii_letters + string.digits + string.punctuation)
+        if c not in shell_quotation
+    )
     password = "".join(secrets.choice(characters) for _ in range(password_length))
     return password
 
