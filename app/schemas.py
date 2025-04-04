@@ -17,9 +17,7 @@ from typing import List, Literal, Any
 from typing_extensions import Annotated
 from datetime import datetime
 from pydantic.networks import IPvAnyAddress
-
-
-from app.host_lists import PLESK_SERVER_LIST
+from app.core.config import settings
 
 SUBSCRIPTION_NAME_PATTERN = (
     r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,8}$"
@@ -30,6 +28,9 @@ OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN = (
 )
 
 LINUX_USERNAME_PATTERN = r"^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$"
+
+PLESK_SERVER_LIST: list[str] = list(settings.PLESK_SERVERS.keys())
+DNS_SERVER_LIST: list[str] = list(settings.DNS_SLAVE_SERVERS.keys())
 
 
 class LinuxUsername(RootModel):
@@ -329,6 +330,7 @@ class UserLogSearchRequestSchema(BaseModel):
     page: int = Field(default=1)
     page_size: int = Field(default=10, ge=1, le=100)
     filters: UserActivityLogFilterSchema
+
 
 class SuperUserUpdateMe(BaseModel):
     full_name: str | None = Field(default=None, max_length=255)

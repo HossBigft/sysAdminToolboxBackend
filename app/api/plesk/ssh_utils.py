@@ -8,8 +8,7 @@ from enum import IntEnum
 
 
 from app.AsyncSSHandler import execute_ssh_command, execute_ssh_commands_in_batch
-from app.host_lists import PLESK_SERVER_LIST
-from app.schemas import PleskServerDomain, LinuxUsername
+from app.schemas import PleskServerDomain, LinuxUsername, PLESK_SERVER_LIST
 from app.api.plesk.plesk_schemas import SubscriptionName, TestMailData
 from app.api.plesk.ssh_token_signer import SshToKenSigner
 

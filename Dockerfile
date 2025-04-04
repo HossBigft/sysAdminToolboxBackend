@@ -39,6 +39,7 @@ COPY ./app /app/app
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync
+RUN apt-get update && apt-get install -y locales
 
 # add support for cyrillic symbols
 RUN apt-get update && apt-get install -y locales
@@ -59,4 +60,5 @@ RUN echo "export LANG=C.UTF-8" >> /etc/profile && \
     echo "export LANGUAGE=C.UTF-8:en" >> /etc/profile && \
     echo "export LANG=C.UTF-8" >> ~/.bashrc && \
     echo "export LANGUAGE=C.UTF-8:en" >> ~/.bashrc
+    
 CMD ["fastapi", "run", "--workers", "4", "app/main.py"]
