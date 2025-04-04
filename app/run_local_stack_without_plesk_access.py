@@ -10,7 +10,7 @@ from tests.utils.container_unix_utils import UnixContainer
 from app.schemas import PleskServerDomain
 
 
-example.com
+TEST_SSH_HOST = "ssh.testserver.com"
 
 
 # Custom unique ID generator function for routes
