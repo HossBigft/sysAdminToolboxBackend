@@ -174,7 +174,7 @@ ValidatedPleskServerDomain = Annotated[
 
 class PleskServerDomain(BaseModel):
     name: ValidatedPleskServerDomain
-example.com
+    model_config = {"json_schema_extra": {"examples": [PLESK_SERVER_LIST[0]]}}
 
     @field_validator("name")
     def validate_domain(cls, v):

@@ -42,7 +42,7 @@ class SubscriptionLoginLinkInput(BaseModel):
     subscription_id: int
     model_config = {
         "json_schema_extra": {
-example.com
+            "examples": [{"host": PLESK_SERVER_LIST[0], "subscription_id": 1124}]
         }
     }
 
@@ -90,7 +90,7 @@ class SetZonemasterInput(BaseModel):
     model_config = {
         "json_schema_extra": {
             "examples": [
-example.com
+                {"target_plesk_server": PLESK_SERVER_LIST[0], "domain": "domain.kz"}
             ]
         }
     }
