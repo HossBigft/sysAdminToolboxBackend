@@ -17,7 +17,7 @@ async def test_a_record_resolution_with_correct_domain_name(
     assert response.status_code == 200
     assert response.json() == {
         "domain": domain,
-        "records": ["IP_PLACEHOLDER"],
+        "records": ["IP_PLACEHOLDER", "IP_PLACEHOLDER"],
     }
 
 
@@ -57,7 +57,7 @@ async def test_mx_record_resolution_with_correct_domain_name(
     assert response.status_code == 200
     assert response.json() == {
         "domain": domain,
-        "records": [f"mail.{domain}."],
+        "records": [f"smtp.{domain}."],
     }
 
 
@@ -120,7 +120,7 @@ async def test_ptr_record_resolution(
     )
     assert response.json() == {
         "ip": domain,
-example.com
+        "records": ["dns.google."],
     }
 
 
@@ -136,7 +136,12 @@ async def test_ns_record_resolution_with_correct_domain_name(
     assert response.status_code == 200
     assert response.json() == {
         "domain": domain,
-example.com
+        "records": [
+            "ns2.google.com.",
+            "ns3.google.com.",
+            "ns4.google.com.",
+            "ns1.google.com.",
+        ],
     }
 
 
@@ -176,7 +181,12 @@ async def test_ns_record_resolution_with_correct_subdomain(
     assert response.status_code == 200
     assert response.json() == {
         "domain": domain,
-example.com
+        "records": [
+            "ns2.google.com.",
+            "ns3.google.com.",
+            "ns4.google.com.",
+            "ns1.google.com.",
+        ],
     }
 
 

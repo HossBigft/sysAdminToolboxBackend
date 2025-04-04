@@ -1,11 +1,11 @@
 class HostList():
-example.com
-google.com
-google.com
-google.com
-google.com
+    DOMAIN_WITH_EXISTING_A_RECORD = "dns.google."
+    DOMAIN_WITH_EXISTING_MX_RECORD = "google.com."
+    CORRECT_EXISTING_DOMAIN = "DOMAIN_WITH_EXISTING_A_RECORD"
+    DOMAIN_WITHOUT_ZONE_MASTER = "zless.google.com"
+    CORRECT_EXISTING_SUBDOMAIN = "smtp.google.com."
     MALFORMED_DOMAIN = "googlecom."
     IP_WITHOUT_PTR = "IP_PLACEHOLDER"
     IP_WITH_PTR = "IP_PLACEHOLDER"
     SSH_TEST_SERVER = "vtest"
-google.com
+    CORRECT_NONEXISTING_DOMAIN = "asdasdasd.com"
