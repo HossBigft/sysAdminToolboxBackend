@@ -336,3 +336,8 @@ class SuperUserUpdateMe(BaseModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
     ssh_username: str | None = Field(default=None, max_length=33)
+
+
+class HostIpData(BaseModel):
+    domain: ValidatedDomainName
+    ips: List[IPv4Address]

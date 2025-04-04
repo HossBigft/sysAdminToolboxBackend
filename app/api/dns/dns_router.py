@@ -22,8 +22,9 @@ from app.schemas import (
     DomainNsRecordResponse,
     Message,
     SubscriptionName,
+    HostIpData,
 )
-
+from app.DomainMapper import HOSTS
 
 router = APIRouter(tags=["dns"], prefix="/dns")
 
@@ -152,3 +153,37 @@ async def delete_zone_file_for_domain(
         return Message(message="Zone master deleted successfully")
     except RuntimeError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.get(
+    "/internal/hostbydomain",
+    dependencies=[Depends(RoleChecker([UserRoles.SUPERUSER, UserRoles.ADMIN]))],
+    response_model=HostIpData,
+)
+async def resolve_host_by_domain(
+    domain: Annotated[DomainName, Depends()],
+) -> HostIpData:
+    resolved_host = HOSTS.resolve_domain(domain.name)
+
+    if not resolved_host:
+        raise HTTPException(
+            status_code=404, detail=f"No host found with domain [{domain}]."
+        )
+    return resolved_host
+
+
+@router.get(
+    "/internal/hostbyip",
+    dependencies=[Depends(RoleChecker([UserRoles.SUPERUSER, UserRoles.ADMIN]))],
+    response_model=HostIpData,
+)
+async def resolve_host_by_ip(
+    ip: Annotated[IPv4Address, Depends()],
+) -> HostIpData:
+    resolved_host = HOSTS.resolve_ip(ip)
+
+    if not resolved_host:
+        raise HTTPException(
+            status_code=404, detail=f"No host found with domain [{ip.ip}]."
+        )
+    return resolved_host

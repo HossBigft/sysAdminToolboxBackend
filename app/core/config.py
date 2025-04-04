@@ -14,6 +14,7 @@ from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing_extensions import Self
 
+
 def parse_cors(v: Any) -> list[str] | str:
     if isinstance(v, str) and not v.startswith("["):
         return [i.strip() for i in v.split(",")]
@@ -95,13 +96,11 @@ class Settings(BaseSettings):
     # TODO: update type to EmailStr when sqlmodel supports it
     FIRST_SUPERUSER: str
     FIRST_SUPERUSER_PASSWORD: str
-    
-    
-    SSH_USER: str   
-    PLESK_SERVERS: dict[str, list[str]] = {}
-    DNS_SLAVE_SERVERS: dict[str, list[str]] = {} 
-    HOSTS: dict[str, list[str]] = {} 
 
+    SSH_USER: str
+    PLESK_SERVERS: dict[str, list[str]] = {}
+    DNS_SLAVE_SERVERS: dict[str, list[str]] = {}
+    ADDITIONAL_HOSTS: dict[str, list[str]] = {}
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":

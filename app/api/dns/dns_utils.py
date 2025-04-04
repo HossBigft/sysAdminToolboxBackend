@@ -1,6 +1,9 @@
 from dns import resolver, reversename, rdatatype
 from tldextract import extract
 
+from app.DomainMapper import HOSTS
+from app.core.config import settings
+
 
 class RecordNotFoundError(Exception):
     def __init__(self, message):
@@ -12,9 +15,8 @@ def resolve_record(record: str, type: str, dns_list="internal"):
     match dns_list:
         case "internal":
             custom_resolver.nameservers = [
-                "IP_PLACEHOLDER",
-                "IP_PLACEHOLDER",
-                "IP_PLACEHOLDER",
+                str(HOSTS.resolve_domain(nameserver).ips[0])
+                for nameserver in list(settings.DNS_SLAVE_SERVERS.keys())
             ]
         case "free":
             custom_resolver.nameservers = ["IP_PLACEHOLDER", "IP_PLACEHOLDER"]
