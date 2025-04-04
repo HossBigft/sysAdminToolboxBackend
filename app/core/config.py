@@ -98,15 +98,13 @@ class Settings(BaseSettings):
     # TODO: update type to EmailStr when sqlmodel supports it
     FIRST_SUPERUSER: str
     FIRST_SUPERUSER_PASSWORD: str
+    
+    
+    SSH_USER: str   
     PLESK_SERVERS: dict[str, list[str]] = {}
     DNS_SLAVE_SERVERS: dict[str, list[str]] = {} 
-    SSH_USER: str   
-    @field_validator("PLESK_SERVERS", mode="before")
-    @classmethod
-    def parse_json(cls, value):
-        if isinstance(value, str):
-            return json.loads(value)
-        return value  # Already a dict
+    HOSTS: dict[str, list[str]] = {} 
+
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":
