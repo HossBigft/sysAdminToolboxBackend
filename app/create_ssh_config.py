@@ -3,7 +3,9 @@ from app.core.config import settings
 
 
 SSH_SOCKETS_LIVETIME_MIN = 5
-GLOBAL_SETTINGS = f"""Host *
+GLOBAL_SETTINGS = f"""
+Include conf.d/*
+Host *
 	ControlMaster auto
         ControlPath /tmp/\\%r@%h:%p
         ServerAliveInterval 11
@@ -11,7 +13,9 @@ GLOBAL_SETTINGS = f"""Host *
         ConnectTimeout=5
         StrictHostKeyChecking no
         UserKnownHostsFile /dev/null
-        PasswordAuthentication=no """
+        PasswordAuthentication=no 
+        
+"""
 
 
 def generate_ssh_hosts(servers, ssh_user):
@@ -26,14 +30,14 @@ def generate_ssh_hosts(servers, ssh_user):
     for host, ips in servers.items():
         for ip in ips:
             ssh_config += f"""
-Host {host}.
+Host {host}
     HostName {ip}
     User {ssh_user}
 """
     return ssh_config
 
 def main() -> None:
-    config = "/root/ssh_config/config"
+    config = "/root/.ssh/config"
     os.makedirs(os.path.dirname(config), exist_ok=True)
     with open(config, "w") as f:
         f.write(GLOBAL_SETTINGS)
