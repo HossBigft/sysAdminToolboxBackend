@@ -294,7 +294,7 @@ async def _build_fetch_testmail_password_command(domain: SubscriptionName) -> st
 async def _build_create_testmail_command(
     domain: SubscriptionName, password: str
 ) -> str:
-example.com
+    return f"plesk bin mail --create {TEST_MAIL_LOGIN}@{domain.name} -passwd {shlex.quote(password)} -mailbox true -description 'throwaway mail for support. You may delete it at will.'"
 
 
 async def _generate_password(password_length: int) -> str:
