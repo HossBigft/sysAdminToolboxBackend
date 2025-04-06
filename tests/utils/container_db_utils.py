@@ -66,7 +66,7 @@ class TestMariadb:
 
             main_domain = Domains(
                 id=1184,
-google.com
+                name="google.com",
                 webspace_id=0,
                 cl_id=client_b.id,
                 status=DomainStatus.ONLINE.value,
@@ -76,63 +76,63 @@ google.com
             subdomains = [
                 Domains(
                     id=1185,
-google.com
+                    name="test.google.com",
                     webspace_id=1184,
                     cl_id=client_b.id,
                     status=DomainStatus.SUBSCRIPTION_DISABLED.value,
                 ),
                 Domains(
                     id=1186,
-google.com
+                    name="mx.google.com",
                     webspace_id=1184,
                     cl_id=client_b.id,
                     status=DomainStatus.DISABLED_BY_ADMIN.value,
                 ),
                 Domains(
                     id=1187,
-google.com
+                    name="zless.zlessgoogle.com",
                     webspace_id=1184,
                     cl_id=client_b.id,
                     status=DomainStatus.DISABLED_BY_CLIENT.value,
                 ),
                 Domains(
                     id=1188,
-google.com
+                    name="1.google.com",
                     webspace_id=1184,
                     cl_id=client_b.id,
                     status=DomainStatus.ONLINE.value,
                 ),
                 Domains(
                     id=1189,
-google.com
+                    name="gog.google.com",
                     webspace_id=1184,
                     cl_id=client_b.id,
                     status=DomainStatus.SUBSCRIPTION_DISABLED.value,
                 ),
                 Domains(
                     id=1190,
-google.com
+                    name="asd.google.com",
                     webspace_id=1184,
                     cl_id=client_b.id,
                     status=DomainStatus.DISABLED_BY_ADMIN.value,
                 ),
                 Domains(
                     id=1378,
-google.com
+                    name="oht.google.com",
                     webspace_id=1184,
                     cl_id=client_b.id,
                     status=DomainStatus.DISABLED_BY_CLIENT.value,
                 ),
                 Domains(
                     id=1379,
-google.com
+                    name="ts.google.com",
                     webspace_id=1184,
                     cl_id=client_b.id,
                     status=DomainStatus.ONLINE.value,
                 ),
                 Domains(
                     id=1383,
-google.com
+                    name="lkok.google.com",
                     webspace_id=1184,
                     cl_id=client_b.id,
                     status=DomainStatus.SUBSCRIPTION_DISABLED.value,

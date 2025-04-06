@@ -2,15 +2,16 @@ from unittest.mock import patch, AsyncMock
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from starlette.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
 from app.main import api_router
 from app.core.config import settings
 from tests.utils.container_db_utils import TestMariadb, TEST_DB_CMD
 from tests.utils.container_unix_utils import UnixContainer
 from app.schemas import PleskServerDomain
+from app.logger import setup_uvicorn_logger, setup_actios_logger
 
-
-TEST_SSH_HOST = "ssh.testserver.com"
+TEST_SSH_HOST = "plesk.example.com"
 
 
 # Custom unique ID generator function for routes
@@ -24,11 +25,17 @@ if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
 
     sentry_sdk.init(dsn=str(settings.SENTRY_DSN), enable_tracing=True)
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    setup_uvicorn_logger()
+    setup_actios_logger()
+    yield
 # Initialize FastAPI app
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     generate_unique_id_function=custom_generate_unique_id,
+    lifespan=lifespan,
 )
 
 # Set up CORS middleware if configured
@@ -48,6 +55,7 @@ linux_container = UnixContainer().prepare_zonefile()
 
 def mock_batch_ssh(command: str):
     stdout = testdb.run_cmd(command)
+    
     return [{"host": TEST_SSH_HOST, "stdout": stdout}]
 
 
