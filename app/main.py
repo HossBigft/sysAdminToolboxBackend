@@ -12,7 +12,7 @@ from app.api.auth import password_reset, auth_router as login
 from app.api.dns import dns_router as dns
 from app.api.plesk import plesk_router as plesk
 from app.api import utils_router as utils
-from app.logger import setup_uvicorn_logger
+from app.logger import setup_uvicorn_logger, setup_actios_logger
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -26,6 +26,7 @@ if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_uvicorn_logger()
+    setup_actios_logger()
     await ssh_warmup()
     yield
 

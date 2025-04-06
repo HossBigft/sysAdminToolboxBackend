@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime, timedelta
-
+from app.schemas import UserActionType
 
 def round_up_seconds(dt):
     """Round up to the next second if microseconds exist, otherwise keep the same second."""
@@ -40,16 +40,23 @@ def setup_uvicorn_logger():
     return logger
 
 
-def configure_app_loggers():
+def setup_actios_logger():
     """Configure application-specific loggers"""
     # Create app logger
-    app_logger = logging.getLogger("app")
+    app_logger = logging.getLogger("app.user_actions")
     app_logger.setLevel(logging.INFO)
-    
-    # Create file handler
-    file_handler = logging.FileHandler("app_logs.log")
-    
-    # Add handler to logger
-    app_logger.addHandler(file_handler)
 
 
+def log_plesk_login_link_get(
+    user,
+    plesk_server: str,
+    subscription_id: int,
+    ip: str,
+):
+    app_logger = logging.getLogger("app.user_actions")
+    log_message = (
+        f"{UserActionType.GET_SUBSCRIPTION_LOGIN_LINK} | User: {user.email} | Server: {plesk_server} | "
+        f"Subscription: {subscription_id} | IP: {ip}"
+    )
+
+    app_logger.info(log_message)

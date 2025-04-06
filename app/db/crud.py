@@ -116,7 +116,7 @@ async def log_dns_zone_master_set(
     session.commit()
 
 
-async def log_plesk_login_link_get(
+async def log_db_plesk_login_link_get(
     session: Session,
     user: UserPublic,
     plesk_server: PleskServerDomain,

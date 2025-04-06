@@ -48,10 +48,10 @@ from app.api.dns.ssh_utils import (
 )
 from app.db.crud import (
     log_dns_zone_master_set,
-    log_plesk_login_link_get,
+    log_db_plesk_login_link_get,
     log_plesk_mail_test_get,
 )
-
+from app.logger import log_plesk_login_link_get
 router = APIRouter(tags=["plesk"], prefix="/plesk")
 
 
@@ -110,13 +110,21 @@ async def get_subscription_login_link(
     )
     request_ip = IPv4Address(ip=request.client.host)
     background_tasks.add_task(
-        log_plesk_login_link_get,
+        log_db_plesk_login_link_get,
         session=session,
         user=current_user,
         plesk_server=PleskServerDomain(name=data.host),
         subscription_id=data.subscription_id,
         ip=request_ip,
     )
+    background_tasks.add_task(
+        log_plesk_login_link_get,
+        user=current_user,
+        plesk_server=PleskServerDomain(name=data.host),
+        subscription_id=data.subscription_id,
+        ip=request_ip,
+    )
+
     return login_link
 
 
