@@ -38,3 +38,6 @@ def setup_uvicorn_logger():
     handler.setFormatter(CompactDockerFormatter())
     logger.addHandler(handler)
     return logger
+
+
+access_logger = setup_uvicorn_logger()

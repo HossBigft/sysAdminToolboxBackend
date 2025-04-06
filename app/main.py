@@ -12,7 +12,7 @@ from app.api.auth import password_reset, auth_router as login
 from app.api.dns import dns_router as dns
 from app.api.plesk import plesk_router as plesk
 from app.api import utils_router as utils
-from app.log_formatter import setup_uvicorn_logger
+from app.logger import access_logger
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-logger = setup_uvicorn_logger()
+logger = access_logger
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
