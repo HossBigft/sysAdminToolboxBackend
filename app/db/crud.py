@@ -36,6 +36,7 @@ def create_user(*, session: Session, user_create: UserCreate) -> User:
         full_name=user_create.full_name,
         role=user_create.role,
         hashed_password=get_password_hash(user_create.password),
+        ssh_username=user_create.ssh_username
     )
     session.add(db_obj)
     session.commit()
