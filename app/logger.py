@@ -40,4 +40,16 @@ def setup_uvicorn_logger():
     return logger
 
 
-access_logger = setup_uvicorn_logger()
+def configure_app_loggers():
+    """Configure application-specific loggers"""
+    # Create app logger
+    app_logger = logging.getLogger("app")
+    app_logger.setLevel(logging.INFO)
+    
+    # Create file handler
+    file_handler = logging.FileHandler("app_logs.log")
+    
+    # Add handler to logger
+    app_logger.addHandler(file_handler)
+
+
