@@ -1,5 +1,4 @@
 import sentry_sdk
-import logging
 
 from fastapi import FastAPI, APIRouter
 from fastapi.routing import APIRoute
@@ -13,6 +12,7 @@ from app.api.auth import password_reset, auth_router as login
 from app.api.dns import dns_router as dns
 from app.api.plesk import plesk_router as plesk
 from app.api import utils_router as utils
+from app.log_formatter import setup_uvicorn_logger
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -28,6 +28,8 @@ async def lifespan(app: FastAPI):
     await ssh_warmup()
     yield
 
+
+logger = setup_uvicorn_logger()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -57,14 +59,3 @@ api_router.include_router(password_reset.router)
 api_router.include_router(login.router)
 
 app.include_router(api_router)
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler("actions.log"),  # Save logs to app.log
-        logging.StreamHandler(),  # Also log to console
-    ],
-)
-
-logger = logging.getLogger(__name__)
