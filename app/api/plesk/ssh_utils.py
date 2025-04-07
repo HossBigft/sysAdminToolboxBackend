@@ -289,7 +289,7 @@ async def plesk_generate_subscription_login_link(
 
 
 async def _build_fetch_testmail_password_command(domain: SubscriptionName) -> str:
-    return f"/usr/local/psa/admin/bin/mail_auth_view | grep -F '{TEST_MAIL_LOGIN}@{domain.name}' | tr -d '[:space:]' | cut -d '|' -f4-"
+    return f"/usr/local/psa/admin/bin/mail_auth_view | grep -F '{TEST_MAIL_LOGIN}@{domain.name}' | tr -d '[:space:]' | cut -d '|' -f4- |sed 's/|$//'"
 
 
 async def _build_create_testmail_command(
