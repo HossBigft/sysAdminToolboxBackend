@@ -14,9 +14,9 @@ from typing_extensions import Annotated
 from app.schemas import (
     SubscriptionName,
     SUBSCRIPTION_NAME_PATTERN,
-    DomainName,
     OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN,
-    PLESK_SERVER_LIST
+    PLESK_SERVER_LIST,
+    HostIpData
 )
 
 
@@ -54,7 +54,7 @@ class SubscriptionLoginLinkInput(BaseModel):
 
 
 class SubscriptionDetailsModel(BaseModel):
-    host: DomainName
+    host: HostIpData   
     id: str
     name: str
     username: str

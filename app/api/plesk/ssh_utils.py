@@ -11,6 +11,7 @@ from app.AsyncSSHandler import execute_ssh_command, execute_ssh_commands_in_batc
 from app.schemas import PleskServerDomain, LinuxUsername, PLESK_SERVER_LIST
 from app.api.plesk.plesk_schemas import SubscriptionName, TestMailData
 from app.api.plesk.ssh_token_signer import SshToKenSigner
+from app.DomainMapper import HOSTS
 
 PLESK_LOGLINK_CMD = "plesk login"
 REDIRECTION_HEADER = r"&success_redirect_url=%2Fadmin%2Fsubscription%2Foverview%2Fid%2F"
@@ -203,7 +204,7 @@ def extract_subscription_details(answer) -> SubscriptionDetails | None:
 
     domain_states = parse_domain_states(result_lines[4])
     subscription_details = SubscriptionDetails(
-        host=answer["host"],
+        host=HOSTS.resolve_domain(answer["host"]),
         id=result_lines[0],
         name=result_lines[1],
         username=result_lines[2],
@@ -294,7 +295,7 @@ async def _build_fetch_testmail_password_command(domain: SubscriptionName) -> st
 async def _build_create_testmail_command(
     domain: SubscriptionName, password: str
 ) -> str:
-    return f"plesk bin mail --create {TEST_MAIL_LOGIN}@{domain.name} -passwd {shlex.quote(password)} -mailbox true -description 'throwaway mail for support. You may delete it at will.'"
+    return f"plesk bin mail --create {TEST_MAIL_LOGIN}@{domain.name} -passwd {shlex.quote(password)} -mailbox true -description 'throwaway mail for support@hoster.kz. You may delete it at will.'"
 
 
 async def _generate_password(password_length: int) -> str:

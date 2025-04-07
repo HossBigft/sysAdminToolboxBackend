@@ -48,7 +48,7 @@ class DomainMapper:
         resolved_ips = self.domain_to_ips.get(domain, None)
         if not resolved_ips:
             return None
-        return HostIpData(domain=domain, ips=resolved_ips)
+        return HostIpData(name=domain, ips=resolved_ips)
 
     def resolve_ip(self, ip: IPv4Address) -> HostIpData | None:
         """
@@ -64,7 +64,7 @@ class DomainMapper:
         resolved_ips = self.domain_to_ips.get(resolved_domain, None)
         if not resolved_domain or not resolved_ips:
             return None
-        return HostIpData(domain=resolved_domain, ips=resolved_ips)
+        return HostIpData(name=resolved_domain, ips=resolved_ips)
 
     def add_mapping(self, domain: ValidatedDomainName, ip: list[IPv4Address]):
         """

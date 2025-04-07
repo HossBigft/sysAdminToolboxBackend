@@ -70,7 +70,7 @@ async def find_plesk_subscription_by_domain(
         )
     subscription_models = [
         SubscriptionDetailsModel(
-            host=DomainName(name=sub["host"]),
+            host=sub["host"],
             id=sub["id"],
             name=sub["name"],
             username=sub["username"],
