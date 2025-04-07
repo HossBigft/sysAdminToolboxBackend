@@ -26,7 +26,7 @@ WEBMAIL_LOGIN_LINK_PATTERN = r"^https:\/\/webmail\.(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{
 SPECIAL_CHARS = re.escape(string.punctuation)  # Escapes all special chars
 
 EMAIL_PASSWORD_PATTERN = re.compile(
-    rf"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[{SPECIAL_CHARS}])[A-Za-z\d{SPECIAL_CHARS}]*$"
+    rf"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d{SPECIAL_CHARS}]*$"
 )
 
 
