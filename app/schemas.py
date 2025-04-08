@@ -20,7 +20,7 @@ from pydantic.networks import IPvAnyAddress
 from app.core.config import settings
 
 SUBSCRIPTION_NAME_PATTERN = (
-    r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,8}$"
+    r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,9}$"
 )
 
 OPTIONALLY_FULLY_QUALIFIED_DOMAIN_NAME_PATTERN = (
