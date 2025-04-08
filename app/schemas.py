@@ -174,7 +174,7 @@ ValidatedPleskServerDomain = Annotated[
 
 class PleskServerDomain(BaseModel):
     name: ValidatedPleskServerDomain
-    model_config = {"json_schema_extra": {"examples": ["pkztest.hoster.kz."]}}
+    model_config = {"json_schema_extra": {"examples": [PLESK_SERVER_LIST[0]]}}
 
     @field_validator("name")
     def validate_domain(cls, v):
@@ -214,7 +214,11 @@ class IPv4Address(BaseModel):
     def ser_model(self, _handler):
         return str(self.ip)
 
-    model_config = {"json_schema_extra": {"examples": "198.162.40.58"}}
+    model_config = {
+        "json_schema_extra": {
+            "examples": [settings.PLESK_SERVERS[PLESK_SERVER_LIST[0]]]
+        }
+    }
 
 
 class DomainARecordResponse(BaseModel):
