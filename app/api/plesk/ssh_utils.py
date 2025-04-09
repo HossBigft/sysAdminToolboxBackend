@@ -1,6 +1,7 @@
 import shlex
 import secrets
 import string
+import random
 
 from fastapi import HTTPException
 from typing import TypedDict, List
@@ -300,13 +301,23 @@ async def _build_create_testmail_command(
 
 async def _generate_password(password_length: int) -> str:
     shell_quotation = {"'", '"', "`"}
-    characters = "".join(
+    allowed_chars = [
         c
         for c in (string.ascii_letters + string.digits + string.punctuation)
         if c not in shell_quotation
-    )
-    password = "".join(secrets.choice(characters) for _ in range(password_length))
-    return password
+    ]
+
+    lowercase = secrets.choice(string.ascii_lowercase)
+    uppercase = secrets.choice(string.ascii_uppercase)
+    digit = secrets.choice(string.digits)
+
+    remaining_length = password_length - 3
+    remaining_chars = [secrets.choice(allowed_chars) for _ in range(remaining_length)]
+
+    password_chars = [lowercase, uppercase, digit] + remaining_chars
+    random.shuffle(password_chars)
+
+    return "".join(password_chars)
 
 
 async def _get_testmail_password(
