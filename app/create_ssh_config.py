@@ -41,7 +41,7 @@ def main() -> None:
     os.makedirs(os.path.dirname(config), exist_ok=True)
     with open(config, "w") as f:
         f.write(GLOBAL_SETTINGS)
-        f.write(generate_ssh_hosts(settings.DNS_SLAVE_SERVERS, "root"))
+        f.write(generate_ssh_hosts(settings.DNS_SLAVE_SERVERS, settings.SSH_USER))
         f.write(generate_ssh_hosts(settings.PLESK_SERVERS, settings.SSH_USER))
 
 if __name__ == "__main__":
