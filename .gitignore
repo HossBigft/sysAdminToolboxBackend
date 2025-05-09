@@ -9,3 +9,4 @@ htmlcov
 actions.log
 .gitsecret/keys/random_seed
 !*.secret
+.idea
