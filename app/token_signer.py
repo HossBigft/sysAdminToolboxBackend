@@ -6,10 +6,10 @@ import json
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from cryptography.hazmat.primitives import serialization
 
-EXPIRATION_PERIOD_SECONDS = 90
+EXPIRATION_PERIOD_SECONDS = 900
 
 
-class SshToKenSigner:
+class ToKenSigner:
     def __init__(self):
         self._private_key = Ed25519PrivateKey.generate()
 

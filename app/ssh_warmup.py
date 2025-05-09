@@ -7,6 +7,6 @@ from app.schemas import PLESK_SERVER_LIST, DNS_SERVER_LIST
 async def ssh_warmup() -> None:
     await execute_ssh_commands_in_batch(
         server_list=PLESK_SERVER_LIST + DNS_SERVER_LIST,
-        command="echo online",
+        command="status",
         verbose=True,
     )

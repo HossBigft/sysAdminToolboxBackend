@@ -16,6 +16,7 @@ from app.core.db import engine
 from app.schemas import TokenPayload, UserRoles, UserPublic
 from typing import List
 import app.db.models
+from app.token_signer import ToKenSigner
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"
@@ -78,3 +79,10 @@ class RoleChecker:
             raise HTTPException(
                 status_code=403, detail="The user doesn't have enough privileges"
             )
+
+
+_token_signer= ToKenSigner()
+
+def get_token_signer()->ToKenSigner:
+    return _token_signer
+

@@ -2,16 +2,21 @@ import shlex
 import secrets
 import string
 import random
+import json
 
 from fastapi import HTTPException
 from typing import TypedDict, List
 from enum import IntEnum
 
-
 from app.AsyncSSHandler import execute_ssh_command, execute_ssh_commands_in_batch
+from app.api.dependencies import get_token_signer
+
 from app.schemas import PleskServerDomain, LinuxUsername, PLESK_SERVER_LIST
-from app.api.plesk.plesk_schemas import SubscriptionName, TestMailData
-from app.api.plesk.ssh_token_signer import SshToKenSigner
+from app.api.plesk.plesk_schemas import (
+    SubscriptionName,
+    TestMailData,
+    SubscriptionDetailsModel
+)
 from app.DomainMapper import HOSTS
 
 PLESK_LOGLINK_CMD = "plesk login"
@@ -20,7 +25,7 @@ PLESK_DB_RUN_CMD_TEMPLATE = 'plesk db -Ne \\"{}\\"'
 TEST_MAIL_LOGIN = "testhoster"
 TEST_MAIL_PASSWORD_LENGTH = 14
 
-Signer = SshToKenSigner()
+_token_signer = get_token_signer()
 
 
 class DomainStatus(IntEnum):
@@ -142,88 +147,6 @@ async def restart_dns_service_for_domain(
             )
 
 
-def build_subscription_info_query(domain_to_find: str) -> str:
-    """
-    Builds a SQL query string to search for domain information.
-    Compatible with MySQL 5.7.
-    """
-    return f"""
-    SELECT 
-        base.subscription_id AS result,
-        (SELECT name FROM domains WHERE id = base.subscription_id) AS name,
-        (SELECT pname FROM clients WHERE id = base.cl_id) AS username,
-        (SELECT login FROM clients WHERE id = base.cl_id) AS userlogin,
-        (SELECT GROUP_CONCAT(CONCAT(d2.name, ':', d2.status) SEPARATOR ',')
-        FROM domains d2 
-        WHERE base.subscription_id IN (d2.id, d2.webspace_id)) AS domains,
-        (SELECT overuse FROM domains WHERE id = base.subscription_id) as is_space_overused,
-        (SELECT ROUND(real_size/1024/1024) FROM domains WHERE id = base.subscription_id) as subscription_size_mb,
-        (SELECT status FROM domains WHERE id = base.subscription_id) as subscription_status
-    FROM (
-        SELECT 
-            CASE 
-                WHEN webspace_id = 0 THEN id 
-                ELSE webspace_id 
-            END AS subscription_id,
-            cl_id,
-            name
-        FROM domains 
-        WHERE name LIKE '{domain_to_find}'
-    ) AS base;
-    """
-
-
-def get_domain_status_string(status_code: int) -> str:
-    """Convert numeric status code to string representation."""
-    try:
-        domain_status = DomainStatus(status_code)
-        return STATUS_MAPPING.get(domain_status, "unknown_status")
-    except ValueError:
-        return "unknown_status"
-
-
-def parse_domain_states(domain_states_str: str) -> List[DomainState]:
-    """Parse domain states string into list of dictionaries."""
-    if not domain_states_str:
-        return []
-
-    domain_states = []
-    for domain_status in domain_states_str.split(","):
-        try:
-            domain, status = domain_status.split(":")
-            status_code = int(status)
-            domain_states.append(
-                {"domain": domain, "status": get_domain_status_string(status_code)}
-            )
-        except (ValueError, IndexError):
-            continue
-    return domain_states
-
-
-def extract_subscription_details(answer) -> SubscriptionDetails | None:
-    result_lines = answer["stdout"].strip().split("\n")[0].split("\t")
-
-    domain_states = parse_domain_states(result_lines[4])
-    subscription_details = SubscriptionDetails(
-        host=HOSTS.resolve_domain(answer["host"]),
-        id=result_lines[0],
-        name=result_lines[1],
-        username=result_lines[2],
-        userlogin=result_lines[3],
-        domains=[state["domain"] for state in domain_states],
-        domain_states=domain_states,
-        is_space_overused=result_lines[5].lower() == "true",
-        subscription_size_mb=int(result_lines[6]),
-        subscription_status=(
-            get_domain_status_string(DomainStatus.SUBSCRIPTION_DISABLED)
-            if int(result_lines[7]) == DomainStatus.SUBSCRIPTION_DISABLED
-            else get_domain_status_string(DomainStatus.ONLINE)
-        ),
-    )
-
-    return subscription_details
-
-
 async def batch_ssh_execute(cmd: str):
     return await execute_ssh_commands_in_batch(
         server_list=PLESK_SERVER_LIST,
@@ -233,22 +156,45 @@ async def batch_ssh_execute(cmd: str):
 
 
 async def plesk_fetch_subscription_info(
-    domain: SubscriptionName, partial_search=False
-) -> List[SubscriptionDetails] | None:
-    lowercate_domain_name = domain.name.lower()
-    query = build_subscription_info_query(
-        lowercate_domain_name if not partial_search else lowercate_domain_name + "%"
+    domain: SubscriptionName,
+) -> List[SubscriptionDetailsModel] | None:
+    lowercase_domain_name = domain.name.lower()
+    ssh_command = _token_signer.create_signed_token(
+        f"PLESK.FETCH_SUBSCRIPTION_INFO {lowercase_domain_name}"
     )
+    answers = await batch_ssh_execute("execute " + ssh_command)
 
-    ssh_command = await build_plesk_db_command(query)
+    results = []
+    for answer in answers:
+        raw = answer.get("stdout")
+        host_str = answer.get("host")
+        if not raw or not host_str:
+            continue
 
-    answers = await batch_ssh_execute(ssh_command)
+        try:
+            parsed_list = json.loads(raw)  # This is expected to be a list of dicts
+            for item in parsed_list:
+                model_data = {
+                    "host": HOSTS.resolve_domain(host_str),
+                    "id": item["id"],
+                    "name": item["name"],
+                    "username": item["username"],
+                    "userlogin": item["userlogin"],
+                    "domain_states": item["domain_states"],
+                    "domains": [
+                        SubscriptionName(name=ds["domain"])
+                        for ds in item["domain_states"]
+                    ],
+                    "is_space_overused": item["is_space_overused"],
+                    "subscription_size_mb": item["subscription_size_mb"],
+                    "subscription_status": item["subscription_status"],
+                }
+                model = SubscriptionDetailsModel.model_validate(model_data)
+                results.append(model)
 
-    results = [
-        details
-        for answer in answers
-        if answer.get("stdout") and (details := extract_subscription_details(answer))
-    ]
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
+            print(f"Failed to parse response from host {host_str}: {e}")
+
     return results if results else None
 
 
@@ -344,23 +290,17 @@ async def _create_testmail(
 async def plesk_get_testmail_login_data(
     host: PleskServerDomain, mail_domain: SubscriptionName
 ) -> TestMailData:
-    generated_login_link = f"https://webmail.{mail_domain.name}/roundcube/index.php?_user={TEST_MAIL_LOGIN}%40{mail_domain.name}"
-    new_email_created = False
-    password = await _get_testmail_password(host=host, mail_domain=mail_domain)
-    if not password:
-        password = await _generate_password(TEST_MAIL_PASSWORD_LENGTH)
-        await _create_testmail(host=host, mail_domain=mail_domain, password=password)
-        new_email_created = True
-    return TestMailData(
-        login_link=generated_login_link,
-        password=password,
-        new_email_created=new_email_created,
+    result = await execute_ssh_command(
+        host=host,
+        command="execute "+ _token_signer.create_signed_token(f"PLESK.CREATE_TESTMAIL {mail_domain.name}"),
     )
+
+    return TestMailData.model_validate(result)
 
 
 async def get_public_key():
-    return Signer.get_public_key_pem()
+    return _token_signer.get_public_key_pem()
 
 
 async def sign(command: str):
-    return Signer.create_signed_token(command)
+    return _token_signer.create_signed_token(command)

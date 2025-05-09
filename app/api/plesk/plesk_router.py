@@ -58,7 +58,7 @@ router = APIRouter(tags=["plesk"], prefix="/plesk")
 @router.get("/get/subscription/", response_model=SubscriptionListResponseModel)
 async def find_plesk_subscription_by_domain(
     domain: Annotated[
-        SubscriptionName,
+        DomainName,
         Query(),
     ],
 ) -> SubscriptionListResponseModel:
@@ -69,18 +69,7 @@ async def find_plesk_subscription_by_domain(
             detail=f"Subscription with domain [{domain.name}] not found.",
         )
     subscription_models = [
-        SubscriptionDetailsModel(
-            host=sub["host"],
-            id=sub["id"],
-            name=sub["name"],
-            username=sub["username"],
-            userlogin=sub["userlogin"],
-            domains=[SubscriptionName(name=d) for d in sub["domains"]],
-            domain_states=sub["domain_states"],
-            is_space_overused=sub["is_space_overused"],
-            subscription_size_mb=sub["subscription_size_mb"],
-            subscription_status=sub["subscription_status"],
-        )
+        SubscriptionDetailsModel.model_validate(sub)
         for sub in subscriptions
     ]
 
