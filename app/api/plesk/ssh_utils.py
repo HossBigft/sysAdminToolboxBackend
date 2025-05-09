@@ -299,7 +299,7 @@ async def plesk_get_testmail_login_data(
 
 
 async def get_public_key():
-    return _token_signer.get_public_key_pem()
+    return _token_signer.get_public_key_base64()
 
 
 async def sign(command: str):
