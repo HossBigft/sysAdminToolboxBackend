@@ -43,11 +43,13 @@ class ToKenSigner:
         with open(self._private_key_path, "wb") as f:
             f.write(private_bytes)
 
-        public_bytes = self.get_raw_public_key_bytes()
-        public_b64 = base64.b64encode(public_bytes).decode("utf-8")
+        x509_der_pub  = self._private_key.public_key().public_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
         with open(self._public_key_path, "w") as f:
-            f.write(public_b64)
-
+            f.write(base64.b64encode(x509_der_pub).decode())
+ 
     def _load_keys_from_files(self):
         with open(self._private_key_path, "rb") as f:
             private_bytes = f.read()
@@ -56,7 +58,7 @@ class ToKenSigner:
         with open(self._public_key_path, "r") as f:
             public_b64 = f.read().strip()
         public_bytes = base64.b64decode(public_b64)
-        self._public_key = Ed25519PublicKey.from_public_bytes(public_bytes)
+        self._public_key = serialization.load_der_public_key(public_bytes)
 
     def _sign_message(self, data):
         signature = self._private_key.sign(data.encode())
