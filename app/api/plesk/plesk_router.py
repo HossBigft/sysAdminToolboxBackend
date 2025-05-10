@@ -176,15 +176,11 @@ async def create_testmail_for_domain(
     mail_host = PleskServerDomain(name=server)
     mail_domain = SubscriptionName(name=maildomain)
 
-    if await is_domain_exist_on_server(
-        host=mail_host,
-        domain=mail_domain,
-    ):
-        data: TestMailData = await plesk_get_testmail_login_data(
+    data: TestMailData = await plesk_get_testmail_login_data(
             mail_host, mail_domain=mail_domain
         )
 
-    else:
+    if not data:
         raise HTTPException(
             status_code=404,
             detail=f"Subscription with domain [{mail_domain.name}] not found.",

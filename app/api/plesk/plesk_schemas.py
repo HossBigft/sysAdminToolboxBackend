@@ -114,6 +114,7 @@ class TestMailCredentials(BaseModel):
         str,
         StringConstraints(min_length=5, max_length=255, pattern=EMAIL_PASSWORD_PATTERN),
     ]
+    email: str
 
 
 class TestMailData(TestMailCredentials):

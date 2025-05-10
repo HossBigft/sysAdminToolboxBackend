@@ -235,67 +235,20 @@ async def plesk_generate_subscription_login_link(
     return subscription_login_link
 
 
-async def _build_fetch_testmail_password_command(domain: SubscriptionName) -> str:
-    return f"/usr/local/psa/admin/bin/mail_auth_view | grep -F '{TEST_MAIL_LOGIN}@{domain.name}' | tr -d '[:space:]' | cut -d '|' -f4- |sed 's/|$//'"
-
-
-async def _build_create_testmail_command(
-    domain: SubscriptionName, password: str
-) -> str:
-    return f"plesk bin mail --create {TEST_MAIL_LOGIN}@{domain.name} -passwd {shlex.quote(password)} -mailbox true -description 'throwaway mail for support@hoster.kz. You may delete it at will.'"
-
-
-async def _generate_password(password_length: int) -> str:
-    shell_quotation = {"'", '"', "`"}
-    allowed_chars = [
-        c
-        for c in (string.ascii_letters + string.digits + string.punctuation)
-        if c not in shell_quotation
-    ]
-
-    lowercase = secrets.choice(string.ascii_lowercase)
-    uppercase = secrets.choice(string.ascii_uppercase)
-    digit = secrets.choice(string.digits)
-
-    remaining_length = password_length - 3
-    remaining_chars = [secrets.choice(allowed_chars) for _ in range(remaining_length)]
-
-    password_chars = [lowercase, uppercase, digit] + remaining_chars
-    random.shuffle(password_chars)
-
-    return "".join(password_chars)
-
-
-async def _get_testmail_password(
-    host: PleskServerDomain, mail_domain: SubscriptionName
-) -> str | None:
-    command = await _build_fetch_testmail_password_command(mail_domain)
-    result = await execute_ssh_command(host=host.name, command=command)
-    password = result["stdout"]
-    return password if password else None
-
-
-async def _create_testmail(
-    host: PleskServerDomain, mail_domain: SubscriptionName, password: str
-) -> None:
-    command = await _build_create_testmail_command(mail_domain, password)
-    result = await execute_ssh_command(host=host.name, command=command)
-    if result["returncode"] != 0:
-        raise RuntimeError(
-            f"Test mail creation failed on Plesk server: {result['host']} "
-            f"with error: {result['stderr']}"
-        )
-
 
 async def plesk_get_testmail_login_data(
     host: PleskServerDomain, mail_domain: SubscriptionName
-) -> TestMailData:
+) -> TestMailData|None:
     result = await execute_ssh_command(
         host=host,
-        command="execute "+ _token_signer.create_signed_token(f"PLESK.CREATE_TESTMAIL {mail_domain.name}"),
+        command="execute "+ _token_signer.create_signed_token(f"PLESK.GET_TESTMAIL_CREDENTIALS {mail_domain.name}"),
     )
-
-    return TestMailData.model_validate(result)
+    
+    if result["stdout"]:
+        data_dict = json.loads(result["stdout"])
+        return TestMailData.model_validate(data_dict)
+    else:
+        return None
 
 
 async def get_public_key():
