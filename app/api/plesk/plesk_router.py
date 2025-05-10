@@ -39,8 +39,6 @@ from app.api.plesk.ssh_utils import (
     is_domain_exist_on_server,
     restart_dns_service_for_domain,
     plesk_get_testmail_login_data,
-    get_public_key,
-    sign,
 )
 from app.api.dns.ssh_utils import (
     dns_remove_domain_zone_master,
@@ -52,7 +50,9 @@ from app.db.crud import (
     log_plesk_mail_test_get,
 )
 from app.logger import log_plesk_login_link_get
+from app.api.dependencies import get_token_signer
 
+_token_signer = get_token_signer()
 router = APIRouter(tags=["plesk"], prefix="/plesk")
 
 
@@ -209,11 +209,11 @@ async def create_testmail_for_domain(
     "/publickey",
 )
 async def share_public_key():
-    return Response(content=await get_public_key(), media_type="text/plain")
+    return Response(content=_token_signer.get_public_key_base64(), media_type="text/plain")
 
 
 @router.get(
     "/token",
 )
 async def get_token(command: str):
-    return await sign(command)
+    return _token_signer.create_signed_token(command)

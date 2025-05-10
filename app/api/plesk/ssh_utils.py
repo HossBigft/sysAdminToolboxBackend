@@ -28,52 +28,6 @@ TEST_MAIL_PASSWORD_LENGTH = 14
 _token_signer = get_token_signer()
 
 
-class DomainStatus(IntEnum):
-    ONLINE = 0
-    SUBSCRIPTION_DISABLED = 2
-    DISABLED_BY_ADMIN = 16
-    DISABLED_BY_CLIENT = 64
-
-
-class DomainState(TypedDict):
-    domain: str
-    status: str
-
-
-class SubscriptionDetails(TypedDict):
-    host: str
-    id: str
-    name: str
-    username: str
-    userlogin: str
-    domains: List[str]
-    domain_states: List[DomainState]
-    is_space_overused: bool
-    subscription_size_mb: int
-    subscription_status: str
-
-
-class DomainQueryResult(TypedDict):
-    host: str
-    id: str
-    name: str
-    username: str
-    userlogin: str
-    domains: List[str]
-    domain_states: List[DomainState]
-    is_space_overused: bool
-    subscription_size_mb: int
-    subscription_status: str
-
-
-STATUS_MAPPING = {
-    DomainStatus.ONLINE: "online",
-    DomainStatus.SUBSCRIPTION_DISABLED: "subscription_is_disabled",
-    DomainStatus.DISABLED_BY_ADMIN: "domain_disabled_by_admin",
-    DomainStatus.DISABLED_BY_CLIENT: "domain_disabled_by_client",
-}
-
-
 class PleskServiceError(Exception):
     """Base exception for Plesk service operations"""
 
@@ -108,17 +62,13 @@ async def build_restart_dns_service_command(domain: SubscriptionName) -> str:
 
 async def fetch_subscription_id_by_domain(
     host: PleskServerDomain, domain: SubscriptionName
-) -> int | None:
-    query_subscription_id_by_domain = f"SELECT CASE WHEN webspace_id = 0 THEN id ELSE webspace_id END AS result FROM domains WHERE name LIKE '{domain.name}'"
+) -> dict | None:
 
-    fetch_subscription_id_by_domain_cmd = await build_plesk_db_command(
-        query_subscription_id_by_domain
-    )
-    result = await execute_ssh_command(host.name, fetch_subscription_id_by_domain_cmd)
+    result = await execute_ssh_command(host.name, command="execute "+_token_signer.create_signed_token(f"PLESK.GET_SUBSCRIPTION_ID_BY_DOMAIN {domain.name}"))
 
     if result["stdout"]:
-        subscription_id = int(result["stdout"])
-        return subscription_id
+        id_list= json.loads(result["stdout"])
+        return id_list
     else:
         return None
 
@@ -132,19 +82,12 @@ async def is_domain_exist_on_server(
 async def restart_dns_service_for_domain(
     host: PleskServerDomain, domain: SubscriptionName
 ) -> None:
-    restart_dns_cmd = await build_restart_dns_service_command(domain)
-    result = await execute_ssh_command(
-        host=host.name, command=restart_dns_cmd, verbose=True
+    await execute_ssh_command(
+        host=host.name,
+        command="execute "
+        + _token_signer.create_signed_token(f"PLESK.RESTART_DNS {domain.name}"),
+        verbose=True,
     )
-    match result["returncode"]:
-        case 4:
-            raise DomainNotFoundError(f"Domain {domain} does not exist on server")
-        case 0:
-            pass
-        case _:
-            raise CommandExecutionError(
-                stderr=result["stderr"], return_code=result["returncode"]
-            )
 
 
 async def batch_ssh_execute(cmd: str):
@@ -198,16 +141,15 @@ async def plesk_fetch_subscription_info(
     return results if results else None
 
 
-
-
-
-
-
 async def plesk_generate_subscription_login_link(
     host: PleskServerDomain, subscription_id: int, ssh_username: LinuxUsername
 ) -> str | None:
     result = await execute_ssh_command(
-        host=host.name, command="execute "+_token_signer.create_signed_token(f"PLESK.GET_LOGIN_LINK {subscription_id} {ssh_username}")
+        host=host.name,
+        command="execute "
+        + _token_signer.create_signed_token(
+            f"PLESK.GET_LOGIN_LINK {subscription_id} {ssh_username}"
+        ),
     )
     subscription_login_link = result["stdout"]
     if not subscription_login_link:
@@ -231,11 +173,3 @@ async def plesk_get_testmail_login_data(
         return TestMailData.model_validate(data_dict)
     else:
         return None
-
-
-async def get_public_key():
-    return _token_signer.get_public_key_base64()
-
-
-async def sign(command: str):
-    return _token_signer.create_signed_token(command)
