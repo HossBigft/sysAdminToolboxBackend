@@ -28,9 +28,15 @@ async def batch_ssh_execute(cmd: str):
         verbose=True,
     )
 
+
 _token_signer = get_token_signer()
+
+
 async def dns_query_domain_zone_master(domain: SubscriptionName | DomainName):
-    dnsAnswers = await batch_ssh_execute("execute " + _token_signer.create_signed_token(f"NS.GET_ZONE_MASTER {domain.name}"))
+    dnsAnswers = await batch_ssh_execute(
+        "execute "
+        + _token_signer.create_signed_token(f"NS.GET_ZONE_MASTER {domain.name}")
+    )
     dnsAnswers = [
         {"ns": answer["host"], "zone_master": answer["stdout"]}
         for answer in dnsAnswers
@@ -49,8 +55,7 @@ async def build_remove_zone_master_command(
 
 
 async def dns_remove_domain_zone_master(domain: SubscriptionName | DomainName):
-    rm_zone_master_md = await build_remove_zone_master_command(domain)
-    dnsAnswers = await batch_ssh_execute(rm_zone_master_md)
+    dnsAnswers = await batch_ssh_execute("execute " + _token_signer.create_signed_token(f"NS.REMOVE_ZONE {domain.name}"))
     for item in dnsAnswers:
         if item["stderr"] and "not found" not in item["stderr"]:
             raise RuntimeError(
