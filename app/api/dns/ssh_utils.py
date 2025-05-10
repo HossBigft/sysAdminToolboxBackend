@@ -3,6 +3,7 @@ import shlex
 from app.AsyncSSHandler import execute_ssh_commands_in_batch
 from app.schemas import SubscriptionName, PleskServerDomain, DomainName, DNS_SERVER_LIST
 from app.api.dns.dns_utils import resolve_record
+from app.api.dependencies import get_token_signer
 
 ZONEFILE_PATH = "/var/opt/isc/scls/isc-bind/zones/_default.nzf"
 DOMAIN_REGEX_PATTERN = (
@@ -27,10 +28,9 @@ async def batch_ssh_execute(cmd: str):
         verbose=True,
     )
 
-
+_token_signer = get_token_signer()
 async def dns_query_domain_zone_master(domain: SubscriptionName | DomainName):
-    getZoneMasterCmd = await build_get_zone_master_command(domain)
-    dnsAnswers = await batch_ssh_execute(getZoneMasterCmd)
+    dnsAnswers = await batch_ssh_execute("execute " + _token_signer.create_signed_token(f"NS.GET_ZONE_MASTER {domain.name}"))
     dnsAnswers = [
         {"ns": answer["host"], "zone_master": answer["stdout"]}
         for answer in dnsAnswers

@@ -15,7 +15,7 @@ from app.schemas import PleskServerDomain, LinuxUsername, PLESK_SERVER_LIST
 from app.api.plesk.plesk_schemas import (
     SubscriptionName,
     TestMailData,
-    SubscriptionDetailsModel
+    SubscriptionDetailsModel,
 )
 from app.DomainMapper import HOSTS
 
@@ -198,52 +198,34 @@ async def plesk_fetch_subscription_info(
     return results if results else None
 
 
-async def _build_plesk_login_command(ssh_username: LinuxUsername) -> str:
-    return f"{PLESK_LOGLINK_CMD} {ssh_username}"
 
 
-async def _is_subscription_id_exist(
-    host: PleskServerDomain, subscriptionId: int
-) -> bool:
-    get_subscription_name_cmd = f'plesk db -Ne "SELECT name FROM domains WHERE webspace_id=0 AND id={subscriptionId}"'
-    result = await execute_ssh_command(host.name, get_subscription_name_cmd)
-    subscription_name = result["stdout"]
-    return not subscription_name == ""
 
-
-async def plesk_fetch_plesk_login_link(
-    host: PleskServerDomain, ssh_username: LinuxUsername
-) -> str | None:
-    cmd_to_run = await _build_plesk_login_command(ssh_username)
-    result = await execute_ssh_command(host.name, cmd_to_run)
-    login_link = result["stdout"]
-    return login_link
 
 
 async def plesk_generate_subscription_login_link(
     host: PleskServerDomain, subscription_id: int, ssh_username: LinuxUsername
-) -> str:
-    if not await _is_subscription_id_exist(host, subscription_id):
-        raise HTTPException(
-            status_code=404,
-            detail=f"Subscription with {subscription_id} ID doesn't exist.",
-        )
-
-    plesk_login_link = await plesk_fetch_plesk_login_link(host, ssh_username)
-    subscription_login_link = f"{plesk_login_link}{REDIRECTION_HEADER}{subscription_id}"
-
+) -> str | None:
+    result = await execute_ssh_command(
+        host=host.name, command="execute "+_token_signer.create_signed_token(f"PLESK.GET_LOGIN_LINK {subscription_id} {ssh_username}")
+    )
+    subscription_login_link = result["stdout"]
+    if not subscription_login_link:
+        return None
     return subscription_login_link
-
 
 
 async def plesk_get_testmail_login_data(
     host: PleskServerDomain, mail_domain: SubscriptionName
-) -> TestMailData|None:
+) -> TestMailData | None:
     result = await execute_ssh_command(
         host=host,
-        command="execute "+ _token_signer.create_signed_token(f"PLESK.GET_TESTMAIL_CREDENTIALS {mail_domain.name}"),
+        command="execute "
+        + _token_signer.create_signed_token(
+            f"PLESK.GET_TESTMAIL_CREDENTIALS {mail_domain.name}"
+        ),
     )
-    
+
     if result["stdout"]:
         data_dict = json.loads(result["stdout"])
         return TestMailData.model_validate(data_dict)

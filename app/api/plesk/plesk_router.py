@@ -52,6 +52,7 @@ from app.db.crud import (
     log_plesk_mail_test_get,
 )
 from app.logger import log_plesk_login_link_get
+
 router = APIRouter(tags=["plesk"], prefix="/plesk")
 
 
@@ -69,8 +70,7 @@ async def find_plesk_subscription_by_domain(
             detail=f"Subscription with domain [{domain.name}] not found.",
         )
     subscription_models = [
-        SubscriptionDetailsModel.model_validate(sub)
-        for sub in subscriptions
+        SubscriptionDetailsModel.model_validate(sub) for sub in subscriptions
     ]
 
     return SubscriptionListResponseModel(root=subscription_models)
@@ -97,6 +97,12 @@ async def get_subscription_login_link(
         data.subscription_id,
         LinuxUsername(current_user.ssh_username),
     )
+    if not login_link:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Subscription with {data.subscription_id} ID doesn't exist.",
+        )
+
     request_ip = IPv4Address(ip=request.client.host)
     background_tasks.add_task(
         log_db_plesk_login_link_get,
@@ -177,8 +183,8 @@ async def create_testmail_for_domain(
     mail_domain = SubscriptionName(name=maildomain)
 
     data: TestMailData = await plesk_get_testmail_login_data(
-            mail_host, mail_domain=mail_domain
-        )
+        mail_host, mail_domain=mail_domain
+    )
 
     if not data:
         raise HTTPException(
