@@ -63,11 +63,16 @@ async def build_restart_dns_service_command(domain: SubscriptionName) -> str:
 async def fetch_subscription_id_by_domain(
     host: PleskServerDomain, domain: SubscriptionName
 ) -> dict | None:
-
-    result = await execute_ssh_command(host.name, command="execute "+_token_signer.create_signed_token(f"PLESK.GET_SUBSCRIPTION_ID_BY_DOMAIN {domain.name}"))
+    result = await execute_ssh_command(
+        host.name,
+        command="execute "
+        + _token_signer.create_signed_token(
+            f"PLESK.GET_SUBSCRIPTION_ID_BY_DOMAIN {domain.name}"
+        ),
+    )
 
     if result["stdout"]:
-        id_list= json.loads(result["stdout"])
+        id_list = json.loads(result["stdout"])
         return id_list
     else:
         return None
@@ -85,7 +90,7 @@ async def restart_dns_service_for_domain(
     await execute_ssh_command(
         host=host.name,
         command="execute "
-        + _token_signer.create_signed_token(f"PLESK.RESTART_DNS {domain.name}"),
+        + _token_signer.create_signed_token(f"PLESK.RESTART_DNS_SERVICE {domain.name}"),
         verbose=True,
     )
 
