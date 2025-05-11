@@ -1,5 +1,5 @@
 import pytest
-from app.AsyncSSHandler import execute_ssh_commands_in_batch
+from app.core.AsyncSSHandler import execute_ssh_commands_in_batch
 from app.host_lists import PLESK_SERVER_LIST
 from tests.conftest import MOCK_SSH_COMMAND_RESULT
 

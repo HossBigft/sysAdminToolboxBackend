@@ -2,7 +2,7 @@
 # from .test_data.hosts import HostList
 # import pytest
 # from unittest.mock import patch
-# from tests.utils.container_unix_utils import UnixContainer
+# from tests.core_utils.container_unix_utils import UnixContainer
 # import pytest_asyncio
 
 # TEST_DNS_HOSTS = ["test"]

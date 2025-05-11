@@ -49,7 +49,7 @@ from app.db.crud import (
     log_db_plesk_login_link_get,
     log_plesk_mail_test_get,
 )
-from app.logger import log_plesk_login_link_get
+from app.core_utils.logger import log_plesk_login_link_get
 from app.api.dependencies import get_token_signer
 
 _token_signer = get_token_signer()

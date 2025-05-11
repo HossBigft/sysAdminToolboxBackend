@@ -1,5 +1,5 @@
 from fastapi_utils.tasks import repeat_every
-from app.AsyncSSHandler import execute_ssh_commands_in_batch
+from app.core.AsyncSSHandler import execute_ssh_commands_in_batch
 from app.schemas import PLESK_SERVER_LIST, DNS_SERVER_LIST
 
 

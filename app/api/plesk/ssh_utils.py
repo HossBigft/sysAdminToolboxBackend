@@ -1,14 +1,8 @@
-import shlex
-import secrets
-import string
-import random
 import json
 
-from fastapi import HTTPException
-from typing import TypedDict, List
-from enum import IntEnum
+from typing import List
 
-from app.AsyncSSHandler import execute_ssh_command, execute_ssh_commands_in_batch
+from app.core.AsyncSSHandler import execute_ssh_command, execute_ssh_commands_in_batch
 from app.api.dependencies import get_token_signer
 
 from app.schemas import PleskServerDomain, LinuxUsername, PLESK_SERVER_LIST
@@ -17,7 +11,7 @@ from app.api.plesk.plesk_schemas import (
     TestMailData,
     SubscriptionDetailsModel,
 )
-from app.DomainMapper import HOSTS
+from app.core.DomainMapper import HOSTS
 
 _token_signer = get_token_signer()
 

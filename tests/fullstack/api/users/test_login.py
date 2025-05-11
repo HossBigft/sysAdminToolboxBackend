@@ -8,7 +8,7 @@ from sqlalchemy import select
 from app.core.config import settings
 from app.core.security import verify_password
 from app.db.models import User
-from app.utils import generate_password_reset_token
+from app.core_utils import generate_password_reset_token
 
 
 @pytest.mark.asyncio

@@ -16,7 +16,7 @@ from app.core.db import engine
 from app.schemas import TokenPayload, UserRoles, UserPublic
 from typing import List
 import app.db.models
-from app.token_signer import ToKenSigner
+from app.core.token_signer import ToKenSigner
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"

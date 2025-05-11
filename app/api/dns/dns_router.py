@@ -24,7 +24,7 @@ from app.schemas import (
     SubscriptionName,
     HostIpData,
 )
-from app.DomainMapper import HOSTS
+from app.core.DomainMapper import HOSTS
 
 router = APIRouter(tags=["dns"], prefix="/dns")
 

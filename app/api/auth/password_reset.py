@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import HTMLResponse
 
 from app.core.security import get_password_hash
-from app.utils import (
+from app.core_utils.utils import (
     generate_password_reset_token,
     generate_reset_password_email,
     send_email,

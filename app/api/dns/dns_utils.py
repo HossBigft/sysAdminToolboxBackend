@@ -1,7 +1,7 @@
 from dns import resolver, reversename, rdatatype
 from tldextract import extract
 
-from app.DomainMapper import HOSTS
+from app.core.DomainMapper import HOSTS
 from app.core.config import settings
 
 

@@ -31,7 +31,7 @@ from app.schemas import (
     SuperUserUpdateMe,
 )
 from app.db.models import UsersActivityLog, User
-from app.utils import generate_new_account_email, send_email
+from app.core_utils.utils import generate_new_account_email, send_email
 
 router = APIRouter(tags=["users"], prefix="/users")
 

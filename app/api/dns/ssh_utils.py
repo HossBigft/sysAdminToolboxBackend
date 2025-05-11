@@ -1,6 +1,4 @@
-import shlex
-
-from app.AsyncSSHandler import execute_ssh_commands_in_batch
+from app.core.AsyncSSHandler import execute_ssh_commands_in_batch
 from app.schemas import SubscriptionName, PleskServerDomain, DomainName, DNS_SERVER_LIST
 from app.api.dns.dns_utils import resolve_record
 from app.api.dependencies import get_token_signer
