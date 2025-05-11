@@ -19,57 +19,14 @@ from app.api.plesk.plesk_schemas import (
 )
 from app.DomainMapper import HOSTS
 
-PLESK_LOGLINK_CMD = "plesk login"
-REDIRECTION_HEADER = r"&success_redirect_url=%2Fadmin%2Fsubscription%2Foverview%2Fid%2F"
-PLESK_DB_RUN_CMD_TEMPLATE = 'plesk db -Ne \\"{}\\"'
-TEST_MAIL_LOGIN = "testhoster"
-TEST_MAIL_PASSWORD_LENGTH = 14
-
 _token_signer = get_token_signer()
 
 
-class PleskServiceError(Exception):
-    """Base exception for Plesk service operations"""
-
-    pass
-
-
-class DomainNotFoundError(PleskServiceError):
-    """Raised when domain doesn't exist on server"""
-
-    pass
-
-
-class CommandExecutionError(PleskServiceError):
-    """Raised when command execution fails"""
-
-    def __init__(self, stderr: str, return_code: int | None):
-        self.stderr = stderr
-        self.return_code = return_code
-        super().__init__(f"Command failed with return code {return_code}: {stderr}")
-
-
-async def build_plesk_db_command(query: str) -> str:
-    return PLESK_DB_RUN_CMD_TEMPLATE.format(query)
-
-
-async def build_restart_dns_service_command(domain: SubscriptionName) -> str:
-    escaped_domain = shlex.quote(f'"{domain.name.lower()}"')
-    return (
-        f"plesk bin dns --off {escaped_domain} && plesk bin dns --on {escaped_domain}"
-    )
-
-
 async def fetch_subscription_id_by_domain(
-    host: PleskServerDomain, domain: SubscriptionName
+        host: PleskServerDomain, domain: SubscriptionName
 ) -> dict | None:
-    result = await execute_ssh_command(
-        host.name,
-        command="execute "
-        + _token_signer.create_signed_token(
-            f"PLESK.GET_SUBSCRIPTION_ID_BY_DOMAIN {domain.name}"
-        ),
-    )
+    result = await execute_ssh_command(host.name, command="execute " + _token_signer.create_signed_token(
+        f"PLESK.GET_SUBSCRIPTION_ID_BY_DOMAIN {domain.name}"))
 
     if result["stdout"]:
         id_list = json.loads(result["stdout"])
@@ -79,18 +36,18 @@ async def fetch_subscription_id_by_domain(
 
 
 async def is_domain_exist_on_server(
-    host: PleskServerDomain, domain: SubscriptionName
+        host: PleskServerDomain, domain: SubscriptionName
 ) -> bool:
     return await fetch_subscription_id_by_domain(host=host, domain=domain) is not None
 
 
 async def restart_dns_service_for_domain(
-    host: PleskServerDomain, domain: SubscriptionName
+        host: PleskServerDomain, domain: SubscriptionName
 ) -> None:
     await execute_ssh_command(
         host=host.name,
         command="execute "
-        + _token_signer.create_signed_token(f"PLESK.RESTART_DNS_SERVICE {domain.name}"),
+                + _token_signer.create_signed_token(f"PLESK.RESTART_DNS_SERVICE {domain.name}"),
         verbose=True,
     )
 
@@ -104,7 +61,7 @@ async def batch_ssh_execute(cmd: str):
 
 
 async def plesk_fetch_subscription_info(
-    domain: SubscriptionName,
+        domain: SubscriptionName,
 ) -> List[SubscriptionDetailsModel] | None:
     lowercase_domain_name = domain.name.lower()
     ssh_command = _token_signer.create_signed_token(
@@ -147,12 +104,12 @@ async def plesk_fetch_subscription_info(
 
 
 async def plesk_generate_subscription_login_link(
-    host: PleskServerDomain, subscription_id: int, ssh_username: LinuxUsername
+        host: PleskServerDomain, subscription_id: int, ssh_username: LinuxUsername
 ) -> str | None:
     result = await execute_ssh_command(
         host=host.name,
         command="execute "
-        + _token_signer.create_signed_token(
+                + _token_signer.create_signed_token(
             f"PLESK.GET_LOGIN_LINK {subscription_id} {ssh_username}"
         ),
     )
@@ -163,12 +120,12 @@ async def plesk_generate_subscription_login_link(
 
 
 async def plesk_get_testmail_login_data(
-    host: PleskServerDomain, mail_domain: SubscriptionName
+        host: PleskServerDomain, mail_domain: SubscriptionName
 ) -> TestMailData | None:
     result = await execute_ssh_command(
-        host=host,
+        host=host.name,
         command="execute "
-        + _token_signer.create_signed_token(
+                + _token_signer.create_signed_token(
             f"PLESK.GET_TESTMAIL_CREDENTIALS {mail_domain.name}"
         ),
     )
