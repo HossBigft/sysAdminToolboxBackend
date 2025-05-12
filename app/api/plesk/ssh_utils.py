@@ -1,15 +1,17 @@
 import json
 
 from typing import List
+from fastapi import HTTPException
+
 
 from app.core.AsyncSSHandler import execute_ssh_command, execute_ssh_commands_in_batch
 from app.api.dependencies import get_token_signer
 
-from app.schemas import PleskServerDomain, LinuxUsername, PLESK_SERVER_LIST
+from app.schemas import PleskServerDomain, LinuxUsername, PLESK_SERVER_LIST, OperationResult, ExecutionStatus, DomainName
 from app.api.plesk.plesk_schemas import (
     SubscriptionName,
     TestMailData,
-    SubscriptionDetailsModel,
+    SubscriptionDetailsModel
 )
 from app.core.DomainMapper import HOSTS
 
@@ -55,8 +57,8 @@ async def batch_ssh_execute(cmd: str):
 
 
 async def plesk_fetch_subscription_info(
-        domain: SubscriptionName,
-) -> List[SubscriptionDetailsModel] | None:
+        domain: DomainName,
+) -> List[SubscriptionDetailsModel]:
     lowercase_domain_name = domain.name.lower()
     ssh_command = _token_signer.create_signed_token(
         f"PLESK.FETCH_SUBSCRIPTION_INFO {lowercase_domain_name}"
@@ -66,35 +68,29 @@ async def plesk_fetch_subscription_info(
     results = []
     for answer in answers:
         raw = answer.get("stdout")
-        host_str = answer.get("host")
-        if not raw or not host_str:
-            continue
+        hostName = answer.get("host")
 
-        try:
-            parsed_list = json.loads(raw)  # This is expected to be a list of dicts
-            for item in parsed_list:
+        if not raw or not hostName:
+            continue
+        answerJson = json.loads(raw)
+        op_result = OperationResult.model_validate(answerJson)
+
+        if op_result.status == ExecutionStatus.OK and op_result.payload:
+            for item in op_result.payload:
                 model_data = {
-                    "host": HOSTS.resolve_domain(host_str),
-                    "id": item["id"],
-                    "name": item["name"],
-                    "username": item["username"],
-                    "userlogin": item["userlogin"],
-                    "domain_states": item["domain_states"],
-                    "domains": [
-                        SubscriptionName(name=ds["domain"])
-                        for ds in item["domain_states"]
-                    ],
-                    "is_space_overused": item["is_space_overused"],
-                    "subscription_size_mb": item["subscription_size_mb"],
-                    "subscription_status": item["subscription_status"],
+                    "host": HOSTS.resolve_domain(hostName),
+                    **item
                 }
                 model = SubscriptionDetailsModel.model_validate(model_data)
                 results.append(model)
 
-        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
-            print(f"Failed to parse response from host {host_str}: {e}")
+    if not results:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No subscription information found for domain: {domain.name}"
+        )
 
-    return results if results else None
+    return results
 
 
 async def plesk_generate_subscription_login_link(

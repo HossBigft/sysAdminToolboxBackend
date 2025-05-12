@@ -13,11 +13,14 @@ from pydantic import (
 )
 from pydantic.json_schema import SkipJsonSchema
 from enum import Enum
-from typing import List, Literal, Any
+from typing import List, Literal, Any, Generic, Optional, TypeVar
 from typing_extensions import Annotated
 from datetime import datetime
 from pydantic.networks import IPvAnyAddress
 from app.core.config import settings
+from pydantic.generics import GenericModel
+
+
 
 SUBSCRIPTION_NAME_PATTERN = (
     r"^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,9}$"
@@ -345,3 +348,19 @@ class SuperUserUpdateMe(BaseModel):
 class HostIpData(BaseModel):
     name: ValidatedDomainName
     ips: List[IPv4Address]
+
+T = TypeVar("T")
+
+class ExecutionStatus(str, Enum):
+    OK = "OK"
+    CREATED = "CREATED"
+    BAD_REQUEST = "BAD_REQUEST"
+    UNPROCCESIBLE_ENTITY = "UNPROCCESIBLE_ENTITY"
+    NOT_FOUND = "NOT_FOUND"
+    INTERNAL_ERROR = "INTERNAL_ERROR"
+
+class OperationResult(GenericModel, Generic[T]):
+    status: ExecutionStatus
+    code: int
+    message: str
+    payload: Optional[T] = None
