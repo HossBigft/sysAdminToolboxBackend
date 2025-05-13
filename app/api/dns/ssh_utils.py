@@ -1,5 +1,14 @@
+from fastapi import HTTPException
+
 from app.core.AsyncSSHandler import execute_ssh_commands_in_batch
-from app.schemas import SubscriptionName, PleskServerDomain, DomainName, DNS_SERVER_LIST
+from app.schemas import (
+    SubscriptionName,
+    PleskServerDomain,
+    DomainName,
+    DNS_SERVER_LIST,
+    SignedExecutorResponse,
+    ExecutionStatus,
+)
 from app.api.dns.dns_utils import resolve_record
 from app.api.dependencies import get_token_signer
 
@@ -15,33 +24,41 @@ async def batch_ssh_execute(cmd: str):
 
 
 async def dns_query_domain_zone_master(domain: SubscriptionName | DomainName):
-    dnsAnswers = await batch_ssh_execute(
+    responses = await batch_ssh_execute(
         "execute "
         + _token_signer.create_signed_token(f"NS.GET_ZONE_MASTER {domain.name}")
     )
-    dnsAnswers = [
-        {"ns": answer["host"], "zone_master": answer["stdout"]}
-        for answer in dnsAnswers
-        if answer["stdout"]
-    ]
-    if not dnsAnswers:
+
+    results = []
+    for raw, parsed in zip(
+        responses, map(SignedExecutorResponse.from_ssh_response, responses)
+    ):
+        if parsed.payload:
+            results.append(
+                {
+                    "ns": raw["host"],
+                    "zone_master": parsed.payload["zonemaster_ip"],
+                }
+            )
+
+    if not results:
         return None
-    return {"domain": f"{domain.name}", "answers": dnsAnswers}
+
+    return {"domain": domain.name, "answers": results}
 
 
 async def dns_remove_domain_zone_master(domain: SubscriptionName | DomainName):
-    dnsAnswers = await batch_ssh_execute(
-        "execute " + _token_signer.create_signed_token(f"NS.REMOVE_ZONE {domain.name}"))
-    for item in dnsAnswers:
-        if item["stderr"] and "not found" not in item["stderr"]:
-            raise RuntimeError(
-                f"DNS zone removal failed for host: {item['host']} "
-                f"with error: {item['stderr']}"
-            )
+    responses = await batch_ssh_execute(
+        "execute " + _token_signer.create_signed_token(f"NS.REMOVE_ZONE {domain.name}")
+    )
+
+    for parsedAnswer in map(SignedExecutorResponse.from_ssh_response, responses):
+        if parsedAnswer.status is not (ExecutionStatus.OK or ExecutionStatus.NOT_FOUND):
+            raise HTTPException(status_code=500)
 
 
 async def dns_get_domain_zone_master(
-        domain: SubscriptionName | DomainName,
+    domain: SubscriptionName | DomainName,
 ) -> PleskServerDomain | str | None:
     zonemaster_data = await dns_query_domain_zone_master(domain=domain)
     if zonemaster_data is None:

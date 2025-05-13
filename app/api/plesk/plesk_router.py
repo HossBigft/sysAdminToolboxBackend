@@ -197,7 +197,9 @@ async def create_testmail_for_domain(
     "/publickey",
 )
 async def share_public_key():
-    return Response(content=_token_signer.get_public_key_base64(), media_type="text/plain")
+    return Response(
+        content=_token_signer.get_public_key_base64(), media_type="text/plain"
+    )
 
 
 @router.get(

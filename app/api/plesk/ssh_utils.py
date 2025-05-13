@@ -1,5 +1,3 @@
-import json
-
 from typing import List
 from fastapi import HTTPException
 
