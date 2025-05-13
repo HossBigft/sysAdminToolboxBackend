@@ -369,7 +369,7 @@ class ExecutionStatus(str, Enum):
     INTERNAL_ERROR = "INTERNAL_ERROR"
 
 
-class OperationResult(GenericModel, Generic[T]):
+class SignedExecutorResponse(GenericModel, Generic[T]):
     status: ExecutionStatus
     code: int
     message: str
@@ -377,8 +377,8 @@ class OperationResult(GenericModel, Generic[T]):
 
     @classmethod
     def from_ssh_response(
-        cls: Type["OperationResult[T]"], response: SSHCommandResult
-    ) -> "OperationResult[T] | None":
+        cls: Type["SignedExecutorResponse[T]"], response: SSHCommandResult
+    ) -> "SignedExecutorResponse[T] | None":
         stdout = response.get("stdout")
         if not stdout:
             return None

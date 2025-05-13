@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from app.core.AsyncSSHandler import execute_ssh_command, execute_ssh_commands_in_batch
 from app.api.dependencies import get_token_signer
 
-from app.schemas import PleskServerDomain, LinuxUsername, PLESK_SERVER_LIST, OperationResult, ExecutionStatus, DomainName
+from app.schemas import PleskServerDomain, LinuxUsername, PLESK_SERVER_LIST, SignedExecutorResponse, ExecutionStatus, DomainName
 from app.api.plesk.plesk_schemas import (
     SubscriptionName,
     TestMailData,
@@ -69,7 +69,7 @@ async def plesk_fetch_subscription_info(
     results = []
     for answer in answers:
         hostName = answer.get("host")
-        op_result = OperationResult.from_ssh_response(answer)
+        op_result = SignedExecutorResponse.from_ssh_response(answer)
         if op_result:
             if op_result.status == ExecutionStatus.OK and op_result.payload:
                 for item in op_result.payload:
@@ -96,7 +96,7 @@ async def plesk_generate_subscription_login_link(
             f"PLESK.GET_LOGIN_LINK {subscription_id} {ssh_username}"
         ),
     )
-    answer = OperationResult.from_ssh_response(result)
+    answer = SignedExecutorResponse.from_ssh_response(result)
     if not answer:
         raise HTTPException(
             status_code=404,
