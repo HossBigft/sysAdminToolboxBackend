@@ -14,6 +14,7 @@ from app.api.plesk.plesk_schemas import (
     SubscriptionDetailsModel
 )
 from app.core.DomainMapper import HOSTS
+from app.core.AsyncSSHandler import SSHCommandResult
 
 _token_signer = get_token_signer()
 
@@ -67,22 +68,14 @@ async def plesk_fetch_subscription_info(
 
     results = []
     for answer in answers:
-        raw = answer.get("stdout")
         hostName = answer.get("host")
-
-        if not raw or not hostName:
-            continue
-        answerJson = json.loads(raw)
-        op_result = OperationResult.model_validate(answerJson)
-
-        if op_result.status == ExecutionStatus.OK and op_result.payload:
-            for item in op_result.payload:
-                model_data = {
-                    "host": HOSTS.resolve_domain(hostName),
-                    **item
-                }
-                model = SubscriptionDetailsModel.model_validate(model_data)
-                results.append(model)
+        op_result = OperationResult.from_ssh_response(answer)
+        if op_result:
+            if op_result.status == ExecutionStatus.OK and op_result.payload:
+                for item in op_result.payload:
+                    model_data = {"host": HOSTS.resolve_domain(hostName), **item}
+                    model = SubscriptionDetailsModel.model_validate(model_data)
+                    results.append(model)
 
     if not results:
         raise HTTPException(
@@ -103,10 +96,14 @@ async def plesk_generate_subscription_login_link(
             f"PLESK.GET_LOGIN_LINK {subscription_id} {ssh_username}"
         ),
     )
-    subscription_login_link = result["stdout"]
-    if not subscription_login_link:
-        return None
-    return subscription_login_link
+    answer = OperationResult.from_ssh_response(result)
+    if not answer:
+        raise HTTPException(
+            status_code=404,
+        )
+    payload = answer.payload
+    if answer.status == ExecutionStatus.OK and answer.payload:
+        return payload["login_link"]
 
 
 async def plesk_get_testmail_login_data(

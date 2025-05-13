@@ -1,4 +1,5 @@
 import uuid
+import json
 
 from pydantic import (
     EmailStr,
@@ -13,13 +14,12 @@ from pydantic import (
 )
 from pydantic.json_schema import SkipJsonSchema
 from enum import Enum
-from typing import List, Literal, Any, Generic, Optional, TypeVar
+from typing import List, Literal, Any, Generic, Optional, TypeVar, TypedDict, Type
 from typing_extensions import Annotated
 from datetime import datetime
 from pydantic.networks import IPvAnyAddress
 from app.core.config import settings
 from pydantic.generics import GenericModel
-
 
 
 SUBSCRIPTION_NAME_PATTERN = (
@@ -349,7 +349,16 @@ class HostIpData(BaseModel):
     name: ValidatedDomainName
     ips: List[IPv4Address]
 
+
 T = TypeVar("T")
+
+
+class SSHCommandResult(TypedDict):
+    host: str
+    stdout: str | None
+    stderr: str | None
+    returncode: int | None
+
 
 class ExecutionStatus(str, Enum):
     OK = "OK"
@@ -359,8 +368,18 @@ class ExecutionStatus(str, Enum):
     NOT_FOUND = "NOT_FOUND"
     INTERNAL_ERROR = "INTERNAL_ERROR"
 
+
 class OperationResult(GenericModel, Generic[T]):
     status: ExecutionStatus
     code: int
     message: str
     payload: Optional[T] = None
+
+    @classmethod
+    def from_ssh_response(
+        cls: Type["OperationResult[T]"], response: SSHCommandResult
+    ) -> "OperationResult[T] | None":
+        stdout = response.get("stdout")
+        if not stdout:
+            return None
+        return cls.model_validate(json.loads(stdout))

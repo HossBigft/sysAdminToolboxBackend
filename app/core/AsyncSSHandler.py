@@ -1,13 +1,8 @@
 import asyncio
-from typing import List, TypedDict
 import time
+from typing import List
+from app.schemas import SSHCommandResult
 
-
-class SSHCommandResult(TypedDict):
-    host: str
-    stdout: str | None
-    stderr: str | None
-    returncode: int | None
 
 
 async def _execute_ssh_command(host, command, verbose: bool) -> SSHCommandResult:
