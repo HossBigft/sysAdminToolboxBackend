@@ -353,7 +353,7 @@ class HostIpData(BaseModel):
 T = TypeVar("T")
 
 
-class SSHCommandResult(TypedDict):
+class SshResponse(TypedDict):
     host: str
     stdout: str | None
     stderr: str | None
@@ -370,6 +370,7 @@ class ExecutionStatus(str, Enum):
 
 
 class SignedExecutorResponse(GenericModel, Generic[T]):
+    host: str
     status: ExecutionStatus
     code: int
     message: str
@@ -377,9 +378,17 @@ class SignedExecutorResponse(GenericModel, Generic[T]):
 
     @classmethod
     def from_ssh_response(
-        cls: Type["SignedExecutorResponse[T]"], response: SSHCommandResult
+        cls: Type["SignedExecutorResponse[T]"], response: SshResponse
     ) -> "SignedExecutorResponse[T] | None":
         stdout = response.get("stdout")
         if not stdout:
-            return None
-        return cls.model_validate(json.loads(stdout))
+            raise ValueError("No output found in SSH response.")
+
+        try:
+            parsed_response = json.loads(stdout)
+            parsed_response["host"] = response.get("host")
+            return cls.model_validate(parsed_response)
+        except json.JSONDecodeError:
+            raise ValueError("Failed to parse JSON from SSH response.")
+        except Exception as e:
+            raise ValueError(f"Error while parsing SSH response: {e}")
