@@ -19,6 +19,7 @@ from app.api.plesk.plesk_schemas import (
     SubscriptionDetailsModel,
 )
 from app.core.DomainMapper import HOSTS
+from app.commands.SignedExecutor import SignedExecutor
 
 _token_signer = get_token_signer()
 
@@ -54,7 +55,6 @@ async def restart_dns_service_for_domain(
         host=host.name,
         command="execute "
         + _token_signer.create_signed_token(f"PLESK.RESTART_DNS_SERVICE {domain.name}"),
-
     )
 
 
@@ -68,51 +68,43 @@ async def batch_ssh_execute(cmd: str):
 async def plesk_fetch_subscription_info(
     domain: DomainName,
 ) -> List[SubscriptionDetailsModel]:
-    lowercase_domain_name = domain.name.lower()
-    ssh_command = _token_signer.create_signed_token(
-        f"PLESK.FETCH_SUBSCRIPTION_INFO {lowercase_domain_name}"
-    )
-    answers = await batch_ssh_execute("execute " + ssh_command)
+    responses = await SignedExecutor().plesk_fetch_subscription_info_by_domain(domain)
 
-    results = []
-    for answer in answers:
-        hostName = answer.get("host")
-        op_result = SignedExecutorResponse.from_ssh_response(answer)
-        if op_result:
-            if op_result.status == ExecutionStatus.OK and op_result.payload:
-                for item in op_result.payload:
-                    model_data = {"host": HOSTS.resolve_domain(hostName), **item}
-                    model = SubscriptionDetailsModel.model_validate(model_data)
-                    results.append(model)
-
-    if not results:
+    responses = [
+        response
+        for response in responses
+        if response.status is not ExecutionStatus.NOT_FOUND
+    ]
+    if not responses:
         raise HTTPException(
             status_code=404,
             detail=f"No subscription information found for domain: {domain.name}",
         )
 
+    results = []
+    for response in responses:
+        hostName = response.host
+        if response.payload:
+            for item in response.payload:
+                model_data = {"host": HOSTS.resolve_domain(hostName), **item}
+                model = SubscriptionDetailsModel.model_validate(model_data)
+                results.append(model)
     return results
 
 
 async def plesk_generate_subscription_login_link(
     host: PleskServerDomain, subscription_id: int, ssh_username: LinuxUsername
 ) -> str | None:
-    result = await execute_ssh_command(
-        host=host.name,
-        command="execute "
-        + _token_signer.create_signed_token(
-            f"PLESK.GET_LOGIN_LINK {subscription_id} {ssh_username}"
-        ),
+    response = await SignedExecutor().plesk_get_login_link_by_sybscription_id(
+        host, subscription_id, ssh_username
     )
-    answer = SignedExecutorResponse.from_ssh_response(result)
-    if not answer:
+    if response.status == ExecutionStatus.NOT_FOUND:
         raise HTTPException(
             status_code=404,
         )
-    payload = answer.payload
+    payload = response.payload
     if payload:
-        if answer.status == ExecutionStatus.OK and answer.payload:
-            return payload["login_link"]
+        return payload["login_link"]
 
 
 async def plesk_get_testmail_login_data(

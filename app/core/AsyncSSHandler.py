@@ -2,11 +2,11 @@ import asyncio
 import time
 from typing import List
 
-from app.schemas import SSHCommandResult
+from app.schemas import SshResponse
 from app.core.config import settings
 
 
-async def _execute_ssh_command(host, command) -> SSHCommandResult:
+async def _execute_ssh_command(host, command) -> SshResponse:
     verbose: bool = settings.ENVIRONMENT == "local"
     start_time = time.time()
 
@@ -46,12 +46,12 @@ async def _execute_ssh_command(host, command) -> SSHCommandResult:
     }
 
 
-async def execute_ssh_commands_in_batch(server_list, command) -> List[SSHCommandResult]:
+async def execute_ssh_commands_in_batch(server_list, command) -> List[SshResponse]:
     tasks = [_execute_ssh_command(host, command) for host in server_list]
     results = await asyncio.gather(*tasks)
     return results
 
 
-async def execute_ssh_command(host: str, command: str) -> SSHCommandResult:
+async def execute_ssh_command(host: str, command: str) -> SshResponse:
     result = await asyncio.gather(_execute_ssh_command(host, command))
     return result[0]
