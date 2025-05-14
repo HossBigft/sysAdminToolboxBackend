@@ -54,7 +54,7 @@ async def restart_dns_service_for_domain(
         host=host.name,
         command="execute "
         + _token_signer.create_signed_token(f"PLESK.RESTART_DNS_SERVICE {domain.name}"),
-        verbose=True,
+
     )
 
 
@@ -62,7 +62,6 @@ async def batch_ssh_execute(cmd: str):
     return await execute_ssh_commands_in_batch(
         server_list=PLESK_SERVER_LIST,
         command=cmd,
-        verbose=True,
     )
 
 

@@ -19,7 +19,7 @@ async def batch_ssh_execute(cmd: str):
     return await execute_ssh_commands_in_batch(
         server_list=DNS_SERVER_LIST,
         command=cmd,
-        verbose=True,
+
     )
 
 
