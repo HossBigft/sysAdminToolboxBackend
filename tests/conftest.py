@@ -37,7 +37,7 @@ def mock_ssh_commands(monkeypatch):
 @pytest_asyncio.fixture(autouse=True)
 async def validate_ssh_disabled():
     """Ensure SSH is disabled before running tests."""
-    from app.core.AsyncSSHandler import execute_ssh_commands_in_batch
+    from app.signed_executor.async_ssh_handler import execute_ssh_commands_in_batch
     from app.host_lists import PLESK_SERVER_LIST
 
     results = await execute_ssh_commands_in_batch(

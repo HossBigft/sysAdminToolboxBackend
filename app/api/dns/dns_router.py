@@ -1,11 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query, Request
 from typing import Annotated
 
-from app.api.dns.ssh_utils import (
-    dns_get_domain_zone_master,
-    dns_remove_domain_zone_master,
-    dns_query_domain_zone_master,
-)
 from app.api.dns.dns_utils import resolve_record, RecordNotFoundError
 from app.db.crud import (
     log_dns_zone_master_removal,
@@ -25,6 +20,7 @@ from app.schemas import (
     HostIpData,
 )
 from app.core.DomainMapper import HOSTS
+from app.api.dns.dns_service import DNSService
 
 router = APIRouter(tags=["dns"], prefix="/dns")
 
@@ -62,14 +58,14 @@ async def get_ptr_record(ip: Annotated[IPv4Address, Query()]):
     dependencies=[Depends(RoleChecker([UserRoles.SUPERUSER, UserRoles.ADMIN]))],
 )
 async def get_zone_master_from_dns_servers(
-    session: SessionDep,
-    background_tasks: BackgroundTasks,
-    current_user: CurrentUser,
-    domain: Annotated[SubscriptionName, Depends()],
-    request: Request,
+        session: SessionDep,
+        background_tasks: BackgroundTasks,
+        current_user: CurrentUser,
+        domain: Annotated[SubscriptionName, Depends()],
+        request: Request,
 ):
     try:
-        zone_masters_dict = await dns_query_domain_zone_master(domain)
+        zone_masters_dict = await DNSService().get_zone_masters(domain)
         if not zone_masters_dict:
             raise HTTPException(
                 status_code=404,
@@ -96,7 +92,7 @@ async def get_zone_master_from_dns_servers(
     ],
 )
 async def get_mx_record(
-    domain: Annotated[DomainName, Query()],
+        domain: Annotated[DomainName, Query()],
 ) -> DomainMxRecordResponse:
     domain_str = domain.name
     mx_records = resolve_record(domain_str, "MX")
@@ -115,7 +111,7 @@ async def get_mx_record(
     ],
 )
 async def get_ns_records(
-    domain: Annotated[DomainName, Query()],
+        domain: Annotated[DomainName, Query()],
 ) -> DomainNsRecordResponse:
     domain_str = domain.name
     ns_records = resolve_record(domain_str, "NS")
@@ -132,15 +128,15 @@ async def get_ns_records(
     dependencies=[Depends(RoleChecker([UserRoles.SUPERUSER, UserRoles.ADMIN]))],
 )
 async def delete_zone_file_for_domain(
-    session: SessionDep,
-    background_tasks: BackgroundTasks,
-    current_user: CurrentUser,
-    domain: Annotated[DomainName, Query()],
-    request: Request,
+        session: SessionDep,
+        background_tasks: BackgroundTasks,
+        current_user: CurrentUser,
+        domain: Annotated[DomainName, Query()],
+        request: Request,
 ):
     try:
-        curr_zonemaster = await dns_get_domain_zone_master(domain)
-        await dns_remove_domain_zone_master(domain)
+        curr_zonemaster = await DNSService().get_zone_masters(domain)
+        await DNSService().remove_zone(domain)
         request_ip = IPv4Address(ip=request.client.host)
         background_tasks.add_task(
             log_dns_zone_master_removal,
@@ -161,7 +157,7 @@ async def delete_zone_file_for_domain(
     response_model=HostIpData,
 )
 async def resolve_host_by_domain(
-    domain: Annotated[DomainName, Depends()],
+        domain: Annotated[DomainName, Depends()],
 ) -> HostIpData:
     resolved_host = HOSTS.resolve_domain(domain.name)
 
@@ -178,7 +174,7 @@ async def resolve_host_by_domain(
     response_model=HostIpData,
 )
 async def resolve_host_by_ip(
-    ip: Annotated[IPv4Address, Depends()],
+        ip: Annotated[IPv4Address, Depends()],
 ) -> HostIpData:
     resolved_host = HOSTS.resolve_ip(ip)
 

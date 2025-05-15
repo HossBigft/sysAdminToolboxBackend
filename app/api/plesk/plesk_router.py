@@ -9,12 +9,8 @@ from fastapi import (
 )
 from typing import Annotated
 
-from app.api.plesk.ssh_utils import (
-    plesk_fetch_subscription_info,
-)
 from app.api.plesk.plesk_schemas import (
     SubscriptionListResponseModel,
-    SubscriptionDetailsModel,
     SubscriptionLoginLinkInput,
     SetZonemasterInput,
     TestMailCredentials,
@@ -31,19 +27,8 @@ from app.schemas import (
     ValidatedDomainName,
     ValidatedPleskServerDomain,
 )
-from app.api.plesk.ssh_utils import (
-    plesk_generate_subscription_login_link,
-)
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
-from app.api.plesk.ssh_utils import (
-    is_domain_exist_on_server,
-    restart_dns_service_for_domain,
-    plesk_get_testmail_login_data,
-)
-from app.api.dns.ssh_utils import (
-    dns_remove_domain_zone_master,
-    dns_get_domain_zone_master,
-)
+
 from app.db.crud import (
     log_dns_zone_master_set,
     log_db_plesk_login_link_get,
@@ -51,6 +36,8 @@ from app.db.crud import (
 )
 from app.core_utils.logger import log_plesk_login_link_get
 from app.api.dependencies import get_token_signer
+from app.api.plesk.plesk_service import PleskService
+from app.api.dns.dns_service import DNSService
 
 _token_signer = get_token_signer()
 router = APIRouter(tags=["plesk"], prefix="/plesk")
@@ -58,9 +45,9 @@ router = APIRouter(tags=["plesk"], prefix="/plesk")
 
 @router.get("/get/subscription/", response_model=SubscriptionListResponseModel)
 async def find_plesk_subscription_by_domain(
-    domain: Annotated[DomainName, Query()],
+        domain: Annotated[DomainName, Query()],
 ) -> SubscriptionListResponseModel:
-    subscriptions = await plesk_fetch_subscription_info(domain)
+    subscriptions = await PleskService().fetch_subscription_info(domain)
     return SubscriptionListResponseModel(root=subscriptions)
 
 
@@ -69,18 +56,18 @@ async def find_plesk_subscription_by_domain(
     dependencies=[Depends(RoleChecker([UserRoles.SUPERUSER, UserRoles.ADMIN]))],
 )
 async def get_subscription_login_link(
-    data: SubscriptionLoginLinkInput,
-    current_user: CurrentUser,
-    background_tasks: BackgroundTasks,
-    session: SessionDep,
-    request: Request,
+        data: SubscriptionLoginLinkInput,
+        current_user: CurrentUser,
+        background_tasks: BackgroundTasks,
+        session: SessionDep,
+        request: Request,
 ):
     if not current_user.ssh_username:
         raise HTTPException(
             status_code=404,
             detail="User have no Plesk SSH username",
         )
-    login_link = await plesk_generate_subscription_login_link(
+    login_link = await PleskService().generate_subscription_login_link(
         PleskServerDomain(name=data.host),
         data.subscription_id,
         LinuxUsername(current_user.ssh_username),
@@ -116,23 +103,23 @@ async def get_subscription_login_link(
     dependencies=[Depends(RoleChecker([UserRoles.SUPERUSER, UserRoles.ADMIN]))],
 )
 async def set_zonemaster(
-    data: SetZonemasterInput,
-    current_user: CurrentUser,
-    background_tasks: BackgroundTasks,
-    session: SessionDep,
-    request: Request,
+        data: SetZonemasterInput,
+        current_user: CurrentUser,
+        background_tasks: BackgroundTasks,
+        session: SessionDep,
+        request: Request,
 ) -> Message:
     curr_zone_master: PleskServerDomain | str | None
-    if await is_domain_exist_on_server(
-        host=PleskServerDomain(name=data.target_plesk_server),
-        domain=SubscriptionName(name=data.domain),
+    if await PleskService().is_domain_exist_on_server(
+            host=PleskServerDomain(name=data.target_plesk_server),
+            domain=SubscriptionName(name=data.domain),
     ):
-        curr_zone_master = await dns_get_domain_zone_master(
-            SubscriptionName(name=data.domain)
+        curr_zone_master = await DNSService().get_zone_masters(
+            DomainName(name=data.domain)
         )
 
-        await dns_remove_domain_zone_master(SubscriptionName(name=data.domain))
-        await restart_dns_service_for_domain(
+        await DNSService().remove_zone(DomainName(name=data.domain))
+        await PleskService().restart_dns_service_for_domain(
             host=PleskServerDomain(name=data.target_plesk_server),
             domain=SubscriptionName(name=data.domain),
         )
@@ -160,17 +147,17 @@ async def set_zonemaster(
     response_model=TestMailCredentials,
 )
 async def create_testmail_for_domain(
-    maildomain: Annotated[ValidatedDomainName, Query()],
-    server: Annotated[ValidatedPleskServerDomain, Query()],
-    current_user: CurrentUser,
-    background_tasks: BackgroundTasks,
-    session: SessionDep,
-    request: Request,
+        maildomain: Annotated[ValidatedDomainName, Query()],
+        server: Annotated[ValidatedPleskServerDomain, Query()],
+        current_user: CurrentUser,
+        background_tasks: BackgroundTasks,
+        session: SessionDep,
+        request: Request,
 ) -> TestMailCredentials:
     mail_host = PleskServerDomain(name=server)
     mail_domain = SubscriptionName(name=maildomain)
 
-    data: TestMailData = await plesk_get_testmail_login_data(
+    data: TestMailData = await PleskService().get_testmail_login_data(
         mail_host, mail_domain=mail_domain
     )
 
