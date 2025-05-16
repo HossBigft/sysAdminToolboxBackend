@@ -1,4 +1,6 @@
 import logging
+import os
+
 from datetime import datetime, timedelta
 from app.schemas import UserActionType
 
@@ -37,9 +39,15 @@ def setup_uvicorn_logger():
     return logger
 
 
-def setup_actios_logger():
-    app_logger = logging.getLogger("app.user_actions")
-    app_logger.setLevel(logging.INFO)
+def setup_actions_logger():
+    user_action_logger = logging.getLogger("app.user_actions")
+    user_action_logger.setLevel(logging.INFO)
+
+    log_directory = '/var/log/backend_app'
+    os.makedirs(log_directory, exist_ok=True)
+
+    file_handler = logging.FileHandler(os.path.join(log_directory, 'user_action.log'), mode='a')
+    user_action_logger.addHandler(file_handler)
 
 
 def log_plesk_login_link_get(
