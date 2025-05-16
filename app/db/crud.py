@@ -116,19 +116,21 @@ async def log_dns_zone_master_set(
     session.commit()
 
 
-async def log_db_plesk_login_link_get(
+async def db_log_plesk_login_link_get(
     session: Session,
     user: UserPublic,
-    plesk_server: PleskServerDomain,
+    plesk_server: str,
     subscription_id: int,
-    ip: IPv4Address,
+    subscription_name:str,
+    requiest_ip: IPv4Address,
 ) -> None:
     user_action = GetPleskLoginLinkLog(
         user_id=user.id,
-        plesk_server=plesk_server.name,
+        plesk_server=plesk_server,
         subscription_id=subscription_id,
+        subscription_name=subscription_name,
         ssh_username=user.ssh_username,
-        ip=ip,
+        ip=requiest_ip,
     )
     session.add(user_action)
     session.commit()

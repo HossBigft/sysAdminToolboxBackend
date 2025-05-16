@@ -8,7 +8,7 @@ from app.schemas import (
     ExecutionStatus,
     LinuxUsername,
 )
-from app.plesk.plesk_schemas import SubscriptionDetailsModel, TestMailData
+from app.plesk.plesk_schemas import SubscriptionDetailsModel, TestMailData, LoginLinkData
 from app.signed_executor.signed_executor_client import SignedExecutorClient
 from app.signed_executor.commands.plesk_command import PleskCommand
 from app.core.DomainMapper import HOSTS
@@ -69,7 +69,7 @@ class PleskService:
 
     async def generate_subscription_login_link(
         self, host: PleskServerDomain, subscription_id: int, ssh_username: LinuxUsername
-    ) -> str:
+    ) -> LoginLinkData:
         command = PleskCommand.get_login_link()
         response = await self.client.execute_on_server(
             host.name, command, str(subscription_id), str(ssh_username)
@@ -87,7 +87,7 @@ class PleskService:
                 detail="Failed to generate login link",
             )
 
-        return response.payload["login_link"]
+        return LoginLinkData.model_validate(response.payload)
 
     async def get_testmail_login_data(
         self, host: PleskServerDomain, mail_domain: SubscriptionName

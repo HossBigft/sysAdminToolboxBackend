@@ -2,7 +2,11 @@ import logging
 import os
 
 from datetime import datetime, timedelta
-from app.schemas import UserActionType
+
+from sqlalchemy.orm import Session
+
+from app.db.crud import db_log_plesk_login_link_get
+from app.schemas import UserActionType, PleskServerDomain, IPv4Address, SubscriptionName
 
 
 def round_up_seconds(dt):
@@ -50,16 +54,23 @@ def setup_actions_logger():
     user_action_logger.addHandler(file_handler)
 
 
-def log_plesk_login_link_get(
+async def log_plesk_login_link_get(
         user,
         plesk_server: str,
         subscription_id: int,
-        ip: str,
+        subscription_name: str,
+        request_ip: IPv4Address,
+        session: Session,
 ):
     app_logger = logging.getLogger("app.user_actions")
     log_message = (
         f"{UserActionType.GET_SUBSCRIPTION_LOGIN_LINK} | User: {user.email} | Server: {plesk_server} | "
-        f"Subscription: {subscription_id} | IP: {ip}"
+        f"Subscription_id: {subscription_id}| Subscription_name: {subscription_name} | IP: {request_ip}"
     )
-
+    await db_log_plesk_login_link_get(session=session,
+                                user=user,
+                                plesk_server=plesk_server,
+                                subscription_id=subscription_id,
+                                subscription_name=subscription_name,
+                                requiest_ip=request_ip)
     app_logger.info(log_message)

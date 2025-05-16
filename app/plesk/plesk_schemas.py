@@ -119,3 +119,7 @@ class TestMailCredentials(BaseModel):
 
 class TestMailData(TestMailCredentials):
     new_email_created: bool
+
+class LoginLinkData(BaseModel):
+    login_link:str
+    subscription_name:str

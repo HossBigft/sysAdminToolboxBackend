@@ -14,7 +14,7 @@ from app.plesk.plesk_schemas import (
     SubscriptionLoginLinkInput,
     SetZonemasterInput,
     TestMailCredentials,
-    TestMailData,
+    TestMailData
 )
 from app.schemas import (
     UserRoles,
@@ -31,7 +31,7 @@ from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
 
 from app.db.crud import (
     log_dns_zone_master_set,
-    log_db_plesk_login_link_get,
+    db_log_plesk_login_link_get,
     log_plesk_mail_test_get,
 )
 from app.core_utils.logger import log_plesk_login_link_get
@@ -67,27 +67,22 @@ async def get_subscription_login_link(
             status_code=403,
             detail="User have no SSH username.",
         )
-    login_link = await PleskService().generate_subscription_login_link(
+    login_link_data = await PleskService().generate_subscription_login_link(
         PleskServerDomain(name=data.host),
         data.subscription_id,
         LinuxUsername(current_user.ssh_username),
     )
+    login_link=login_link_data.login_link
 
     request_ip = IPv4Address(ip=request.client.host)
     background_tasks.add_task(
-        log_db_plesk_login_link_get,
+        log_plesk_login_link_get,
         session=session,
         user=current_user,
-        plesk_server=PleskServerDomain(name=data.host),
+        plesk_server=data.host,
+        subscription_name=login_link_data.subscription_name,
         subscription_id=data.subscription_id,
-        ip=request_ip,
-    )
-    background_tasks.add_task(
-        log_plesk_login_link_get,
-        user=current_user,
-        plesk_server=PleskServerDomain(name=data.host),
-        subscription_id=data.subscription_id,
-        ip=request_ip,
+        request_ip=request_ip,
     )
 
     return login_link
