@@ -9,7 +9,7 @@ from fastapi import (
 )
 from typing import Annotated
 
-from app.api.plesk.plesk_schemas import (
+from app.plesk.plesk_schemas import (
     SubscriptionListResponseModel,
     SubscriptionLoginLinkInput,
     SetZonemasterInput,
@@ -36,8 +36,8 @@ from app.db.crud import (
 )
 from app.core_utils.logger import log_plesk_login_link_get
 from app.api.dependencies import get_token_signer
-from app.api.plesk.plesk_service import PleskService
-from app.api.dns.dns_service import DNSService
+from app.plesk.plesk_service import PleskService
+from app.dns.dns_service import DNSService
 
 _token_signer = get_token_signer()
 router = APIRouter(tags=["plesk"], prefix="/plesk")

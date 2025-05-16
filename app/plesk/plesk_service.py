@@ -8,7 +8,7 @@ from app.schemas import (
     ExecutionStatus,
     LinuxUsername,
 )
-from app.api.plesk.plesk_schemas import SubscriptionDetailsModel, TestMailData
+from app.plesk.plesk_schemas import SubscriptionDetailsModel, TestMailData
 from app.signed_executor.signed_executor_client import SignedExecutorClient
 from app.signed_executor.commands.plesk_command import PleskCommand
 from app.core.DomainMapper import HOSTS

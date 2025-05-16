@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query, Request
 from typing import Annotated
 
-from app.api.dns.dns_utils import resolve_record, RecordNotFoundError
+from app.dns.dns_utils import resolve_record, RecordNotFoundError
 from app.db.crud import (
     log_dns_zone_master_removal,
     log_dns_zone_master_fetch,
@@ -20,7 +20,7 @@ from app.schemas import (
     HostIpData,
 )
 from app.core.DomainMapper import HOSTS
-from app.api.dns.dns_service import DNSService
+from app.dns.dns_service import DNSService
 
 router = APIRouter(tags=["dns"], prefix="/dns")
 

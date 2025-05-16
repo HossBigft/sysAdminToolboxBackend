@@ -7,11 +7,9 @@ from contextlib import asynccontextmanager
 
 from app.core.config import settings
 from app.core_utils.ssh_warmup import ssh_warmup
-from app.api.users import users_router as users
-from app.api.auth import password_reset, auth_router as login
-from app.api.dns import dns_router as dns
-from app.api.plesk import plesk_router as plesk
-from app.api import utils_router as utils
+from app.users import users_router as users
+from app.auth import auth_router as login, password_reset
+from app.api import utils_router as utils, plesk_router as plesk, dns_router as dns
 from app.core_utils.logger import setup_uvicorn_logger, setup_actios_logger
 
 

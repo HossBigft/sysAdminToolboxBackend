@@ -3,9 +3,9 @@ from fastapi import HTTPException
 from unittest.mock import AsyncMock, patch, MagicMock
 
 
-from app.api.dns.dns_router import delete_zone_file_for_domain
+from app.api.dns_router import delete_zone_file_for_domain
 from app.schemas import SubscriptionName, Message, DomainName
-from app.api.dns.ssh_utils import (
+from app.dns import (
     build_remove_zone_master_command,
     dns_remove_domain_zone_master,
 )

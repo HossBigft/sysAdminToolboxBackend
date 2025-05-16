@@ -1,8 +1,7 @@
 import pytest
-import shlex
 from unittest.mock import patch, AsyncMock
 
-from app.api.dns.ssh_utils import (
+from app.dns import (
     build_get_zone_master_command,
     dns_query_domain_zone_master,
 )

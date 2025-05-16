@@ -1,5 +1,5 @@
 import pytest
-from app.api.plesk.ssh_utils import (
+from app.plesk import (
     plesk_fetch_subscription_info,
 )
 from tests.utils.container_db_utils import TestMariadb, TEST_DB_CMD
