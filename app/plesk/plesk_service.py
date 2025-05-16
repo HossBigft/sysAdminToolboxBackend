@@ -78,7 +78,7 @@ class PleskService:
         if response.status == ExecutionStatus.NOT_FOUND:
             raise HTTPException(
                 status_code=404,
-                detail=f"Subscription with ID {subscription_id} not found",
+                detail=response.message,
             )
 
         if not response.payload:
