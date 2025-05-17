@@ -31,7 +31,6 @@ from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
 
 from app.db.crud import (
     log_dns_zone_master_set,
-    db_log_plesk_login_link_get,
     log_plesk_mail_test_get,
 )
 from app.core_utils.logger import log_plesk_login_link_get
@@ -74,7 +73,6 @@ async def get_subscription_login_link(
     )
     login_link=login_link_data.login_link
 
-    request_ip = IPv4Address(ip=request.client.host)
     background_tasks.add_task(
         log_plesk_login_link_get,
         session=session,
@@ -82,7 +80,7 @@ async def get_subscription_login_link(
         plesk_server=data.host,
         subscription_name=login_link_data.subscription_name,
         subscription_id=data.subscription_id,
-        request_ip=request_ip,
+        request=request,
     )
 
     return login_link

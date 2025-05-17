@@ -7,8 +7,11 @@ from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler
 from typing import List
 
+from exceptiongroup import catch
 from sqlalchemy.orm import Session
-
+from fastapi import (
+    Request
+)
 from app.db.crud import db_log_plesk_login_link_get
 from app.schemas import UserActionType, PleskServerDomain, IPv4Address, SubscriptionName
 
@@ -102,15 +105,26 @@ class LogEntry():
         return str(self)
 
 
+def _get_request_ip(request: Request) -> str:
+    ip:str
+    try:
+        ip=request.headers["X-Forwarded-For"]
+    except KeyError:
+        ip=request.client.host
+    return ip
+
+
 async def log_plesk_login_link_get(
         user,
         plesk_server: str,
         subscription_id: int,
         subscription_name: str,
-        request_ip: IPv4Address,
+        request: Request,
         session: Session,
 ):
     app_logger = logging.getLogger("app.user_actions")
+    request_ip = IPv4Address.model_validate(_get_request_ip(request))
+
     log_message = LogEntry(UserActionType.GET_SUBSCRIPTION_LOGIN_LINK_BY_DOMAIN).field("plesk_user",
                                                                                        user.ssh_username).field(
         "backend_user",
