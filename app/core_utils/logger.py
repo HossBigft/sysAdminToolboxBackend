@@ -1,12 +1,18 @@
 import logging
 import os
+import shutil
+import gzip
 
 from datetime import datetime, timedelta
+from logging.handlers import RotatingFileHandler
+from typing import List
 
 from sqlalchemy.orm import Session
 
 from app.db.crud import db_log_plesk_login_link_get
 from app.schemas import UserActionType, PleskServerDomain, IPv4Address, SubscriptionName
+
+USER_ACTION_LOG_SIZE_MB = 10
 
 
 def round_up_seconds(dt):
@@ -43,15 +49,52 @@ def setup_uvicorn_logger():
     return logger
 
 
+def _mb_to_bytes(mb: int) -> int:
+    return mb * 1024 * 1024
+
+
 def setup_actions_logger():
+    def _namer(name):
+        return name + ".gz"
+
+    def _compressed_rotator(source, dest):
+        with open(source, 'rb') as f_in:
+            with gzip.open(dest, 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+        os.remove(source)
+
     user_action_logger = logging.getLogger("app.user_actions")
     user_action_logger.setLevel(logging.INFO)
 
     log_directory = '/var/log/backend_app'
     os.makedirs(log_directory, exist_ok=True)
 
-    file_handler = logging.FileHandler(os.path.join(log_directory, 'user_action.log'), mode='a')
+    file_handler = RotatingFileHandler(os.path.join(log_directory, 'user_action.log'), mode='a',
+                                       maxBytes=_mb_to_bytes(USER_ACTION_LOG_SIZE_MB), backupCount=5)
+
+    file_handler.rotator = _compressed_rotator
+    file_handler.namer = _namer
     user_action_logger.addHandler(file_handler)
+
+
+class LogEntry():
+    def __init__(self, action: UserActionType):
+        self.fields = {}
+        self.field("action_type", action.value)
+
+    def __str__(self) -> str:
+        fields_str: List[str] = []
+
+        for key, val in self.fields.items():
+            fields_str.append(f"{key}: {val}")
+        return " | ".join(fields_str)
+
+    def field(self, name, value):
+        self.fields[name] = value
+        return self
+
+    def str(self) -> str:
+        return str(self)
 
 
 async def log_plesk_login_link_get(
@@ -63,14 +106,14 @@ async def log_plesk_login_link_get(
         session: Session,
 ):
     app_logger = logging.getLogger("app.user_actions")
-    log_message = (
-        f"{UserActionType.GET_SUBSCRIPTION_LOGIN_LINK} | User: {user.email} | Server: {plesk_server} | "
-        f"Subscription_id: {subscription_id}| Subscription_name: {subscription_name} | IP: {request_ip}"
-    )
+    log_message = LogEntry(UserActionType.GET_SUBSCRIPTION_LOGIN_LINK).field("user", user.email).field("plesk_server",
+                                                                                                       plesk_server).field(
+        "subscription_name", subscription_name).field("subscription_id", subscription_id).field("IP", request_ip)
+
     await db_log_plesk_login_link_get(session=session,
-                                user=user,
-                                plesk_server=plesk_server,
-                                subscription_id=subscription_id,
-                                subscription_name=subscription_name,
-                                requiest_ip=request_ip)
-    app_logger.info(log_message)
+                                      user=user,
+                                      plesk_server=plesk_server,
+                                      subscription_id=subscription_id,
+                                      subscription_name=subscription_name,
+                                      requiest_ip=request_ip)
+    app_logger.info(log_message.str())
