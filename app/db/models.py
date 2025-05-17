@@ -129,7 +129,7 @@ class GetPleskLoginLinkLog(UsersActivityLog):
     subscription_id: Mapped[int] = mapped_column(Integer, nullable=False)
     subscription_name: Mapped[str] = mapped_column(String, nullable=False)
     __mapper_args__ = {
-        "polymorphic_identity": UserActionType.GET_SUBSCRIPTION_LOGIN_LINK
+        "polymorphic_identity": UserActionType.GET_SUBSCRIPTION_LOGIN_LINK_BY_DOMAIN
     }
 
 

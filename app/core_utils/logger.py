@@ -106,8 +106,8 @@ async def log_plesk_login_link_get(
         session: Session,
 ):
     app_logger = logging.getLogger("app.user_actions")
-    log_message = LogEntry(UserActionType.GET_SUBSCRIPTION_LOGIN_LINK).field("user", user.email).field("plesk_server",
-                                                                                                       plesk_server).field(
+    log_message = LogEntry(UserActionType.GET_SUBSCRIPTION_LOGIN_LINK_BY_DOMAIN).field("user", user.email).field("plesk_server",
+                                                                                                                 plesk_server).field(
         "subscription_name", subscription_name).field("subscription_id", subscription_id).field("IP", request_ip)
 
     await db_log_plesk_login_link_get(session=session,

@@ -265,7 +265,7 @@ class UserActionType(str, Enum):
     GET_ZONE_MASTER = "GET_ZONE_MASTER"
     DELETE_ZONE_MASTER = "DELETE_ZONE_MASTER"
     SET_ZONE_MASTER = "SET_ZONE_MASTER"
-    GET_SUBSCRIPTION_LOGIN_LINK = "GET_SUBSCRIPTION_LOGIN_LINK"
+    GET_SUBSCRIPTION_LOGIN_LINK_BY_DOMAIN = "GET_SUBSCRIPTION_LOGIN_LINK"
     PLESK_MAIL_GET_TEST_MAIL = "PLESK_MAIL_GET_TEST_MAIL"
 
 
@@ -295,7 +295,7 @@ class GetZoneMasterLogSchema(UserLogBaseSchema):
 class GetPleskLoginLinkLogSchema(UserLogBaseSchema):
     plesk_server: PleskServerDomain
     subscription_id: int
-    log_type: Literal[UserActionType.GET_SUBSCRIPTION_LOGIN_LINK]
+    log_type: Literal[UserActionType.GET_SUBSCRIPTION_LOGIN_LINK_BY_DOMAIN]
     ssh_username: LinuxUsername
 
 
