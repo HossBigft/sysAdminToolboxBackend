@@ -106,11 +106,11 @@ class LogEntry():
 
 
 def _get_request_ip(request: Request) -> str:
-    ip:str
+    ip: str
     try:
-        ip=request.headers["X-Forwarded-For"]
+        ip = request.headers["X-Forwarded-For"]
     except KeyError:
-        ip=request.client.host
+        ip = request.client.host
     return ip
 
 
@@ -131,7 +131,9 @@ async def log_plesk_login_link_get(
         user.email).field(
         "plesk_server",
         plesk_server).field(
-        "subscription_name", subscription_name).field("subscription_id", subscription_id).field("IP", request_ip)
+        "subscription_name", subscription_name).field("subscription_id", subscription_id).field("IP", request_ip).field(
+        "backend_user_id",
+        user.id)
 
     await db_log_plesk_login_link_get(session=session,
                                       user=user,
