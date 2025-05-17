@@ -30,10 +30,9 @@ from app.schemas import (
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
 
 from app.db.crud import (
-    log_dns_zone_master_set,
     log_plesk_mail_test_get,
 )
-from app.core_utils.logger import log_plesk_login_link_get
+from app.core_utils.logger import log_plesk_login_link_get, log_dns_zone_master_set
 from app.api.dependencies import get_token_signer
 from app.plesk.plesk_service import PleskService
 from app.dns.dns_service import DNSService
@@ -71,7 +70,7 @@ async def get_subscription_login_link(
         data.subscription_id,
         LinuxUsername(current_user.ssh_username),
     )
-    login_link=login_link_data.login_link
+    login_link = login_link_data.login_link
 
     background_tasks.add_task(
         log_plesk_login_link_get,
@@ -102,9 +101,8 @@ async def set_zonemaster(
             host=PleskServerDomain(name=data.target_plesk_server),
             domain=SubscriptionName(name=data.domain),
     ):
-        curr_zone_master = await DNSService().get_zone_masters(
-            DomainName(name=data.domain)
-        )
+        zone_masters = await DNSService().get_zone_masters(DomainName(name=data.domain))
+        curr_zone_master = ", ".join([entry["ns"] for entry in zone_masters["answers"]])
 
         await DNSService().remove_zone(DomainName(name=data.domain))
         await PleskService().restart_dns_service_for_domain(
@@ -114,9 +112,8 @@ async def set_zonemaster(
     else:
         raise HTTPException(
             status_code=404,
-            detail=f"Subscription with domain [{data.domain}] not found.",
+            detail=f"Subscription with domain [{data.domain}] not found on server {data.target_plesk_server}.",
         )
-    request_ip = IPv4Address(ip=request.client.host)
     background_tasks.add_task(
         log_dns_zone_master_set,
         session=session,
@@ -124,7 +121,7 @@ async def set_zonemaster(
         current_zone_master=curr_zone_master,
         target_zone_master=PleskServerDomain(name=data.target_plesk_server),
         domain=DomainName(name=data.domain),
-        ip=request_ip,
+        request=request,
     )
     return Message(message="Zone master set successfully")
 

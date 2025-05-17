@@ -12,8 +12,9 @@ from sqlalchemy.orm import Session
 from fastapi import (
     Request
 )
-from app.db.crud import db_log_plesk_login_link_get
-from app.schemas import UserActionType, PleskServerDomain, IPv4Address, SubscriptionName
+from app.db.crud import db_log_plesk_login_link_get, db_log_dns_zone_master_set
+from app.db.models import User
+from app.schemas import UserActionType, PleskServerDomain, IPv4Address, SubscriptionName, UserPublic, DomainName
 
 USER_ACTION_LOG_SIZE_MB = 10
 
@@ -101,9 +102,6 @@ class LogEntry():
         self.fields[name] = value
         return self
 
-    def str(self) -> str:
-        return str(self)
-
 
 def _get_request_ip(request: Request) -> str:
     ip: str
@@ -114,15 +112,18 @@ def _get_request_ip(request: Request) -> str:
     return ip
 
 
+def get_user_action_logger():
+    return logging.getLogger("app.user_actions")
+
+
 async def log_plesk_login_link_get(
-        user,
+        user: UserPublic,
         plesk_server: str,
         subscription_id: int,
         subscription_name: str,
         request: Request,
         session: Session,
 ):
-    app_logger = logging.getLogger("app.user_actions")
     request_ip = IPv4Address.model_validate(_get_request_ip(request))
 
     log_message = LogEntry(UserActionType.GET_SUBSCRIPTION_LOGIN_LINK_BY_DOMAIN).field("plesk_user",
@@ -141,4 +142,28 @@ async def log_plesk_login_link_get(
                                       subscription_id=subscription_id,
                                       subscription_name=subscription_name,
                                       requiest_ip=request_ip)
-    app_logger.info(log_message.str())
+    get_user_action_logger().info(str(log_message))
+
+
+async def log_dns_zone_master_set(domain: DomainName, current_zone_master: str,
+                                  target_zone_master: PleskServerDomain,
+                                  session: Session,
+                                  user: UserPublic,
+                                  request: Request):
+    request_ip = IPv4Address.model_validate(_get_request_ip(request))
+
+    await db_log_dns_zone_master_set(session=session,
+                                     user=user,
+                                     current_zone_master=current_zone_master,
+                                     target_zone_master=target_zone_master,
+                                     ip=request_ip,
+                                     domain=domain)
+    log_entry = LogEntry(UserActionType.SET_ZONE_MASTER).field("domain", domain).field("current_zone_master",
+                                                                                       current_zone_master).field(
+        "target_zone_master",
+        target_zone_master.name).field("backend_user",
+                                       user.email).field(
+        "backend_user_id",
+        user.id).field("IP", request_ip)
+
+    get_user_action_logger().info(str(log_entry))

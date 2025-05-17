@@ -97,7 +97,7 @@ async def log_dns_zone_master_fetch(
     session.commit()
 
 
-async def log_dns_zone_master_set(
+async def db_log_dns_zone_master_set(
     session: Session,
     user: UserPublic,
     current_zone_master: PleskServerDomain | None,
