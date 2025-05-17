@@ -146,4 +146,4 @@ class PleskMailGetTestMailLog(UsersActivityLog):
     new_email_created: Mapped[Boolean] = mapped_column(
         Boolean, default=True, nullable=False
     )
-    __mapper_args__ = {"polymorphic_identity": UserActionType.PLESK_MAIL_GET_TEST_MAIL}
+    __mapper_args__ = {"polymorphic_identity": UserActionType.GET_TEST_MAIL_CREDENTIALS}

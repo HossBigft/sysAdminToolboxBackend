@@ -172,7 +172,7 @@ async def get_user_log_entries_by_id(
     )
 
 
-async def log_plesk_mail_test_get(
+async def db_log_plesk_mail_test_get(
     session: Session,
     user: UserPublic,
     ip: IPv4Address,

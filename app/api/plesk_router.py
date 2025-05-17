@@ -22,17 +22,13 @@ from app.schemas import (
     SubscriptionName,
     DomainName,
     PleskServerDomain,
-    IPv4Address,
     LinuxUsername,
     ValidatedDomainName,
     ValidatedPleskServerDomain,
 )
 from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
 
-from app.db.crud import (
-    log_plesk_mail_test_get,
-)
-from app.core_utils.logger import log_plesk_login_link_get, log_dns_zone_master_set
+from app.core_utils.logger import log_plesk_login_link_get, log_dns_zone_master_set, log_plesk_mail_test_get
 from app.api.dependencies import get_token_signer
 from app.plesk.plesk_service import PleskService
 from app.dns.dns_service import DNSService
@@ -151,15 +147,14 @@ async def create_testmail_for_domain(
             status_code=404,
             detail=f"Subscription with domain [{mail_domain.name}] not found.",
         )
-    request_ip = IPv4Address(ip=request.client.host)
     background_tasks.add_task(
         log_plesk_mail_test_get,
         session=session,
-        ip=request_ip,
+        request=request,
         user=current_user,
-        plesk_server=mail_host,
-        domain=DomainName(name=maildomain),
-        new_email_created=data.new_email_created,
+        plesk_mail_server=mail_host,
+        mail_domain=DomainName(name=maildomain),
+        is_new_email_created=data.new_email_created,
     )
 
     return TestMailCredentials.model_validate(data)

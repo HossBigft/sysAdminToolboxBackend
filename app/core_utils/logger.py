@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from fastapi import (
     Request
 )
-from app.db.crud import db_log_plesk_login_link_get, db_log_dns_zone_master_set
+from app.db.crud import db_log_plesk_login_link_get, db_log_dns_zone_master_set, db_log_plesk_mail_test_get
 from app.db.models import User
 from app.schemas import UserActionType, PleskServerDomain, IPv4Address, SubscriptionName, UserPublic, DomainName
 
@@ -163,6 +163,31 @@ async def log_dns_zone_master_set(domain: DomainName, current_zone_master: str,
         "target_zone_master",
         target_zone_master.name).field("backend_user",
                                        user.email).field(
+        "backend_user_id",
+        user.id).field("IP", request_ip)
+
+    get_user_action_logger().info(str(log_entry))
+
+
+async def log_plesk_mail_test_get(plesk_mail_server: PleskServerDomain,
+                                  mail_domain: DomainName,
+                                  is_new_email_created: bool,
+                                  session: Session,
+                                  user: UserPublic,
+                                  request: Request):
+    request_ip = IPv4Address.model_validate(_get_request_ip(request))
+
+    await   db_log_plesk_mail_test_get(session=session,
+                                       ip=request_ip,
+                                       user=user,
+                                       plesk_server=plesk_mail_server,
+                                       domain=mail_domain,
+                                       new_email_created=is_new_email_created)
+    log_entry = LogEntry(UserActionType.GET_TEST_MAIL_CREDENTIALS).field("backend_user",
+                                                                         user.email).field("mail_domain",
+                                                                                           mail_domain).field(
+        "is_new_mail_created",
+        is_new_email_created).field("plesk_mail_server", plesk_mail_server).field(
         "backend_user_id",
         user.id).field("IP", request_ip)
 
