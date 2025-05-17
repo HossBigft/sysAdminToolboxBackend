@@ -15,17 +15,22 @@ from app.schemas import UserActionType, PleskServerDomain, IPv4Address, Subscrip
 USER_ACTION_LOG_SIZE_MB = 10
 
 
-def round_up_seconds(dt):
+def round_up_seconds(dt: datetime):
     if dt.microsecond > 0:
         return (dt + timedelta(seconds=1)).replace(microsecond=0)
     return dt.replace(microsecond=0)
 
 
+def _get_timestamp() -> str:
+    now = datetime.now()
+    rounded_time = round_up_seconds(now)
+    return rounded_time.isoformat()
+
+
 class CompactDockerFormatter(logging.Formatter):
     def format(self, record):
-        now = datetime.now()
-        rounded_time = round_up_seconds(now)
-        timestamp = rounded_time.isoformat()
+
+        timestamp = _get_timestamp()
         level = record.levelname
 
         try:
@@ -87,7 +92,7 @@ class LogEntry():
 
         for key, val in self.fields.items():
             fields_str.append(f"{key}: {val}")
-        return " | ".join(fields_str)
+        return f"{_get_timestamp()} | " + " | ".join(fields_str)
 
     def field(self, name, value):
         self.fields[name] = value
@@ -106,8 +111,12 @@ async def log_plesk_login_link_get(
         session: Session,
 ):
     app_logger = logging.getLogger("app.user_actions")
-    log_message = LogEntry(UserActionType.GET_SUBSCRIPTION_LOGIN_LINK_BY_DOMAIN).field("user", user.email).field("plesk_server",
-                                                                                                                 plesk_server).field(
+    log_message = LogEntry(UserActionType.GET_SUBSCRIPTION_LOGIN_LINK_BY_DOMAIN).field("plesk_user",
+                                                                                       user.ssh_username).field(
+        "backend_user",
+        user.email).field(
+        "plesk_server",
+        plesk_server).field(
         "subscription_name", subscription_name).field("subscription_id", subscription_id).field("IP", request_ip)
 
     await db_log_plesk_login_link_get(session=session,
