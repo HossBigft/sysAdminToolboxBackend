@@ -97,9 +97,8 @@ async def set_zonemaster(
             host=PleskServerDomain(name=data.target_plesk_server),
             domain=SubscriptionName(name=data.domain),
     ):
-        zone_masters = await DNSService().get_zone_masters(DomainName(name=data.domain))
-        curr_zone_master = ", ".join([entry["ns"] for entry in zone_masters["answers"]])
-
+        zonemaster_info = await DNSService().get_zone_masters(DomainName(name=data.domain))
+        current_zonemasters = zonemaster_info.zone_masters
         await DNSService().remove_zone(DomainName(name=data.domain))
         await PleskService().restart_dns_service_for_domain(
             host=PleskServerDomain(name=data.target_plesk_server),
@@ -114,7 +113,7 @@ async def set_zonemaster(
         log_dns_zone_master_set,
         session=session,
         user=current_user,
-        current_zone_master=curr_zone_master,
+        current_zonemasters=current_zonemasters,
         target_zone_master=PleskServerDomain(name=data.target_plesk_server),
         domain=DomainName(name=data.domain),
         request=request,

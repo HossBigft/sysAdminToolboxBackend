@@ -17,6 +17,7 @@ from app.db.crud import db_log_plesk_login_link_get, \
     db_log_plesk_mail_test_get, \
     db_log_dns_zonemaster_removal, db_log_dns_zonemaster_fetch
 from app.db.models import User
+from app.dns.dns_models import ZoneMaster
 from app.schemas import UserActionType, PleskServerDomain, IPv4Address, SubscriptionName, UserPublic, DomainName
 
 USER_ACTION_LOG_SIZE_MB = 10
@@ -148,7 +149,7 @@ async def log_plesk_login_link_get(
     get_user_action_logger().info(str(log_message))
 
 
-async def log_dns_zone_master_set(domain: DomainName, current_zone_master: str,
+async def log_dns_zone_master_set(domain: DomainName, current_zonemasters: List[ZoneMaster],
                                   target_zone_master: PleskServerDomain,
                                   session: Session,
                                   user: UserPublic,
@@ -157,12 +158,12 @@ async def log_dns_zone_master_set(domain: DomainName, current_zone_master: str,
 
     await db_log_dns_zone_master_set(session=session,
                                      user=user,
-                                     current_zone_master=current_zone_master,
+                                     current_zone_master=", ".join([zonemaster.json() for zonemaster in current_zonemasters]),
                                      target_zone_master=target_zone_master,
                                      ip=request_ip,
                                      domain=domain)
     log_entry = LogEntry(UserActionType.SET_ZONE_MASTER).field("domain", domain).field("current_zone_master",
-                                                                                       current_zone_master).field(
+                                                                                       current_zonemasters).field(
         "target_zone_master",
         target_zone_master.name).field("backend_user",
                                        user.email).field(
