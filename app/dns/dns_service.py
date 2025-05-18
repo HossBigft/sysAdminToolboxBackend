@@ -22,7 +22,7 @@ class DNSService:
         command = DNSCommand.remove_zone()
         await self.client.execute_on_servers(self.server_list, command, domain.name)
 
-    async def get_zone_masters(self, domain: DomainName) -> ZoneMasterResponse:
+    async def get_zone_masters(self, domain: DomainName) -> List[ZoneMaster]:
         command = DNSCommand.get_zone_master()
         responses = await self.client.execute_on_servers(
             self.server_list, command, domain.name
@@ -43,4 +43,4 @@ class DNSService:
                 detail=f"No DNS zone found  for domain: {domain.name}",
             )
 
-        return ZoneMasterResponse(zone_name=domain.name, zone_masters=zone_masters)
+        return zone_masters

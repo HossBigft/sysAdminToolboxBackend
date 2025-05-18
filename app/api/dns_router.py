@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query, Request
 from typing import Annotated
 
+from app.dns.dns_models import ZoneMasterResponse
 from app.dns.dns_utils import resolve_record
 from app.core.dependencies import CurrentUser, SessionDep, RoleChecker
 from app.schemas import (
@@ -75,7 +76,7 @@ async def get_zone_master_from_dns_servers(
             domain=domain,
             request=request,
         )
-        return zone_masters
+        return ZoneMasterResponse(zone_name=domain.name, zone_masters=zone_masters)
 
 
 
