@@ -3,7 +3,6 @@ from typing import Annotated
 
 from app.dns.dns_utils import resolve_record, RecordNotFoundError
 from app.db.crud import (
-    log_dns_zone_master_removal,
     log_dns_zone_master_fetch,
 )
 from app.core.dependencies import CurrentUser, SessionDep, RoleChecker
@@ -21,7 +20,7 @@ from app.schemas import (
 )
 from app.core.DomainMapper import HOSTS
 from app.dns.dns_service import DNSService
-
+from app.core_utils.logger import log_dns_remove_zone
 router = APIRouter(tags=["dns"], prefix="/dns")
 
 
@@ -135,16 +134,18 @@ async def delete_zone_file_for_domain(
         request: Request,
 ):
     try:
-        curr_zonemaster = await DNSService().get_zone_masters(domain)
+        zone_masters = await DNSService().get_zone_masters(domain)
+        curr_zonemaster = ", ".join([entry["ns"] for entry in zone_masters["answers"]])
+
         await DNSService().remove_zone(domain)
-        request_ip = IPv4Address(ip=request.client.host)
+
         background_tasks.add_task(
-            log_dns_zone_master_removal,
+            log_dns_remove_zone,
             session=session,
             user=current_user,
-            current_zone_master=curr_zonemaster,
+            current_zonemaster=curr_zonemaster,
             domain=domain,
-            ip=request_ip,
+            request=request,
         )
         return Message(message="Zone master deleted successfully")
     except RuntimeError as e:

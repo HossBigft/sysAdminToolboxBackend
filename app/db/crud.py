@@ -72,17 +72,17 @@ def authenticate(*, session: Session, email: str, password: str) -> User | None:
     return db_user
 
 
-async def log_dns_zone_master_removal(
+async def db_log_dns_zonemaster_removal(
     session: Session,
     user: UserPublic,
-    current_zone_master: PleskServerDomain,
+    current_zone_master: str,
     domain: DomainName,
     ip: IPv4Address,
 ) -> None:
     user_action = DeleteZonemasterLog(
         user_id=user.id,
-        current_zone_master=current_zone_master.name,
-        domain=domain,
+        current_zone_master=current_zone_master,
+        domain=domain.name,
         ip=ip,
     )
     session.add(user_action)

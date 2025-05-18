@@ -12,7 +12,10 @@ from sqlalchemy.orm import Session
 from fastapi import (
     Request
 )
-from app.db.crud import db_log_plesk_login_link_get, db_log_dns_zone_master_set, db_log_plesk_mail_test_get
+from app.db.crud import db_log_plesk_login_link_get, \
+    db_log_dns_zone_master_set, \
+    db_log_plesk_mail_test_get, \
+    db_log_dns_zonemaster_removal
 from app.db.models import User
 from app.schemas import UserActionType, PleskServerDomain, IPv4Address, SubscriptionName, UserPublic, DomainName
 
@@ -191,4 +194,25 @@ async def log_plesk_mail_test_get(plesk_mail_server: PleskServerDomain,
         "backend_user_id",
         user.id).field("IP", request_ip)
 
+    get_user_action_logger().info(str(log_entry))
+
+
+async def log_dns_remove_zone(domain: DomainName, current_zonemaster: str,
+                              user: UserPublic,
+                              session: Session,
+                              request: Request):
+    request_ip = IPv4Address.model_validate(_get_request_ip(request))
+
+    log_entry = LogEntry(UserActionType.DELETE_ZONE_MASTER).field("domain", domain).field("current_zone_master",
+                                                                                          current_zonemaster).field(
+        "backend_user",
+        user.email).field(
+        "backend_user_id",
+        user.id).field("IP", request_ip)
+
+    await db_log_dns_zonemaster_removal(session=session,
+                                        user=user,
+                                        current_zone_master=current_zonemaster,
+                                        domain=domain,
+                                        ip=request_ip)
     get_user_action_logger().info(str(log_entry))
