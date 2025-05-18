@@ -5,11 +5,6 @@ from app.core.DomainMapper import HOSTS
 from app.core.config import settings
 
 
-class RecordNotFoundError(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-
-
 def resolve_record(record: str, type: str, dns_list="internal"):
     custom_resolver = resolver.Resolver()
     match dns_list:

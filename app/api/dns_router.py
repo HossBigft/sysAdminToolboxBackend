@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query, Request
 from typing import Annotated
 
-from app.dns.dns_utils import resolve_record, RecordNotFoundError
+from app.dns.dns_utils import resolve_record
 from app.core.dependencies import CurrentUser, SessionDep, RoleChecker
 from app.schemas import (
     UserRoles,
@@ -61,7 +61,6 @@ async def get_zone_master_from_dns_servers(
         domain: Annotated[SubscriptionName, Depends()],
         request: Request,
 ):
-    try:
         zone_masters = await DNSService().get_zone_masters(domain)
         if not zone_masters:
             raise HTTPException(
@@ -77,8 +76,7 @@ async def get_zone_master_from_dns_servers(
             request=request,
         )
         return zone_masters
-    except RecordNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+
 
 
 @router.get(
