@@ -1,5 +1,7 @@
 from fastapi import HTTPException
-from typing import Dict, Any
+from typing import Dict, Any, List
+
+from app.dns.dns_models import ZoneMasterResponse, ZoneMaster
 from app.schemas import (
     DNS_SERVER_LIST,
     ExecutionStatus,
@@ -20,7 +22,7 @@ class DNSService:
         command = DNSCommand.remove_zone()
         await self.client.execute_on_servers(self.server_list, command, domain.name)
 
-    async def get_zone_masters(self, domain: DomainName) -> Dict[str, Any]:
+    async def get_zone_masters(self, domain: DomainName) -> ZoneMasterResponse:
         command = DNSCommand.get_zone_master()
         responses = await self.client.execute_on_servers(
             self.server_list, command, domain.name
@@ -28,20 +30,17 @@ class DNSService:
         responses = [
             response for response in responses if response.status == ExecutionStatus.OK
         ]
-        results = []
+        zone_masters: List[ZoneMaster] = []
         for response in responses:
             if response.payload:
-                results.append(
-                    {
-                        "ns": response.host,
-                        "zone_master": response.payload["zonemaster_ip"],
-                    }
+                zone_masters.append(
+                    ZoneMaster(host=response.host, ip=response.payload["zonemaster_ip"])
                 )
 
-        if not results:
+        if not zone_masters:
             raise HTTPException(
                 status_code=404,
                 detail=f"No DNS zone found  for domain: {domain.name}",
             )
 
-        return {"domain": domain.name, "answers": results}
+        return ZoneMasterResponse(zone_name=domain.name, zone_masters=zone_masters)
