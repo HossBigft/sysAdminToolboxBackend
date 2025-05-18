@@ -17,11 +17,11 @@ EXPIRATION_PERIOD_SECONDS = 900
 
 class ToKenSigner:
     def __init__(self):
-        self._private_key_path = "/app/test_token_key/priv.key"
-        self._public_key_path = "/app/test_token_key/pub.key"
 
         if settings.ENVIRONMENT == "local":
-            os.makedirs("/app/test_token_key", exist_ok=True)
+            self._private_key_path = "/tmp/test_token_key/priv.key"
+            self._public_key_path = "/tmp/test_token_key/pub.key"
+            os.makedirs("/tmp/test_token_key", exist_ok=True)
 
             if os.path.exists(self._private_key_path) and os.path.exists(
                 self._public_key_path
