@@ -26,10 +26,10 @@ from app.schemas import (
     ValidatedDomainName,
     ValidatedPleskServerDomain,
 )
-from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
+from app.core.dependencies import CurrentUser, SessionDep, RoleChecker
 
 from app.core_utils.logger import log_plesk_login_link_get, log_dns_zone_master_set, log_plesk_mail_test_get
-from app.api.dependencies import get_token_signer
+from app.core.dependencies import get_token_signer
 from app.plesk.plesk_service import PleskService
 from app.dns.dns_service import DNSService
 

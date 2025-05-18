@@ -1,7 +1,7 @@
 import enum
 from typing import List
 
-from app.api.dependencies import get_token_signer
+from app.core.dependencies import get_token_signer
 from app.signed_executor.async_ssh_handler import execute_ssh_command, execute_ssh_commands_in_batch
 from app.schemas import (
     DomainName,

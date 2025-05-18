@@ -10,7 +10,7 @@ from app.core_utils.utils import (
     send_email,
     verify_password_reset_token,
 )
-from app.api.dependencies import (
+from app.core.dependencies import (
     SessionDep,
     get_current_active_superuser,
 )

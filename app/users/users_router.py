@@ -6,7 +6,7 @@ from sqlalchemy import update, delete, select, func
 
 
 from app.db import crud
-from app.api.dependencies import (
+from app.core.dependencies import (
     CurrentUser,
     SessionDep,
     get_current_active_superuser,

@@ -6,7 +6,7 @@ from app.db.crud import (
     log_dns_zone_master_removal,
     log_dns_zone_master_fetch,
 )
-from app.api.dependencies import CurrentUser, SessionDep, RoleChecker
+from app.core.dependencies import CurrentUser, SessionDep, RoleChecker
 from app.schemas import (
     UserRoles,
     DomainName,

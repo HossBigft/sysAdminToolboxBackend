@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from app.schemas import Token, UserPublic
 from app.core.config import settings
-from app.api.dependencies import (
+from app.core.dependencies import (
     CurrentUser,
     SessionDep,
 )
