@@ -91,9 +91,12 @@ def setup_actions_logger():
 
 
 class LogEntry():
-    def __init__(self, action: UserActionType):
+    def __init__(self, action: UserActionType, user: UserPublic, request_ip: str):
         self.fields = {}
         self.field("action_type", action.value)
+        self.field("backend_user", user.email)
+        self.field("backend_user_id", user.id)
+        self.field("ip", request_ip)
 
     def __str__(self) -> str:
         fields_str: List[str] = []
@@ -130,15 +133,12 @@ async def log_plesk_login_link_get(
 ):
     request_ip = IPv4Address.model_validate(_get_request_ip(request))
 
-    log_message = LogEntry(UserActionType.GET_SUBSCRIPTION_LOGIN_LINK_BY_DOMAIN).field("plesk_user",
-                                                                                       user.ssh_username).field(
-        "backend_user",
-        user.email).field(
-        "plesk_server",
-        plesk_server).field(
-        "subscription_name", subscription_name).field("subscription_id", subscription_id).field("IP", request_ip).field(
-        "backend_user_id",
-        user.id)
+    log_entry = LogEntry(UserActionType.GET_SUBSCRIPTION_LOGIN_LINK_BY_DOMAIN, user, str(request_ip))
+
+    log_entry.field("plesk_user", user.ssh_username)
+    log_entry.field("plesk_server", plesk_server)
+    log_entry.field("subscription_name", subscription_name)
+    log_entry.field("subscription_id", subscription_id)
 
     await db_log_plesk_login_link_get(session=session,
                                       user=user,
@@ -146,7 +146,8 @@ async def log_plesk_login_link_get(
                                       subscription_id=subscription_id,
                                       subscription_name=subscription_name,
                                       requiest_ip=request_ip)
-    get_user_action_logger().info(str(log_message))
+
+    get_user_action_logger().info(str(log_entry))
 
 
 async def log_dns_zone_master_set(domain: DomainName, current_zonemasters: List[ZoneMaster],
@@ -156,19 +157,18 @@ async def log_dns_zone_master_set(domain: DomainName, current_zonemasters: List[
                                   request: Request):
     request_ip = IPv4Address.model_validate(_get_request_ip(request))
 
+    current_zonemasters_json = ", ".join([zonemaster.model_dump_json() for zonemaster in current_zonemasters]),
     await db_log_dns_zone_master_set(session=session,
                                      user=user,
-                                     current_zone_master=", ".join([zonemaster.json() for zonemaster in current_zonemasters]),
+                                     current_zone_master=", ".join(current_zonemasters_json),
                                      target_zone_master=target_zone_master,
                                      ip=request_ip,
                                      domain=domain)
-    log_entry = LogEntry(UserActionType.SET_ZONE_MASTER).field("domain", domain).field("current_zone_master",
-                                                                                       current_zonemasters).field(
-        "target_zone_master",
-        target_zone_master.name).field("backend_user",
-                                       user.email).field(
-        "backend_user_id",
-        user.id).field("IP", request_ip)
+
+    log_entry = LogEntry(UserActionType.SET_ZONE_MASTER, user, str(request_ip))
+    log_entry.field("domain", domain)
+    log_entry.field("current_zone_masters", current_zonemasters_json)
+    log_entry.field("target_zone_master", target_zone_master.name)
 
     get_user_action_logger().info(str(log_entry))
 
@@ -187,13 +187,11 @@ async def log_plesk_mail_test_get(plesk_mail_server: PleskServerDomain,
                                        plesk_server=plesk_mail_server,
                                        domain=mail_domain,
                                        new_email_created=is_new_email_created)
-    log_entry = LogEntry(UserActionType.GET_TEST_MAIL_CREDENTIALS).field("backend_user",
-                                                                         user.email).field("mail_domain",
-                                                                                           mail_domain).field(
-        "is_new_mail_created",
-        is_new_email_created).field("plesk_mail_server", plesk_mail_server).field(
-        "backend_user_id",
-        user.id).field("IP", request_ip)
+    log_entry = LogEntry(UserActionType.GET_TEST_MAIL_CREDENTIALS, user, str(request_ip))
+    log_entry.field("backend_user", user.email)
+    log_entry.field("mail_domain", mail_domain)
+    log_entry.field("is_new_mail_created", is_new_email_created)
+    log_entry.field("plesk_mail_server", plesk_mail_server)
 
     get_user_action_logger().info(str(log_entry))
 
@@ -204,12 +202,9 @@ async def log_dns_remove_zone(domain: DomainName, current_zonemaster: str,
                               request: Request):
     request_ip = IPv4Address.model_validate(_get_request_ip(request))
 
-    log_entry = LogEntry(UserActionType.DELETE_ZONE_MASTER).field("domain", domain).field("current_zone_master",
-                                                                                          current_zonemaster).field(
-        "backend_user",
-        user.email).field(
-        "backend_user_id",
-        user.id).field("IP", request_ip)
+    log_entry = LogEntry(UserActionType.DELETE_ZONE_MASTER, user, str(request_ip))
+    log_entry.field("domain", domain)
+    log_entry.field("current_zone_master", current_zonemaster)
 
     await db_log_dns_zonemaster_removal(session=session,
                                         user=user,
@@ -225,14 +220,12 @@ async def log_dns_get_zonemaster(domain: SubscriptionName,
                                  request: Request):
     request_ip = IPv4Address.model_validate(_get_request_ip(request))
 
-    log_entry = LogEntry(UserActionType.GET_ZONE_MASTER).field("domain", domain).field(
-        "backend_user",
-        user.email).field(
-        "backend_user_id",
-        user.id).field("IP", request_ip)
+    log_entry = LogEntry(UserActionType.GET_ZONE_MASTER, user, str(request_ip))
+    log_entry.field("domain", domain)
 
     await db_log_dns_zonemaster_fetch(session=session,
                                       user=user,
                                       domain=domain,
                                       ip=request_ip)
+
     get_user_action_logger().info(str(log_entry))

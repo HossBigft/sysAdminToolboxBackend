@@ -97,8 +97,7 @@ async def set_zonemaster(
             host=PleskServerDomain(name=data.target_plesk_server),
             domain=SubscriptionName(name=data.domain),
     ):
-        zonemaster_info = await DNSService().get_zone_masters(DomainName(name=data.domain))
-        current_zonemasters = zonemaster_info.zone_masters
+        current_zonemasters = await DNSService().get_zone_masters(DomainName(name=data.domain))
         await DNSService().remove_zone(DomainName(name=data.domain))
         await PleskService().restart_dns_service_for_domain(
             host=PleskServerDomain(name=data.target_plesk_server),
