@@ -2,9 +2,6 @@ from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query, R
 from typing import Annotated
 
 from app.dns.dns_utils import resolve_record, RecordNotFoundError
-from app.db.crud import (
-    log_dns_zone_master_fetch,
-)
 from app.core.dependencies import CurrentUser, SessionDep, RoleChecker
 from app.schemas import (
     UserRoles,
@@ -20,7 +17,8 @@ from app.schemas import (
 )
 from app.core.DomainMapper import HOSTS
 from app.dns.dns_service import DNSService
-from app.core_utils.logger import log_dns_remove_zone
+from app.core_utils.logger import log_dns_remove_zone, log_dns_get_zonemaster
+
 router = APIRouter(tags=["dns"], prefix="/dns")
 
 
@@ -64,22 +62,21 @@ async def get_zone_master_from_dns_servers(
         request: Request,
 ):
     try:
-        zone_masters_dict = await DNSService().get_zone_masters(domain)
-        if not zone_masters_dict:
+        zone_masters = await DNSService().get_zone_masters(domain)
+        if not zone_masters:
             raise HTTPException(
                 status_code=404,
                 detail=f"Zone master for domain [{domain.name}] not found.",
             )
 
-        request_ip = IPv4Address(ip=request.client.host)
         background_tasks.add_task(
-            log_dns_zone_master_fetch,
+            log_dns_get_zonemaster,
             session=session,
             user=current_user,
             domain=domain,
-            ip=request_ip,
+            request=request,
         )
-        return zone_masters_dict
+        return zone_masters
     except RecordNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 

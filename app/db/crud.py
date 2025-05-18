@@ -89,7 +89,7 @@ async def db_log_dns_zonemaster_removal(
     session.commit()
 
 
-async def log_dns_zone_master_fetch(
+async def db_log_dns_zonemaster_fetch(
     session: Session, user: UserPublic, domain: SubscriptionName, ip: IPv4Address
 ) -> None:
     user_action = GetZoneMasterLog(user_id=user.id, domain=domain.name, ip=ip)
