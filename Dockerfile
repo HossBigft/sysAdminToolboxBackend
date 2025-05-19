@@ -60,5 +60,8 @@ RUN echo "export LANG=C.UTF-8" >> /etc/profile && \
     echo "export LANGUAGE=C.UTF-8:en" >> /etc/profile && \
     echo "export LANG=C.UTF-8" >> ~/.bashrc && \
     echo "export LANGUAGE=C.UTF-8:en" >> ~/.bashrc
-# "--proxy-headers","--forwarded-allow-ips", "*",     
-CMD ["fastapi", "run", "--workers", "4","app/main.py" ]
+        
+COPY ./scripts/entrypoint.sh /entrypoint.sh
+RUN ls -l /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
