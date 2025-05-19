@@ -60,5 +60,5 @@ RUN echo "export LANG=C.UTF-8" >> /etc/profile && \
     echo "export LANGUAGE=C.UTF-8:en" >> /etc/profile && \
     echo "export LANG=C.UTF-8" >> ~/.bashrc && \
     echo "export LANGUAGE=C.UTF-8:en" >> ~/.bashrc
-    
-CMD ["fastapi", "run", "--workers", "4", "app/main.py"]
+# "--proxy-headers","--forwarded-allow-ips", "*",     
+CMD ["fastapi", "run", "--workers", "4","app/main.py" ]

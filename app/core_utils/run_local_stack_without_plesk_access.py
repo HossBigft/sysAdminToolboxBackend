@@ -9,7 +9,7 @@ from app.core.config import settings
 from tests.utils.container_db_utils import TestMariadb, TEST_DB_CMD
 from tests.utils.container_unix_utils import UnixContainer
 from app.schemas import PleskServerDomain
-from app.core_utils.logger import setup_uvicorn_logger, setup_actions_logger
+from app.core_utils.logger import disable_default_uvicorn_access_logs, setup_actions_logger
 
 TEST_SSH_HOST = "plesk.example.com"
 
@@ -27,7 +27,7 @@ if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    setup_uvicorn_logger()
+    disable_default_uvicorn_access_logs()
     setup_actions_logger()
     yield
 # Initialize FastAPI app
