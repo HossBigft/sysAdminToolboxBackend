@@ -60,11 +60,11 @@ async def _execute_ssh_command(host, command) -> SshResponse:
     if verbose:
         if returncode_output != 0:
             print(
-                f"{host} COMMAND FAILED ({execution_time:.2f}s): {filtered_stderr_output or '(no error output)'}"
+                f"{host} answered FAIL ({execution_time:.2f}s): {filtered_stderr_output or '(no error output)'}"
             )
         else:
             print(
-                f"{host} OK ({execution_time:.2f}s): {stdout_output or '(no output)'}"
+                f"{host} answered OK ({execution_time:.2f}s): {stdout_output or '(no output)'}"
             )
 
     return {
