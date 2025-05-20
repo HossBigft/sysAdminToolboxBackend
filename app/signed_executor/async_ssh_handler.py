@@ -46,12 +46,14 @@ async def _execute_ssh_command(host, command) -> SshResponse:
         )
     returncode_output: int | None = process.returncode
 
-    if returncode_output != 0 or (
-        filtered_stderr_output and "permission denied" in filtered_stderr_output.lower()
+    if (
+        returncode_output != 0
+        and filtered_stderr_output
+        and "permission denied" in filtered_stderr_output.lower()
     ):
         if verbose:
             print(
-                f"Failed to connect {host} over SSH ({execution_time:.2f}s): {filtered_stderr_output}"
+                f"Failed to connect {host} over SSH ({execution_time:.2f}s): {filtered_stderr_output or 'No stderr'}"
             )
         raise SshAccessDeniedError(host, filtered_stderr_output)
 
