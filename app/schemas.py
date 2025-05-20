@@ -23,8 +23,6 @@ from typing import (
     TypeVar,
     TypedDict,
     Type,
-    Dict,
-    ClassVar,
 )
 from typing_extensions import Annotated
 from datetime import datetime
@@ -380,19 +378,18 @@ class ExecutionStatus(str, Enum):
     NOT_FOUND = "NOT_FOUND"
     INTERNAL_ERROR = "INTERNAL_ERROR"
 
-    _code_map: ClassVar[Dict[int, "ExecutionStatus"]] = {
-        200: OK,
-        201: CREATED,
-        400: BAD_REQUEST,
-        401: UNAUTHORIZED,
-        422: UNPROCESSABLE_ENTITY,
-        404: NOT_FOUND,
-        500: INTERNAL_ERROR,
-    }
-
     @classmethod
     def from_code(cls, code: int) -> "ExecutionStatus":
-        return cls._code_map.get(code, cls.INTERNAL_ERROR)
+        code_map = {
+            200: cls.OK,
+            201: cls.CREATED,
+            400: cls.BAD_REQUEST,
+            401: cls.UNAUTHORIZED,
+            422: cls.UNPROCESSABLE_ENTITY,
+            404: cls.NOT_FOUND,
+            500: cls.INTERNAL_ERROR,
+        }
+        return code_map.get(code, cls.INTERNAL_ERROR)
 
     @classmethod
     def from_string(cls, status_str: str) -> "ExecutionStatus":
@@ -425,10 +422,16 @@ class ExecutionStatus(str, Enum):
 
     @property
     def code(self) -> int:
-        for code, status in self._code_map.items():
-            if status == self:
-                return code
-        return 500  # Default to 500 if not found
+        code_map = {
+            self.OK: 200,
+            self.CREATED: 201,
+            self.BAD_REQUEST: 400,
+            self.UNAUTHORIZED: 401,
+            self.UNPROCESSABLE_ENTITY: 422,
+            self.NOT_FOUND: 404,
+            self.INTERNAL_ERROR: 500,
+        }
+        return code_map.get(self, 500)
 
 
 class SignedExecutorResponse(GenericModel, Generic[T]):
@@ -441,14 +444,9 @@ class SignedExecutorResponse(GenericModel, Generic[T]):
     @model_validator(mode="before")
     @classmethod
     def convert_status(cls, data):
-        """Convert string status to ExecutionStatus enum before validation"""
         if isinstance(data, dict):
-            if "status" in data and not isinstance(data["status"], ExecutionStatus):
-                if isinstance(data["status"], str):
-                    data["status"] = ExecutionStatus.from_string(data["status"])
-
-                elif "code" in data and isinstance(data["code"], int):
-                    data["status"] = ExecutionStatus.from_code(data["code"])
+            if isinstance(data.get("status"), str):
+                data["status"] = ExecutionStatus.from_string(data["status"])
         return data
 
     @classmethod
