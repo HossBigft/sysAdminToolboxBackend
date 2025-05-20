@@ -380,7 +380,6 @@ class ExecutionStatus(str, Enum):
     NOT_FOUND = "NOT_FOUND"
     INTERNAL_ERROR = "INTERNAL_ERROR"
 
-    # Mapping of codes to statuses
     _code_map: ClassVar[Dict[int, "ExecutionStatus"]] = {
         200: OK,
         201: CREATED,
@@ -393,12 +392,10 @@ class ExecutionStatus(str, Enum):
 
     @classmethod
     def from_code(cls, code: int) -> "ExecutionStatus":
-        """Get ExecutionStatus from an HTTP status code"""
         return cls._code_map.get(code, cls.INTERNAL_ERROR)
 
     @classmethod
     def from_string(cls, status_str: str) -> "ExecutionStatus":
-        """Get ExecutionStatus from a string representation - case insensitive"""
         normalized = status_str.strip().upper()
 
         for status in cls:
@@ -418,19 +415,16 @@ class ExecutionStatus(str, Enum):
             "UNPROCESSABLE ENTITY": cls.UNPROCESSABLE_ENTITY,
             "NOT FOUND": cls.NOT_FOUND,
             "INTERNAL ERROR": cls.INTERNAL_ERROR,
-            # Add any other variations you might encounter
         }
 
         for key, value in mappings.items():
             if key.upper() == normalized:
                 return value
 
-        # Default fallback - use code if available
         return cls.INTERNAL_ERROR
 
     @property
     def code(self) -> int:
-        """Get the HTTP status code for this ExecutionStatus"""
         for code, status in self._code_map.items():
             if status == self:
                 return code
