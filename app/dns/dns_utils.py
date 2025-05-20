@@ -9,7 +9,6 @@ def resolve_record(record: str, type: str, dns_list="internal"):
     custom_resolver = resolver.Resolver()
     match dns_list:
         case "internal":
-            print("USED DNS SERVERS",settings.DNS_SLAVE_SERVERS.items())
             custom_resolver.nameservers = [
                 str(HOSTS.resolve_domain(nameserver).ips[0])
                 for nameserver in list(settings.DNS_SLAVE_SERVERS.keys())
