@@ -44,13 +44,11 @@ class PleskService:
         responses = await self.client.execute_on_servers(
             self.server_list, command, domain.name
         )
-
         responses = [
             response
             for response in responses
-            if response.status is not ExecutionStatus.NOT_FOUND
+            if response.status is ExecutionStatus.OK
         ]
-
         if not responses:
             raise HTTPException(
                 status_code=404,
