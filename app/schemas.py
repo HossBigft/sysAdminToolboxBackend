@@ -14,7 +14,18 @@ from pydantic import (
 )
 from pydantic.json_schema import SkipJsonSchema
 from enum import Enum
-from typing import List, Literal, Any, Generic, Optional, TypeVar, TypedDict, Type
+from typing import (
+    List,
+    Literal,
+    Any,
+    Generic,
+    Optional,
+    TypeVar,
+    TypedDict,
+    Type,
+    Dict,
+    ClassVar,
+)
 from typing_extensions import Annotated
 from datetime import datetime
 from pydantic.networks import IPvAnyAddress
@@ -360,18 +371,70 @@ class SshResponse(TypedDict):
     returncode: int | None
 
 
-class ExecutionStatus(Enum):
-    OK = (200, "OK")
-    CREATED = (201, "Created")
-    BAD_REQUEST = (400, "Bad Request")
-    UNAUTHORIZED = (401, "Unauthorized")
-    UNPROCCESIBLE_ENTITY = (422, "Unprocessable Entity")
-    NOT_FOUND = (404, "Not Found")
-    INTERNAL_ERROR = (500, "Internal Server Error")
+class ExecutionStatus(str, Enum):
+    OK = "OK"
+    CREATED = "CREATED"
+    BAD_REQUEST = "BAD_REQUEST"
+    UNAUTHORIZED = "UNAUTHORIZED"
+    UNPROCESSABLE_ENTITY = "UNPROCESSABLE_ENTITY"
+    NOT_FOUND = "NOT_FOUND"
+    INTERNAL_ERROR = "INTERNAL_ERROR"
 
-    def __init__(self, code, text):
-        self.code = code
-        self.text = text
+    # Mapping of codes to statuses
+    _code_map: ClassVar[Dict[int, "ExecutionStatus"]] = {
+        200: OK,
+        201: CREATED,
+        400: BAD_REQUEST,
+        401: UNAUTHORIZED,
+        422: UNPROCESSABLE_ENTITY,
+        404: NOT_FOUND,
+        500: INTERNAL_ERROR,
+    }
+
+    @classmethod
+    def from_code(cls, code: int) -> "ExecutionStatus":
+        """Get ExecutionStatus from an HTTP status code"""
+        return cls._code_map.get(code, cls.INTERNAL_ERROR)
+
+    @classmethod
+    def from_string(cls, status_str: str) -> "ExecutionStatus":
+        """Get ExecutionStatus from a string representation - case insensitive"""
+        normalized = status_str.strip().upper()
+
+        for status in cls:
+            if status.value.upper() == normalized:
+                return status
+
+        try:
+            return cls(normalized)
+        except ValueError:
+            pass
+
+        mappings = {
+            "OK": cls.OK,
+            "CREATED": cls.CREATED,
+            "BAD REQUEST": cls.BAD_REQUEST,
+            "UNAUTHORIZED": cls.UNAUTHORIZED,
+            "UNPROCESSABLE ENTITY": cls.UNPROCESSABLE_ENTITY,
+            "NOT FOUND": cls.NOT_FOUND,
+            "INTERNAL ERROR": cls.INTERNAL_ERROR,
+            # Add any other variations you might encounter
+        }
+
+        for key, value in mappings.items():
+            if key.upper() == normalized:
+                return value
+
+        # Default fallback - use code if available
+        return cls.INTERNAL_ERROR
+
+    @property
+    def code(self) -> int:
+        """Get the HTTP status code for this ExecutionStatus"""
+        for code, status in self._code_map.items():
+            if status == self:
+                return code
+        return 500  # Default to 500 if not found
 
 
 class SignedExecutorResponse(GenericModel, Generic[T]):
@@ -380,6 +443,19 @@ class SignedExecutorResponse(GenericModel, Generic[T]):
     code: int
     message: str
     payload: Optional[T] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def convert_status(cls, data):
+        """Convert string status to ExecutionStatus enum before validation"""
+        if isinstance(data, dict):
+            if "status" in data and not isinstance(data["status"], ExecutionStatus):
+                if isinstance(data["status"], str):
+                    data["status"] = ExecutionStatus.from_string(data["status"])
+
+                elif "code" in data and isinstance(data["code"], int):
+                    data["status"] = ExecutionStatus.from_code(data["code"])
+        return data
 
     @classmethod
     def from_ssh_response(
