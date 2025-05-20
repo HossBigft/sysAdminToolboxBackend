@@ -360,13 +360,18 @@ class SshResponse(TypedDict):
     returncode: int | None
 
 
-class ExecutionStatus(str, Enum):
-    OK = "OK"
-    CREATED = "CREATED"
-    BAD_REQUEST = "BAD_REQUEST"
-    UNPROCCESIBLE_ENTITY = "UNPROCCESIBLE_ENTITY"
-    NOT_FOUND = "NOT_FOUND"
-    INTERNAL_ERROR = "INTERNAL_ERROR"
+class ExecutionStatus(Enum):
+    OK = (200, "OK")
+    CREATED = (201, "Created")
+    BAD_REQUEST = (400, "Bad Request")
+    UNAUTHORIZED = (401, "Unauthorized")
+    UNPROCCESIBLE_ENTITY = (422, "Unprocessable Entity")
+    NOT_FOUND = (404, "Not Found")
+    INTERNAL_ERROR = (500, "Internal Server Error")
+
+    def __init__(self, code, text):
+        self.code = code
+        self.text = text
 
 
 class SignedExecutorResponse(GenericModel, Generic[T]):
