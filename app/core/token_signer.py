@@ -90,4 +90,9 @@ class ToKenSigner:
         )
 
     def get_public_key_base64(self):
-        return base64.b64encode(self.get_raw_public_key_bytes()).decode("utf-8")
+        x509_der_pub = self._private_key.public_key().public_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+        return base64.b64encode(x509_der_pub).decode()
+    
