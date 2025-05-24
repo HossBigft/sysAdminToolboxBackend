@@ -1,5 +1,5 @@
 
-class SignedCommand:
+class SignedOperation:
 
     def __init__(self, namespace: str, operation: str):
 

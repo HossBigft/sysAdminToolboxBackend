@@ -10,7 +10,7 @@ from app.schemas import (
 )
 from app.plesk.plesk_schemas import SubscriptionDetailsModel, TestMailData, LoginLinkData
 from app.signed_executor.signed_executor_client import SignedExecutorClient
-from app.signed_executor.commands.plesk_command import PleskCommand
+from app.signed_executor.commands.plesk_operation import PleskOperation
 from app.core.DomainMapper import HOSTS
 
 
@@ -22,7 +22,7 @@ class PleskService:
     async def fetch_subscription_id_by_domain(
         self, host: PleskServerDomain, domain: SubscriptionName
     ) -> Dict[str, Any] | None:
-        command = PleskCommand.get_subscription_id_by_domain()
+        command = PleskOperation.get_subscription_id_by_domain()
         response = await self.client.execute_on_server(host.name, command, domain.name)
         return response.payload if response and response.payload else None
 
@@ -34,13 +34,13 @@ class PleskService:
     async def restart_dns_service_for_domain(
         self, host: PleskServerDomain, domain: SubscriptionName
     ) -> None:
-        command = PleskCommand.restart_dns_service()
+        command = PleskOperation.restart_dns_service()
         await self.client.execute_on_server(host.name, command, domain.name)
 
     async def fetch_subscription_info(
         self, domain: DomainName
     ) -> List[SubscriptionDetailsModel]:
-        command = PleskCommand.fetch_subscription_info()
+        command = PleskOperation.fetch_subscription_info()
         responses = await self.client.execute_on_servers(
             self.server_list, command, domain.name
         )
@@ -68,7 +68,7 @@ class PleskService:
     async def generate_subscription_login_link(
         self, host: PleskServerDomain, subscription_id: int, ssh_username: LinuxUsername
     ) -> LoginLinkData:
-        command = PleskCommand.get_login_link()
+        command = PleskOperation.get_login_link()
         response = await self.client.execute_on_server(
             host.name, command, str(subscription_id), str(ssh_username)
         )
@@ -90,7 +90,7 @@ class PleskService:
     async def get_testmail_login_data(
         self, host: PleskServerDomain, mail_domain: SubscriptionName
     ) -> TestMailData:
-        command = PleskCommand.get_testmail_credentials()
+        command = PleskOperation.get_testmail_credentials()
         response = await self.client.execute_on_server(
             host.name, command, mail_domain.name
         )

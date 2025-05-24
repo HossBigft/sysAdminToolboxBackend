@@ -9,7 +9,7 @@ from app.schemas import (
 )
 
 from app.signed_executor.signed_executor_client import SignedExecutorClient
-from app.signed_executor.commands.dns_command import DNSCommand
+from app.signed_executor.commands.dns_operation import DNSOperation
 
 
 class DNSService:
@@ -19,11 +19,11 @@ class DNSService:
         self.server_list = DNS_SERVER_LIST
 
     async def remove_zone(self, domain: DomainName) -> None:
-        command = DNSCommand.remove_zone()
+        command = DNSOperation.remove_zone()
         await self.client.execute_on_servers(self.server_list, command, domain.name)
 
     async def get_zone_masters(self, domain: DomainName) -> List[ZoneMaster]:
-        command = DNSCommand.get_zone_master()
+        command = DNSOperation.get_zone_master()
         responses = await self.client.execute_on_servers(
             self.server_list, command, domain.name
         )

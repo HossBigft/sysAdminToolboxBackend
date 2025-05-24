@@ -64,7 +64,7 @@ class ToKenSigner:
         signature = self._private_key.sign(data.encode())
         return base64.b64encode(signature).decode()
 
-    def create_signed_token(self, command):
+    def create_signed_token(self, operation):
         timestamp = int(time.time())
         expiry = timestamp + EXPIRATION_PERIOD_SECONDS
         nonce = secrets.token_hex(8)
@@ -73,7 +73,7 @@ class ToKenSigner:
             "timestamp": timestamp,
             "nonce": nonce,
             "expiry": expiry,
-            "command": command,
+            "operation": operation,
         }
 
         message = "|".join(str(item) for item in token_data.values())
