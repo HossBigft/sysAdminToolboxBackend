@@ -367,6 +367,7 @@ class SshResponse(TypedDict):
     stdout: str | None
     stderr: str | None
     returncode: int | None
+    execution_time: float | None
 
 
 class ExecutionStatus(str, Enum):

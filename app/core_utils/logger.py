@@ -29,6 +29,9 @@ from app.schemas import (
     DomainName,
 )
 
+from app.core.config import settings
+
+
 USER_ACTION_LOG_SIZE_MB = 10
 
 
@@ -293,3 +296,46 @@ async def log_dns_get_zonemaster(
     )
 
     get_user_action_logger().info(str(log_entry))
+
+
+def setup_ssh_logger():
+    ssh_logger = logging.getLogger("app.ssh_operations")
+    if settings.ENVIRONMENT == "local":
+        ssh_logger.setLevel(logging.DEBUG)
+    else:
+        ssh_logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler()
+    ssh_logger.addHandler(handler)
+    ssh_logger.propagate = False
+    
+    return ssh_logger
+
+
+def get_ssh_logger():
+    return logging.getLogger("app.ssh_operations")
+
+
+def log_ssh_request(host: str, command: str):
+
+    logger = get_ssh_logger()
+    if settings.ENVIRONMENT == "local":
+        logger.debug(f"{host} executes \"{command}\" | Awaiting result...")
+    else:
+        logger.info(f"{host} executing '{command}' | Awaiting result...")
+
+
+
+def log_ssh_response(response, execution_time: float):
+    logger = get_ssh_logger()
+    if settings.ENVIRONMENT == "local":
+        response_info = response.model_dump_json(indent=1)
+        logger.info(
+            f"{response.host} answered {response.status} ({execution_time:.2f}s): "
+            f"{response_info}"
+        )
+    else:
+        response_info = f'{{"status": "{response.status}", "code": {response.code}, "message": "{response.message}"}}'
+        logger.info(
+            f"{response.host} answered {response.status} ({execution_time:.2f}s): "
+            f"{response_info}"
+        )

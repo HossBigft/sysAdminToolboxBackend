@@ -3,7 +3,6 @@ import time
 from typing import List
 
 from app.schemas import SshResponse
-from app.core.config import settings
 
 
 class SshAccessDeniedError(Exception):
@@ -14,16 +13,12 @@ class SshAccessDeniedError(Exception):
 
 
 async def _execute_ssh_command(host, command) -> SshResponse:
-    verbose: bool = settings.ENVIRONMENT == "local"
     start_time = time.time()
 
     ssh_command = f'ssh {host} "{command}"'
     process = await asyncio.create_subprocess_shell(
         ssh_command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
     )
-
-    if verbose:
-        print(f"{host} {ssh_command}| Awaiting result...")
 
     stdout, stderr = await process.communicate()
 
@@ -51,27 +46,14 @@ async def _execute_ssh_command(host, command) -> SshResponse:
         and filtered_stderr_output
         and "permission denied" in filtered_stderr_output.lower()
     ):
-        if verbose:
-            print(
-                f"Failed to connect {host} over SSH ({execution_time:.2f}s): {filtered_stderr_output or 'No stderr'}"
-            )
         raise SshAccessDeniedError(host, filtered_stderr_output)
-
-    if verbose:
-        if returncode_output != 0:
-            print(
-                f"{host} answered FAIL ({execution_time:.2f}s): {filtered_stderr_output or '(no error output)'}"
-            )
-        else:
-            print(
-                f"{host} answered OK ({execution_time:.2f}s): {stdout_output or '(no output)'}"
-            )
 
     return {
         "host": host,
         "stdout": stdout_output,
         "stderr": filtered_stderr_output,
         "returncode": returncode_output,
+        "execution_time": execution_time,
     }
 
 
