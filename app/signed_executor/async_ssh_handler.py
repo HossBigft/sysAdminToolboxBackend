@@ -44,7 +44,10 @@ async def _execute_ssh_command(host, command) -> SshResponse:
     if (
         returncode_output != 0
         and filtered_stderr_output
-        and "permission denied" in filtered_stderr_output.lower()
+        and (
+            "permission denied" in filtered_stderr_output.lower()
+            or "connection timed out" in filtered_stderr_output.lower()
+        )
     ):
         raise SshAccessDeniedError(host, filtered_stderr_output)
 
