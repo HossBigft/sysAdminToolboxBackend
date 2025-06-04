@@ -456,7 +456,7 @@ class SignedExecutorResponse(GenericModel, Generic[T]):
     ) -> "SignedExecutorResponse[T] | None":
         stdout = response.get("stdout")
         if not stdout:
-            raise ValueError("No output found in SSH response.")
+            raise ValueError(f"No output found in SSH response. Raw response:{repr(response)}")
 
         try:
             parsed_response = json.loads(stdout)
