@@ -3,7 +3,7 @@ import time
 from typing import List
 
 from app.schemas import SshResponse
-
+SSH_TIMEOUT=60
 
 class SshAccessDeniedError(Exception):
     def __init__(self, host: str, message: str | None):
@@ -15,7 +15,7 @@ class SshAccessDeniedError(Exception):
 async def _execute_ssh_command(host, command) -> SshResponse:
     start_time = time.time()
 
-    ssh_command = f'ssh {host} "{command}"'
+    ssh_command = f'ssh -o ConnectTimeout={SSH_TIMEOUT} {host} "{command}"'
     process = await asyncio.create_subprocess_shell(
         ssh_command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
     )
