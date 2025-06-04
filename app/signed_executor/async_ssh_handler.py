@@ -62,8 +62,16 @@ async def _execute_ssh_command(host, command) -> SshResponse:
 
 async def execute_ssh_commands_in_batch(server_list, command) -> List[SshResponse]:
     tasks = [_execute_ssh_command(host, command) for host in server_list]
-    results = await asyncio.gather(*tasks)
-    return results
+    
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    processed_results = []
+    for i, result in enumerate(results):
+        if isinstance(result, Exception):
+            raise(result)
+        processed_results.append(result)
+    
+    return processed_results
 
 
 async def execute_ssh_command(host: str, command: str) -> SshResponse:
