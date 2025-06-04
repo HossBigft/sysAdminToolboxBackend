@@ -48,8 +48,9 @@ class SignedExecutorClient:
             host=host,
             command=signed_command,
         )
-        log_ssh_response(ssh_response, ssh_response["execution_time"])
-        return SignedExecutorResponse.from_ssh_response(ssh_response)
+        response = SignedExecutorResponse.from_ssh_response(ssh_response)
+        log_ssh_response(response , ssh_response["execution_time"])
+        return response 
 
     async def execute_on_servers(
             self, server_list: List[str], command: SignedOperation, *args: str
