@@ -12,6 +12,7 @@ asyncssh.set_log_level('CRITICAL')
 
 _connection_pool = {}
 
+
 async def _get_connection(host: str):
     if host in _connection_pool.keys():
         return _connection_pool[host]
@@ -82,12 +83,10 @@ async def _execute_ssh_command(host: str, command: str) -> SshResponse:
         end_time = time.time()
         execution_time = end_time - start_time
 
-        # Check if it's an access-related error
         error_message = str(e).lower()
         if "permission denied" in error_message or "authentication failed" in error_message:
             raise SshAccessDeniedError(host, str(e))
 
-        # For other SSH errors, return them in the response
         return {
             "host": host,
             "stdout": None,
