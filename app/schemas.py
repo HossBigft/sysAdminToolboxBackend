@@ -355,7 +355,7 @@ class SuperUserUpdateMe(BaseModel):
 
 
 class HostIpData(BaseModel):
-    name: ValidatedDomainName
+    name: str
     ips: List[IPv4Address]
 
 

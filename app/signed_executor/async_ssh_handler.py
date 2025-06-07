@@ -2,8 +2,13 @@ import asyncio
 import asyncssh
 import time
 from typing import List
-
+import logging
 from app.schemas import SshResponse
+from app.core.DomainMapper import HOSTS
+from app.core.config import settings
+
+logging.basicConfig()
+asyncssh.set_log_level('CRITICAL')
 
 _connection_pool = {}
 
@@ -11,7 +16,8 @@ async def _get_connection(host: str):
     if host in _connection_pool.keys():
         return _connection_pool[host]
     else:
-        _connection_pool[host] = await asyncssh.connect(host, known_hosts=None)
+        host_ip = str(HOSTS.resolve_domain(host).ips[0])
+        _connection_pool[host] = await asyncssh.connect(host_ip, username=settings.SSH_USER, known_hosts=None)
         return _connection_pool[host]
 
 
@@ -95,14 +101,7 @@ async def execute_ssh_commands_in_batch(server_list: List[str], command: str) ->
     tasks = [_execute_ssh_command(host, command) for host in server_list]
 
     results = await asyncio.gather(*tasks, return_exceptions=True)
-
-    processed_results = []
-    for i, result in enumerate(results):
-        if isinstance(result, Exception):
-            raise result
-        processed_results.append(result)
-
-    return processed_results
+    return results
 
 
 async def execute_ssh_command(host: str, command: str) -> SshResponse:
