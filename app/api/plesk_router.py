@@ -167,8 +167,3 @@ async def share_public_key():
     )
 
 
-@router.get(
-    "/token",dependencies=[Depends(RoleChecker([UserRoles.SUPERUSER]))],
-)
-async def get_token(command: str):
-    return _token_signer.create_signed_token(command)
