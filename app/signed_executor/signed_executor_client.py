@@ -6,7 +6,7 @@ from app.signed_executor.async_ssh_handler import (
     execute_ssh_command,
     execute_ssh_commands_in_batch,
 )
-from app.core_utils.logger import log_ssh_response, log_ssh_request
+from app.core_utils.loggers import log_ssh_response, log_ssh_request
 
 
 async def get_executor_status_from_servers(server_list: List[str]) -> List[SignedExecutorResponse]:

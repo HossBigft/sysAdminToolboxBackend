@@ -18,7 +18,7 @@ from app.schemas import (
 )
 from app.core.DomainMapper import HOSTS
 from app.dns.dns_service import DNSService
-from app.core_utils.logger import log_dns_remove_zone, log_dns_get_zonemaster
+from app.core_utils.loggers import log_dns_remove_zone, log_dns_get_zonemaster
 
 router = APIRouter(tags=["dns"], prefix="/dns")
 

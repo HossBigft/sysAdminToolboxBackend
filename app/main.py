@@ -6,12 +6,12 @@ from starlette.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from app.core.config import settings
-from app.core_utils.logger import LoggingMiddleware
+from app.core_utils.loggers import LoggingMiddleware
 from app.core_utils.ssh_multiplexing_warmup import ssh_multiplexing_warmup
 from app.users import users_router as users
 from app.auth import auth_router as login, password_reset
 from app.api import utils_router as utils, plesk_router as plesk, dns_router as dns
-from app.core_utils.logger import disable_default_uvicorn_access_logs, setup_actions_logger, setup_custom_access_logger, setup_ssh_logger
+from app.core_utils.loggers import disable_default_uvicorn_access_logs, setup_actions_logger, setup_custom_access_logger, setup_ssh_logger
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
