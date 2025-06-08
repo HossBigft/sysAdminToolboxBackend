@@ -28,7 +28,6 @@ from typing_extensions import Annotated
 from datetime import datetime
 from pydantic.networks import IPvAnyAddress
 from app.core.config import settings
-from pydantic.generics import GenericModel
 
 
 SUBSCRIPTION_NAME_PATTERN = (
@@ -435,7 +434,7 @@ class ExecutionStatus(str, Enum):
         return code_map.get(self, 500)
 
 
-class SignedExecutorResponse(GenericModel, Generic[T]):
+class SignedExecutorResponse(BaseModel, Generic[T]):
     host: str
     status: ExecutionStatus
     code: int
