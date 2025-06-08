@@ -12,13 +12,14 @@ asyncssh.set_log_level('CRITICAL')
 
 _connection_pool = {}
 
+SSH_LOGIN_TIMEOUT=3
 
 async def _get_connection(host: str):
     if host in _connection_pool.keys():
         return _connection_pool[host]
     else:
         host_ip = str(HOSTS.resolve_domain(host).ips[0])
-        _connection_pool[host] = await asyncssh.connect(host_ip, username=settings.SSH_USER, known_hosts=None)
+        _connection_pool[host] = await asyncssh.connect(host_ip, username=settings.SSH_USER, known_hosts=None, login_timeout=SSH_LOGIN_TIMEOUT)
         return _connection_pool[host]
 
 
