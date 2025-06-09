@@ -188,7 +188,7 @@ async def log_plesk_login_link_get(
     log_entry.field("plesk_server", plesk_server)
     log_entry.field("subscription_name", subscription_name)
     log_entry.field("subscription_id", subscription_id)
-
+    get_user_action_logger().info(str(log_entry))
     await db_log_plesk_login_link_get(
         session=session,
         user=user,
@@ -198,7 +198,7 @@ async def log_plesk_login_link_get(
         requiest_ip=request_ip,
     )
 
-    get_user_action_logger().info(str(log_entry))
+
 
 
 async def log_dns_zone_master_set(
@@ -214,6 +214,15 @@ async def log_dns_zone_master_set(
     current_zonemasters_json = (
         ", ".join([zonemaster.model_dump_json() for zonemaster in current_zonemasters]),
     )
+    
+    
+    log_entry = LogEntry(UserActionType.SET_ZONE_MASTER, user, str(request_ip))
+    log_entry.field("domain", domain)
+    log_entry.field("current_zone_masters", current_zonemasters_json)
+    log_entry.field("target_zone_master", target_zone_master.name)
+
+    get_user_action_logger().info(str(log_entry))
+    
     await db_log_dns_zone_master_set(
         session=session,
         user=user,
@@ -223,12 +232,6 @@ async def log_dns_zone_master_set(
         domain=domain,
     )
 
-    log_entry = LogEntry(UserActionType.SET_ZONE_MASTER, user, str(request_ip))
-    log_entry.field("domain", domain)
-    log_entry.field("current_zone_masters", current_zonemasters_json)
-    log_entry.field("target_zone_master", target_zone_master.name)
-
-    get_user_action_logger().info(str(log_entry))
 
 
 async def log_plesk_mail_test_get(
@@ -240,15 +243,6 @@ async def log_plesk_mail_test_get(
     request: Request,
 ):
     request_ip = IPv4Address.model_validate(_get_request_ip(request))
-
-    await db_log_plesk_mail_test_get(
-        session=session,
-        ip=request_ip,
-        user=user,
-        plesk_server=plesk_mail_server,
-        domain=mail_domain,
-        new_email_created=is_new_email_created,
-    )
     log_entry = LogEntry(
         UserActionType.GET_TEST_MAIL_CREDENTIALS, user, str(request_ip)
     )
@@ -258,6 +252,16 @@ async def log_plesk_mail_test_get(
     log_entry.field("plesk_mail_server", plesk_mail_server)
 
     get_user_action_logger().info(str(log_entry))
+    
+    await db_log_plesk_mail_test_get(
+        session=session,
+        ip=request_ip,
+        user=user,
+        plesk_server=plesk_mail_server,
+        domain=mail_domain,
+        new_email_created=is_new_email_created,
+    )
+
 
 
 async def log_dns_remove_zone(
@@ -272,7 +276,8 @@ async def log_dns_remove_zone(
     log_entry = LogEntry(UserActionType.DELETE_ZONE_MASTER, user, str(request_ip))
     log_entry.field("domain", domain)
     log_entry.field("current_zone_master", current_zonemaster)
-
+    get_user_action_logger().info(str(log_entry))
+    
     await db_log_dns_zonemaster_removal(
         session=session,
         user=user,
@@ -280,7 +285,7 @@ async def log_dns_remove_zone(
         domain=domain,
         ip=request_ip,
     )
-    get_user_action_logger().info(str(log_entry))
+
 
 
 async def log_dns_get_zonemaster(
@@ -290,12 +295,13 @@ async def log_dns_get_zonemaster(
 
     log_entry = LogEntry(UserActionType.GET_ZONE_MASTER, user, str(request_ip))
     log_entry.field("domain", domain)
-
+    get_user_action_logger().info(str(log_entry))
+    
     await db_log_dns_zonemaster_fetch(
         session=session, user=user, domain=domain, ip=request_ip
     )
 
-    get_user_action_logger().info(str(log_entry))
+
 
 
 def setup_ssh_logger():
