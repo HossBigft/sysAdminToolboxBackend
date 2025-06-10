@@ -39,7 +39,7 @@ router = APIRouter(tags=["plesk"], prefix="/plesk")
 
 @router.get("/get/subscription/", response_model=SubscriptionListResponseModel)
 async def find_plesk_subscription_by_domain(
-        domain: Annotated[DomainName, Query()],
+        domain: Annotated[SubscriptionName, Query()],
 ) -> SubscriptionListResponseModel:
     subscriptions = await PleskService().fetch_subscription_info(domain)
     return SubscriptionListResponseModel(root=subscriptions)

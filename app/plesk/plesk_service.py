@@ -38,7 +38,7 @@ class PleskService:
         await self.client.execute_on_server(host.name, command, domain.name)
 
     async def fetch_subscription_info(
-        self, domain: DomainName
+        self, domain: SubscriptionName
     ) -> List[SubscriptionDetailsModel]:
         command = PleskOperation.fetch_subscription_info()
         responses = await self.client.execute_on_servers(
