@@ -1,14 +1,13 @@
 import asyncio
 import asyncssh
 import time
+
 from typing import List
-import logging
+
 from app.schemas import SshResponse
 from app.core.DomainMapper import HOSTS
 from app.core.config import settings
 
-logging.basicConfig()
-asyncssh.set_log_level('CRITICAL')
 
 _connection_pool = {}
 

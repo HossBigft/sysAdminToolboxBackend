@@ -314,6 +314,10 @@ def setup_ssh_logger():
     ssh_logger.addHandler(handler)
     ssh_logger.propagate = False
     
+    asyncssh_logger = logging.getLogger("asyncssh")
+    asyncssh_logger.setLevel(logging.CRITICAL)     
+    asyncssh_logger.propagate = False   
+               
     return ssh_logger
 
 
