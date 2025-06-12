@@ -45,7 +45,7 @@ async def _execute_ssh_command(host: str, command: str) -> Dict[str, Any]:
         
         # Time command execution
         cmd_start = time.time()
-        result = await conn.run(command, timeout= SSH_LOGIN_TIMEOUT)
+        result = await asyncio.wait_for(conn.run(command), timeout= SSH_LOGIN_TIMEOUT)
         cmd_time = time.time() - cmd_start
         
         # Time output processing
