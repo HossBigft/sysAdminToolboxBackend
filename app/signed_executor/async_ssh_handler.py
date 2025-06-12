@@ -45,7 +45,7 @@ async def _execute_ssh_command(host: str, command: str) -> Dict[str, Any]:
         
         # Time command execution
         cmd_start = time.time()
-        result = await conn.run(command)
+        result = await conn.run(command, timeout= SSH_LOGIN_TIMEOUT)
         cmd_time = time.time() - cmd_start
         
         # Time output processing
@@ -244,8 +244,12 @@ async def execute_ssh_commands_in_batch(server_list: List[str], command: str) ->
     
     print(f"\nBatch execution completed in {total_time:.2f}s (gather: {gather_time:.2f}s)")
     log_detailed_stats(stats, outliers)
-    
-    return results
+    processed_results = []               
+    for i, result in enumerate(results): 
+        if isinstance(result, Exception):
+            raise result                 
+        processed_results.append(result) 
+    return processed_results
 
 # Example usage with additional helper function
 def get_timing_summary(results: List[Dict[str, Any]]) -> str:

@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI):
     setup_custom_access_logger()
     setup_actions_logger()
     setup_ssh_logger()
-    await ssh_multiplexing_warmup()
+    # await ssh_multiplexing_warmup()
     yield
 
 
