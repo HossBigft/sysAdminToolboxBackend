@@ -210,14 +210,14 @@ def log_detailed_stats(stats: Dict[str, Any], outliers: Dict[str, List]):
         print(f"  95th %:  {summary[f'{category}_p95']:.3f}s")
     
     # Outliers
-    if outliers["slow_hosts"]:
+    if outliers.get("slow_hosts"):
         print(f"\nSLOW HOSTS ({len(outliers['slow_hosts'])} hosts):")
         for host_info in outliers["slow_hosts"]:
             print(f"  {host_info['host']}: {host_info['time']:.3f}s "
                           f"(conn: {host_info['breakdown']['connection_time']:.3f}s, "
                           f"cmd: {host_info['breakdown']['command_time']:.3f}s)")
     
-    if outliers["failed_hosts"]:
+    if outliers.get("failed_hosts"):
         print(f"\nFAILED HOSTS ({len(outliers['failed_hosts'])} hosts):")
         for host_info in outliers["failed_hosts"]:
             print(f"  {host_info['host']}: {host_info['time']:.3f}s - {host_info['error']}")
