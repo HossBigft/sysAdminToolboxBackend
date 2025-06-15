@@ -28,4 +28,5 @@ dependencies = [
     "cryptography>=44.0.2",
     "asyncssh>=2.21.0",
     "scalene>=1.5.51",
+    "pyinstrument>=5.0.2",
 ]
