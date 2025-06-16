@@ -29,7 +29,7 @@ async def _get_connection(host: str):
         return _connection_pool[host]
 
 
-class SshAccessDeniedError(Exception):
+class SshExecutionError(Exception):
     def __init__(self, host: str, message: str | None):
         super().__init__(f"SSH access denied for {host}: {message}")
         self.host = host
@@ -82,22 +82,22 @@ async def _execute_ssh_command(host: str, command: str) -> SshResponse:
     except asyncssh.PermissionDenied as e:
         end_time = time.time()
         execution_time = end_time - start_time
-        raise SshAccessDeniedError(host, f"Permission denied: {str(e)}")
+        raise SshExecutionError(host, f"Permission denied: {str(e)}")
 
     except asyncssh.ConnectionLost as e:
         end_time = time.time()
         execution_time = end_time - start_time
-        raise SshAccessDeniedError(host, f"Connection lost: {str(e)}")
+        raise SshExecutionError(host, f"Connection lost: {str(e)}")
 
     except asyncssh.TimeoutError as e:
         end_time = time.time()
         execution_time = end_time - start_time
-        raise SshAccessDeniedError(host, f"Connection timed out: {str(e)}")
+        raise SshExecutionError(host, f"Connection timed out: {str(e)}")
 
     except asyncio.TimeoutError as e:
         end_time = time.time()
         execution_time = end_time - start_time
-        raise SshAccessDeniedError(host, f"Execution timed out: {str(e)}")
+        raise SshExecutionError(host, f"Execution timed out: {str(e)}")
 
     except asyncssh.Error as e:
         end_time = time.time()
@@ -108,7 +108,7 @@ async def _execute_ssh_command(host: str, command: str) -> SshResponse:
             "permission denied" in error_message
             or "authentication failed" in error_message
         ):
-            raise SshAccessDeniedError(host, str(e))
+            raise SshExecutionError(host, str(e))
 
         return {
             "host": host,
