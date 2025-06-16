@@ -94,6 +94,11 @@ async def _execute_ssh_command(host: str, command: str) -> SshResponse:
         execution_time = end_time - start_time
         raise SshAccessDeniedError(host, f"Connection timed out: {str(e)}")
 
+    except asyncio.TimeoutError as e:
+        end_time = time.time()
+        execution_time = end_time - start_time
+        raise SshAccessDeniedError(host, f"Execution timed out: {str(e)}")
+
     except asyncssh.Error as e:
         end_time = time.time()
         execution_time = end_time - start_time
