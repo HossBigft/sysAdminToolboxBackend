@@ -12,6 +12,7 @@ from app.core.config import settings
 _connection_pool = {}
 
 SSH_LOGIN_TIMEOUT=3
+SSH_EXECUTION_TIMEOUT=1
 
 async def _get_connection(host: str):
     if host in _connection_pool.keys():
@@ -33,7 +34,7 @@ async def _execute_ssh_command(host: str, command: str) -> SshResponse:
     try:
         conn = await _get_connection(host)
         start_time = time.time()
-        result = await conn.run(command)
+        result = await asyncio.wait_for(conn.run(command), timeout= SSH_EXECUTION_TIMEOUT)
         end_time = time.time()
         execution_time = end_time - start_time
 
