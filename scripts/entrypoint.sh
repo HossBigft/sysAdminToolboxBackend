@@ -2,8 +2,9 @@
 set -e
 
 if [[ "$1" == "backend" ]]; then
-    echo "[ENTRYPOINT] Starting FastAPI server..."
-    exec fastapi run --workers 4 app/main.py
+    WORKERS=${BACKEND_WORKERS:-1}
+    echo "[ENTRYPOINT] Starting FastAPI server with $WORKERS workers..."
+    exec fastapi run --workers "$WORKERS" app/main.py
 else
     echo "[ENTRYPOINT] Skipping backend startup for argument: $1"
     exec "$@"
