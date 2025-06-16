@@ -192,10 +192,17 @@ async def _execute_ssh_command(host: str, command: str) -> SshResponse:
 
 async def execute_ssh_commands_in_batch(
     server_list: List[str], command: str
-) -> List[SshResponse | BaseException]:
-    tasks = [_execute_ssh_command(host, command) for host in server_list]
+) -> List[SshResponse | Exception]:
+    semaphore = asyncio.Semaphore(10)
 
-    results = await asyncio.gather(*tasks, return_exceptions=True)
+    async def worker(host: str):
+        async with semaphore:
+            try:
+                return await _execute_ssh_command(host, command)
+            except Exception as e:
+                return e
+
+    results = await asyncio.gather(*(worker(host) for host in server_list))
 
     return results
 
