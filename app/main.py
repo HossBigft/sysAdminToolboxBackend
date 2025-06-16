@@ -16,6 +16,11 @@ from app.core_utils.loggers import (
     setup_custom_access_logger,
     setup_ssh_logger,
 )
+from app.schemas import PLESK_SERVER_LIST, DNS_SERVER_LIST
+from app.signed_executor.async_ssh_handler import (
+    initialize_connection_pool,
+    close_all_connections,
+)
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -32,7 +37,9 @@ async def lifespan(app: FastAPI):
     setup_custom_access_logger()
     setup_actions_logger()
     setup_ssh_logger()
+    await initialize_connection_pool(PLESK_SERVER_LIST + DNS_SERVER_LIST)
     yield
+    await close_all_connections()
 
 
 app = FastAPI(
