@@ -456,7 +456,12 @@ class SignedExecutorResponse(BaseModel, Generic[T]):
         stdout = response.get("stdout")
         if not stdout:
             host = response.get("host")
-            return  SignedExecutorResponse(host=host, status=ExecutionStatus.INTERNAL_ERROR, code=ExecutionStatus.INTERNAL_ERROR.code, message=f"Host {host} returned no stdout message")
+            return SignedExecutorResponse(
+                host=host,
+                status=ExecutionStatus.INTERNAL_ERROR,
+                code=ExecutionStatus.INTERNAL_ERROR.code,
+                message=f"Host {host} returned no stdout message",
+            )
 
         try:
             parsed_response = json.loads(stdout)

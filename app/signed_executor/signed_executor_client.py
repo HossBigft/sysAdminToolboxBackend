@@ -9,42 +9,6 @@ from app.signed_executor.async_ssh_handler import (
 from app.core_utils.loggers import log_ssh_response, log_ssh_request
 
 
-async def get_executor_status_from_servers(
-    server_list: List[str],
-) -> List[SignedExecutorResponse]:
-    status_command = "status"
-
-    for i, host in enumerate(server_list):
-        log_ssh_request(host, status_command)
-
-    ssh_responses = await execute_ssh_commands_in_batch(
-        server_list,
-        command=status_command,
-    )
-
-    executor_responses: List[SignedExecutorResponse] = []
-    for host, result in zip(server_list, ssh_responses):
-        execution_time = 0
-        if isinstance(result, BaseException):
-            response = SignedExecutorResponse(
-                host=host,
-                status=ExecutionStatus.INTERNAL_ERROR,
-                code=ExecutionStatus.INTERNAL_ERROR.code,
-                message=str(result),
-                payload=None,
-            )
-        else:
-            response = SignedExecutorResponse.from_ssh_response(result)
-            execution_time = result["execution_time"] or 0.0
-
-        log_ssh_response(response, execution_time)
-        if response is not None:
-            log_ssh_response(response, execution_time)
-            executor_responses.append(response)
-
-    return executor_responses
-
-
 class SignedExecutorClient:
     def __init__(self):
         self._token_signer = get_token_signer()
