@@ -11,7 +11,7 @@ from app.core.config import settings
 
 _connection_pool = {}
 
-SSH_CONNECTION_TIMEOUT = 3
+SSH_LOGIN_TIMEOUT = 3
 SSH_EXECUTION_TIMEOUT = 1
 
 
@@ -20,19 +20,12 @@ async def _get_connection(host: str):
         return _connection_pool[host]
     else:
         host_ip = str(HOSTS.resolve_domain(host).ips[0])
-        conn = await asyncssh.connect(
+        _connection_pool[host] = await asyncssh.connect(
             host_ip,
             username=settings.SSH_USER,
             known_hosts=None,
-            login_timeout=SSH_CONNECTION_TIMEOUT,
+            login_timeout=SSH_LOGIN_TIMEOUT,
         )
-        try:
-            await asyncio.wait_for(conn.run("echo success"), timeout=SSH_CONNECTION_TIMEOUT)
-        except asyncio.TimeoutError as e:
-            raise SshExecutionError(
-                host, f"Connection warmup timed out in {SSH_CONNECTION_TIMEOUT}s: {str(e)}"
-            )
-        _connection_pool[host] = conn
         return _connection_pool[host]
 
 
@@ -99,16 +92,12 @@ async def _execute_ssh_command(host: str, command: str) -> SshResponse:
     except asyncssh.TimeoutError as e:
         end_time = time.time()
         execution_time = end_time - start_time
-        raise SshExecutionError(
-            host, f"Connection timed out in {SSH_CONNECTION_TIMEOUT}s: {str(e)}"
-        )
+        raise SshExecutionError(host, f"Connection timed out: {str(e)}")
 
     except asyncio.TimeoutError as e:
         end_time = time.time()
         execution_time = end_time - start_time
-        raise SshExecutionError(
-            host, f"Execution timed out in {SSH_EXECUTION_TIMEOUT}s: {str(e)}"
-        )
+        raise SshExecutionError(host, f"Execution timed out in {SSH_EXECUTION_TIMEOUT}s: {str(e)}")
 
     except asyncssh.Error as e:
         end_time = time.time()
