@@ -93,6 +93,7 @@ async def _get_connection(host: str):
         else:
             return conn
     else:
+        logger.info(f"Connection to {host} is not found, creating.")
         _connection_pool[host] = await _create_connection(host)
         return _connection_pool[host]
 
