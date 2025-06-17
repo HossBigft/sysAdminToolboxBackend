@@ -1,9 +1,10 @@
 import asyncio
 import asyncssh
 import time
+import statistics
 from scalene import scalene_profiler
 
-from typing import List, Callable, Any
+from typing import List, Callable, Any, Dict
 
 from app.schemas import SshResponse
 from app.core.DomainMapper import HOSTS
@@ -135,9 +136,12 @@ class SshExecutionError(Exception):
         self.message = message
 
 
-async def _execute_ssh_command(host: str, command: str) -> SshResponse:
+async def _execute_ssh_command(host: str, command: str) :
+    overall_start = time.time()
     try:
+        conn_start = time.time()
         conn = await _get_connection(host)
+        conn_time = time.time() - conn_start
         start_time = time.time()
         result = await asyncio.wait_for(
             conn.run(command), timeout=SSH_EXECUTION_TIMEOUT
@@ -145,6 +149,7 @@ async def _execute_ssh_command(host: str, command: str) -> SshResponse:
         end_time = time.time()
         execution_time = end_time - start_time
 
+        process_start = time.time()
         stdout_output: str | None = (
             result.stdout.strip()
             if result.stdout and result.stdout.strip() != ""
@@ -168,41 +173,47 @@ async def _execute_ssh_command(host: str, command: str) -> SshResponse:
                 filtered_stderr_output if filtered_stderr_output.strip() else None
             )
 
-        returncode_output: int | None = result.exit_status
-
+        process_time = time.time() - process_start
+        total_time = time.time() - overall_start
         return {
             "host": host,
             "stdout": stdout_output,
             "stderr": filtered_stderr_output,
-            "returncode": returncode_output,
-            "execution_time": execution_time,
+            "returncode": result.exit_status,
+            "execution_time": total_time,
+            "timing_breakdown": {
+                "connection_time": conn_time,
+                "command_time": execution_time,
+                "processing_time": process_time,
+                "total_time": total_time,
+            },
         }
 
     except asyncssh.PermissionDenied as e:
         end_time = time.time()
-        execution_time = end_time - start_time
+        execution_time = end_time - overall_start
         raise SshExecutionError(host, f"Permission denied: {str(e)}")
 
     except asyncssh.ConnectionLost as e:
         end_time = time.time()
-        execution_time = end_time - start_time
+        execution_time = end_time - overall_start
         raise SshExecutionError(host, f"Connection lost: {str(e)}")
 
     except asyncssh.TimeoutError as e:
         end_time = time.time()
-        execution_time = end_time - start_time
+        execution_time = end_time - overall_start
         raise SshExecutionError(host, f"Connection timed out: {str(e)}")
 
     except asyncio.TimeoutError as e:
         end_time = time.time()
-        execution_time = end_time - start_time
+        execution_time = end_time - overall_start
         raise SshExecutionError(
             host, f"Execution timed out in {SSH_EXECUTION_TIMEOUT}s: {str(e)}"
         )
 
     except asyncssh.Error as e:
         end_time = time.time()
-        execution_time = end_time - start_time
+        execution_time = end_time - overall_start
 
         error_message = str(e).lower()
         if (
@@ -233,14 +244,160 @@ async def execute_ssh_commands_in_batch(
                 return await _execute_ssh_command(host, command)
             except Exception as e:
                 return e
-
+    gather_start = time.time()
     results = await asyncio.gather(*(worker(host) for host in server_list))
+    gather_time = time.time() - gather_start
     end_time = time.time()
     execution_time = end_time - start_time
     logger.info(f"Batch size of {len(server_list)} executed in {execution_time}s.")
     # scalene_profiler.stop()
+    
+
+    stats = calculate_timing_stats(results)
+    outliers = find_outliers(results)
+    
+    print(f"\nBatch execution completed in {execution_time:.2f}s (gather: {gather_time:.2f}s)")
+    log_detailed_stats(stats, outliers)
     return results
 
 
 async def execute_ssh_command(host: str, command: str) -> SshResponse:
     return await _execute_ssh_command(host, command)
+
+
+def calculate_timing_stats(
+    results: List[Dict[str, Any]],
+) -> Dict[str, Dict[str, float]]:
+    """Calculate statistics for different timing components"""
+
+    # Filter out failed requests for clean stats
+    successful_results = [r for r in results if not r.get("error", False)]
+
+    if not successful_results:
+        return {"error": "No successful results to analyze"}
+
+    # Extract timing data
+    total_times = [r["execution_time"] for r in successful_results]
+    conn_times = [r["timing_breakdown"]["connection_time"] for r in successful_results]
+    cmd_times = [r["timing_breakdown"]["command_time"] for r in successful_results]
+    process_times = [
+        r["timing_breakdown"]["processing_time"] for r in successful_results
+    ]
+
+    def calc_stats(times: List[float], name: str) -> Dict[str, float]:
+        return {
+            f"{name}_min": min(times),
+            f"{name}_max": max(times),
+            f"{name}_mean": statistics.mean(times),
+            f"{name}_median": statistics.median(times),
+            f"{name}_stdev": statistics.stdev(times) if len(times) > 1 else 0.0,
+            f"{name}_p95": sorted(times)[int(len(times) * 0.95)]
+            if len(times) > 1
+            else times[0],
+        }
+
+    stats = {}
+    stats.update(calc_stats(total_times, "total"))
+    stats.update(calc_stats(conn_times, "connection"))
+    stats.update(calc_stats(cmd_times, "command"))
+    stats.update(calc_stats(process_times, "processing"))
+
+    return {
+        "summary": stats,
+        "successful_count": len(successful_results),
+        "failed_count": len(results) - len(successful_results),
+        "total_count": len(results),
+    }
+
+
+def find_outliers(
+    results: List[Dict[str, Any]], threshold_multiplier: float = 2.0
+) -> Dict[str, List[str]]:
+    """Find hosts that are significantly slower than average"""
+
+    successful_results = [r for r in results if not r.get("error", False)]
+    if len(successful_results) < 2:
+        return {"outliers": []}
+
+    total_times = [r["execution_time"] for r in successful_results]
+    mean_time = statistics.mean(total_times)
+    stdev_time = statistics.stdev(total_times)
+    threshold = mean_time + (threshold_multiplier * stdev_time)
+
+    outliers = {"slow_hosts": [], "fast_hosts": [], "failed_hosts": []}
+
+    for result in results:
+        if result.get("error", False):
+            outliers["failed_hosts"].append(
+                {
+                    "host": result["host"],
+                    "time": result["execution_time"],
+                    "error": result.get("stderr", "Unknown error"),
+                }
+            )
+        elif result["execution_time"] > threshold:
+            outliers["slow_hosts"].append(
+                {
+                    "host": result["host"],
+                    "time": result["execution_time"],
+                    "breakdown": result["timing_breakdown"],
+                }
+            )
+        elif result["execution_time"] < (mean_time - stdev_time):
+            outliers["fast_hosts"].append(
+                {"host": result["host"], "time": result["execution_time"]}
+            )
+
+    return outliers
+
+
+def log_detailed_stats(stats: Dict[str, Any], outliers: Dict[str, List]):
+    """Log comprehensive timing statistics"""
+
+    if "error" in stats:
+        print(f"Stats calculation failed: {stats['error']}")
+        return
+
+    summary = stats["summary"]
+
+    # Overall summary
+    print("=" * 60)
+    print("BATCH EXECUTION STATISTICS")
+    print("=" * 60)
+    print(f"Total requests: {stats['total_count']}")
+    print(f"Successful: {stats['successful_count']}")
+    print(f"Failed: {stats['failed_count']}")
+    print(
+        f"Success rate: {stats['successful_count'] / stats['total_count'] * 100:.1f}%"
+    )
+
+    # Timing breakdown
+    categories = ["total", "connection", "command", "processing"]
+
+    for category in categories:
+        print(f"\n{category.upper()} TIMES:")
+        print(f"  Min:     {summary[f'{category}_min']:.3f}s")
+        print(f"  Max:     {summary[f'{category}_max']:.3f}s")
+        print(f"  Mean:    {summary[f'{category}_mean']:.3f}s")
+        print(f"  Median:  {summary[f'{category}_median']:.3f}s")
+        print(f"  StdDev:  {summary[f'{category}_stdev']:.3f}s")
+        print(f"  95th %:  {summary[f'{category}_p95']:.3f}s")
+
+    # Outliers
+    if outliers.get("slow_hosts"):
+        print(f"\nSLOW HOSTS ({len(outliers['slow_hosts'])} hosts):")
+        for host_info in outliers["slow_hosts"]:
+            print(
+                f"  {host_info['host']}: {host_info['time']:.3f}s "
+                f"(conn: {host_info['breakdown']['connection_time']:.3f}s, "
+                f"cmd: {host_info['breakdown']['command_time']:.3f}s)"
+            )
+
+    if outliers.get("failed_hosts"):
+        print(f"\nFAILED HOSTS ({len(outliers['failed_hosts'])} hosts):")
+        for host_info in outliers["failed_hosts"]:
+            print(
+                f"  {host_info['host']}: {host_info['time']:.3f}s - {host_info['error']}"
+            )
+
+    print("=" * 60)
