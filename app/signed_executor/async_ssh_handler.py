@@ -68,7 +68,7 @@ async def initialize_connection_pool(ssh_host_list: List[str]):
     if not ssh_host_list:
         raise ValueError("No SSH hosts are given to initialize connections with.")
 
-    logger.info(f"Initializing SSH connection pool for {len(ssh_host_list)} hosts...")
+    print(f"Initializing SSH connection pool for {len(ssh_host_list)} hosts...")
 
     connection_tasks = []
     for host in ssh_host_list:
@@ -85,21 +85,21 @@ async def initialize_connection_pool(ssh_host_list: List[str]):
             logger.error(f"Failed to connect to {host}: {result}")
             failed_connections += 1
         else:
-            logger.info(f"Successfully connected to {host}")
+            print(f"Successfully connected to {host}")
             successful_connections += 1
 
-    logger.info(
+    print(
         f"Connection pool initialized: {successful_connections} successful, {failed_connections} failed"
     )
 
 
 async def close_all_connections():
-    logger.info("Closing all SSH connections...")
+    print("Closing all SSH connections...")
 
     async def _close_single_connection(host: str, connection):
         try:
             connection.close()
-            logger.info(f"Closed connection to {host}")
+            print(f"Closed connection to {host}")
             return True
         except Exception as e:
             logger.error(f"Error closing connection to {host}: {e}")
@@ -111,7 +111,7 @@ async def close_all_connections():
     await asyncio.gather(*close_tasks, return_exceptions=True)
 
     _connection_pool.clear()
-    logger.info("All SSH connections closed")
+    print("All SSH connections closed")
 
 
 async def _get_connection(host: str):
@@ -124,7 +124,7 @@ async def _get_connection(host: str):
         else:
             return conn
     else:
-        logger.info(f"Connection to {host} is not found, creating.")
+        print(f"Connection to {host} is not found, creating.")
         _connection_pool[host] = await _create_connection(host)
         return _connection_pool[host]
 
@@ -249,7 +249,7 @@ async def execute_ssh_commands_in_batch(
     gather_time = time.time() - gather_start
     end_time = time.time()
     execution_time = end_time - start_time
-    logger.info(f"Batch size of {len(server_list)} executed in {execution_time}s.")
+    print(f"Batch size of {len(server_list)} executed in {execution_time}s.")
     # scalene_profiler.stop()
     
 
