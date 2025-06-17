@@ -27,4 +27,5 @@ dependencies = [
     "fastapi-utils[all]>=0.8.0",
     "cryptography>=44.0.2",
     "asyncssh>=2.21.0",
+    "scalene>=1.5.51",
 ]
