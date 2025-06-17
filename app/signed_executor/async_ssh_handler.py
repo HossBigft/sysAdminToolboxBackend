@@ -24,15 +24,15 @@ async def run_with_adaptive_timeout(
     factor: float = 2.0,
     max_timeout: float = 10.0,
     max_retries: int | None = None,
-):
+)-> Any:
     timeout = base_timeout
     attempt = 0
     while base_timeout <= max_timeout and (
         max_retries is not None and attempt <= max_retries
     ):
         try:
-            await asyncio.wait_for(coro_factory(), timeout=timeout)
-
+            result = await asyncio.wait_for(coro_factory(), timeout=timeout)
+            return result
         except asyncio.TimeoutError:
             if attempt == max_retries or timeout > max_timeout:
                 raise asyncio.TimeoutError()
