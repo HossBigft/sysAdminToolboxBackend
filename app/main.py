@@ -7,11 +7,20 @@ from contextlib import asynccontextmanager
 
 from app.core.config import settings
 from app.core_utils.loggers import LoggingMiddleware
-from app.core_utils.ssh_multiplexing_warmup import ssh_multiplexing_warmup
 from app.users import users_router as users
 from app.auth import auth_router as login, password_reset
 from app.api import utils_router as utils, plesk_router as plesk, dns_router as dns
-from app.core_utils.loggers import disable_default_uvicorn_access_logs, setup_actions_logger, setup_custom_access_logger, setup_ssh_logger
+from app.core_utils.loggers import (
+    disable_default_uvicorn_access_logs,
+    setup_actions_logger,
+    setup_custom_access_logger,
+    setup_ssh_logger,
+)
+from app.schemas import PLESK_SERVER_LIST, DNS_SERVER_LIST
+from app.signed_executor.async_ssh_handler import (
+    initialize_connection_pool,
+    close_all_connections,
+)
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -28,8 +37,9 @@ async def lifespan(app: FastAPI):
     setup_custom_access_logger()
     setup_actions_logger()
     setup_ssh_logger()
-    # await ssh_multiplexing_warmup()
+    await initialize_connection_pool(PLESK_SERVER_LIST + DNS_SERVER_LIST)
     yield
+    await close_all_connections()
 
 
 app = FastAPI(
