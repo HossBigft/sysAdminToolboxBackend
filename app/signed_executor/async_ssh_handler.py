@@ -24,20 +24,19 @@ async def run_with_adaptive_timeout(
     factor: float = 2.0,
     max_timeout: float = 10.0,
     max_retries: int | None = None,
-)-> Any:
+) -> Any:
     timeout = base_timeout
     attempt = 0
-    while base_timeout <= max_timeout and (
-        max_retries is not None and attempt <= max_retries
-    ):
+
+    while timeout <= max_timeout:
         try:
-            result = await asyncio.wait_for(coro_factory(), timeout=timeout)
-            return result
+            return await asyncio.wait_for(coro_factory(), timeout=timeout)
         except asyncio.TimeoutError:
-            if attempt == max_retries or timeout > max_timeout:
-                raise asyncio.TimeoutError()
-            else:
-                timeout = min(timeout * factor, max_timeout)
+            if max_retries is not None:
+                attempt += 1
+                if attempt > max_retries:
+                    raise
+            timeout = min(timeout * factor, max_timeout)
 
 
 async def _create_connection(host: str):
