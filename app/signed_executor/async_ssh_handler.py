@@ -223,7 +223,7 @@ async def _execute_ssh_command(host: str, command: str) -> SshResponse:
 async def execute_ssh_commands_in_batch(
     server_list: List[str], command: str
 ) -> List[SshResponse | Exception]:
-    scalene_profiler.start()
+    # scalene_profiler.start()
     start_time = time.time()
     semaphore = asyncio.Semaphore(10)
 
@@ -238,7 +238,7 @@ async def execute_ssh_commands_in_batch(
     end_time = time.time()
     execution_time = end_time - start_time
     logger.info(f"Batch size of {len(server_list)} executed in {execution_time}s.")
-    scalene_profiler.stop()
+    # scalene_profiler.stop()
     return results
 
 
