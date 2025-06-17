@@ -1,10 +1,13 @@
 import asyncio
 
-from app.signed_executor.async_ssh_handler import execute_ssh_commands_in_batch
+from app.signed_executor.async_ssh_handler import execute_ssh_commands_in_batch, initialize_connection_pool
 from app.schemas import PLESK_SERVER_LIST, DNS_SERVER_LIST
 
 
 async def main():
+    print("Initialising connection pool")
+    await initialize_connection_pool(PLESK_SERVER_LIST + DNS_SERVER_LIST)
+    
     print("Running requests on cold connections")
     await execute_ssh_commands_in_batch(PLESK_SERVER_LIST + DNS_SERVER_LIST, command="status")
 
