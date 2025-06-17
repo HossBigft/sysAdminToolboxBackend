@@ -1,18 +1,30 @@
 import asyncio
-
-from app.signed_executor.async_ssh_handler import execute_ssh_commands_in_batch, initialize_connection_pool
+import time
+from app.signed_executor.async_ssh_handler import (
+    execute_ssh_commands_in_batch,
+    initialize_connection_pool,
+)
 from app.schemas import PLESK_SERVER_LIST, DNS_SERVER_LIST
+
+SLEEP_TIME = 5
 
 
 async def main():
     print("Initialising connection pool")
     await initialize_connection_pool(PLESK_SERVER_LIST + DNS_SERVER_LIST)
+
+    print(f"Sleeping {SLEEP_TIME}s. to cool the CPU")
+    time.sleep(SLEEP_TIME)
     
     print("Running requests on cold connections")
-    await execute_ssh_commands_in_batch(PLESK_SERVER_LIST + DNS_SERVER_LIST, command="status")
+    await execute_ssh_commands_in_batch(
+        PLESK_SERVER_LIST + DNS_SERVER_LIST, command="status"
+    )
 
     print("Running requests on warmed connections")
-    await execute_ssh_commands_in_batch(PLESK_SERVER_LIST + DNS_SERVER_LIST, command="status")
+    await execute_ssh_commands_in_batch(
+        PLESK_SERVER_LIST + DNS_SERVER_LIST, command="status"
+    )
 
 
 if __name__ == "__main__":
