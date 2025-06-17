@@ -1,5 +1,7 @@
 import asyncio
 import time
+from scalene import scalene_profiler
+
 from app.signed_executor.async_ssh_handler import (
     execute_ssh_commands_in_batch,
     initialize_connection_pool,
@@ -20,12 +22,13 @@ async def main():
     await execute_ssh_commands_in_batch(
         PLESK_SERVER_LIST + DNS_SERVER_LIST, command="status"
     )
-
+    
+    scalene_profiler.start()
     print("Running requests on warmed connections")
     await execute_ssh_commands_in_batch(
         PLESK_SERVER_LIST + DNS_SERVER_LIST, command="status"
     )
-
+    scalene_profiler.stop()
 
 if __name__ == "__main__":
     asyncio.run(main())
