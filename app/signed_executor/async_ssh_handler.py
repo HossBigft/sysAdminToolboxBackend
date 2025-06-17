@@ -266,23 +266,20 @@ async def execute_ssh_command(host: str, command: str) -> SshResponse:
 
 
 def calculate_timing_stats(
-    results: List[Dict[str, Any]],
-) -> Dict[str, Dict[str, float]]:
+    results: List[Dict[str, Any] | Exception],
+) -> Dict[str, Any]:
     """Calculate statistics for different timing components"""
 
-    # Filter out failed requests for clean stats
-    successful_results = [r for r in results if not r.get("error", False)]
+    # Keep only successful dict results
+    successful_results = [r for r in results if isinstance(r, dict)]
 
     if not successful_results:
         return {"error": "No successful results to analyze"}
 
-    # Extract timing data
     total_times = [r["execution_time"] for r in successful_results]
     conn_times = [r["timing_breakdown"]["connection_time"] for r in successful_results]
     cmd_times = [r["timing_breakdown"]["command_time"] for r in successful_results]
-    process_times = [
-        r["timing_breakdown"]["processing_time"] for r in successful_results
-    ]
+    process_times = [r["timing_breakdown"]["processing_time"] for r in successful_results]
 
     def calc_stats(times: List[float], name: str) -> Dict[str, float]:
         return {
@@ -292,8 +289,7 @@ def calculate_timing_stats(
             f"{name}_median": statistics.median(times),
             f"{name}_stdev": statistics.stdev(times) if len(times) > 1 else 0.0,
             f"{name}_p95": sorted(times)[int(len(times) * 0.95)]
-            if len(times) > 1
-            else times[0],
+            if len(times) > 1 else times[0],
         }
 
     stats = {}
@@ -311,11 +307,11 @@ def calculate_timing_stats(
 
 
 def find_outliers(
-    results: List[Dict[str, Any]], threshold_multiplier: float = 2.0
-) -> Dict[str, List[str]]:
+    results: List[Dict[str, Any] | Exception], threshold_multiplier: float = 2.0
+) -> Dict[str, List[Dict[str, Any]]]:
     """Find hosts that are significantly slower than average"""
 
-    successful_results = [r for r in results if not r.get("error", False)]
+    successful_results = [r for r in results if isinstance(r, dict)]
     if len(successful_results) < 2:
         return {"outliers": []}
 
@@ -326,27 +322,31 @@ def find_outliers(
 
     outliers = {"slow_hosts": [], "fast_hosts": [], "failed_hosts": []}
 
-    for result in results:
-        if result.get("error", False):
-            outliers["failed_hosts"].append(
-                {
-                    "host": result["host"],
-                    "time": result["execution_time"],
-                    "error": result.get("stderr", "Unknown error"),
-                }
-            )
-        elif result["execution_time"] > threshold:
-            outliers["slow_hosts"].append(
-                {
-                    "host": result["host"],
-                    "time": result["execution_time"],
-                    "breakdown": result["timing_breakdown"],
-                }
-            )
-        elif result["execution_time"] < (mean_time - stdev_time):
-            outliers["fast_hosts"].append(
-                {"host": result["host"], "time": result["execution_time"]}
-            )
+    for r in results:
+        if isinstance(r, dict):
+            if r["execution_time"] > threshold:
+                outliers["slow_hosts"].append({
+                    "host": r["host"],
+                    "time": r["execution_time"],
+                    "breakdown": r["timing_breakdown"],
+                })
+            elif r["execution_time"] < (mean_time - stdev_time):
+                outliers["fast_hosts"].append({
+                    "host": r["host"],
+                    "time": r["execution_time"],
+                })
+        elif isinstance(r, SshExecutionError):
+            outliers["failed_hosts"].append({
+                "host": r.host,
+                "time": None,
+                "error": r.message,
+            })
+        elif isinstance(r, Exception):
+            outliers["failed_hosts"].append({
+                "host": "Unknown",
+                "time": None,
+                "error": str(r),
+            })
 
     return outliers
 
@@ -367,9 +367,7 @@ def log_detailed_stats(stats: Dict[str, Any], outliers: Dict[str, List]):
     print(f"Total requests: {stats['total_count']}")
     print(f"Successful: {stats['successful_count']}")
     print(f"Failed: {stats['failed_count']}")
-    print(
-        f"Success rate: {stats['successful_count'] / stats['total_count'] * 100:.1f}%"
-    )
+    print(f"Success rate: {stats['successful_count'] / stats['total_count'] * 100:.1f}%")
 
     # Timing breakdown
     categories = ["total", "connection", "command", "processing"]
@@ -383,7 +381,6 @@ def log_detailed_stats(stats: Dict[str, Any], outliers: Dict[str, List]):
         print(f"  StdDev:  {summary[f'{category}_stdev']:.3f}s")
         print(f"  95th %:  {summary[f'{category}_p95']:.3f}s")
 
-    # Outliers
     if outliers.get("slow_hosts"):
         print(f"\nSLOW HOSTS ({len(outliers['slow_hosts'])} hosts):")
         for host_info in outliers["slow_hosts"]:
@@ -397,7 +394,7 @@ def log_detailed_stats(stats: Dict[str, Any], outliers: Dict[str, List]):
         print(f"\nFAILED HOSTS ({len(outliers['failed_hosts'])} hosts):")
         for host_info in outliers["failed_hosts"]:
             print(
-                f"  {host_info['host']}: {host_info['time']:.3f}s - {host_info['error']}"
+                f"  {host_info['host']}: - {host_info['error']}"
             )
 
     print("=" * 60)
