@@ -50,6 +50,7 @@ async def _create_connection(host: str):
                 username=settings.SSH_USER,
                 known_hosts=None,
                 login_timeout=SSH_LOGIN_TIMEOUT,
+                config=None
             ),
             base_timeout=SSH_EXECUTION_TIMEOUT,
             max_timeout=MAX_TIMEOUT,
