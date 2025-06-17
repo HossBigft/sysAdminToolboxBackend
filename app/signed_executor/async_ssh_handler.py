@@ -2,7 +2,7 @@ import asyncio
 import asyncssh
 import time
 
-from typing import List
+from typing import List, Callable, Coroutine, Any
 
 from app.schemas import SshResponse
 from app.core.DomainMapper import HOSTS
@@ -17,14 +17,39 @@ SSH_LOGIN_TIMEOUT = 3
 SSH_EXECUTION_TIMEOUT = 1
 
 
+async def run_with_adaptive_timeout(
+    coro_factory: Callable[..., Any],
+    base_timeout: float = 1.0,
+    factor: float = 2.0,
+    max_timeout: float = 10.0,
+    max_retries: int | None = None,
+):
+    timeout = base_timeout
+    attempt = 0
+    while base_timeout <= max_timeout and (
+        max_retries is not None and attempt <= max_retries
+    ):
+        try:
+            await asyncio.wait_for(coro_factory(), timeout=timeout)
+
+        except asyncio.TimeoutError:
+            if attempt == max_retries or timeout > max_timeout:
+                raise asyncio.TimeoutError()
+            else:
+                timeout = min(timeout * factor, max_timeout)
+
+
 async def _create_connection(host: str):
     try:
         host_ip = str(HOSTS.resolve_domain(host).ips[0])
-        connection = await asyncssh.connect(
-            host_ip,
-            username=settings.SSH_USER,
-            known_hosts=None,
-            login_timeout=SSH_LOGIN_TIMEOUT,
+        connection = await run_with_adaptive_timeout(
+            lambda: asyncssh.connect(
+                host_ip,
+                username=settings.SSH_USER,
+                known_hosts=None,
+                login_timeout=SSH_LOGIN_TIMEOUT,
+            ),
+            base_timeout=SSH_EXECUTION_TIMEOUT,
         )
         _connection_pool[host] = connection
         return connection
