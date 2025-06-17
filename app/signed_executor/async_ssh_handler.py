@@ -15,6 +15,7 @@ _connection_pool = {}
 
 SSH_LOGIN_TIMEOUT = 3
 SSH_EXECUTION_TIMEOUT = 1
+MAX_TIMEOUT = 10
 
 
 async def run_with_adaptive_timeout(
@@ -50,9 +51,13 @@ async def _create_connection(host: str):
                 login_timeout=SSH_LOGIN_TIMEOUT,
             ),
             base_timeout=SSH_EXECUTION_TIMEOUT,
+            max_timeout=MAX_TIMEOUT,
         )
         _connection_pool[host] = connection
         return connection
+    except asyncio.TimeoutError as e:
+        logger.error(f"Connection timed out to {host} in {MAX_TIMEOUT}: {e}")
+        raise
     except Exception as e:
         logger.error(f"Failed to create connection to {host}: {e}")
         raise
