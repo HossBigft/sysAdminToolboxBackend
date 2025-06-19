@@ -72,6 +72,7 @@ async def _create_connection(host: str):
 
 
 async def initialize_connection_pool(ssh_host_list: List[str]):
+    start_time = time.time()
     if not ssh_host_list:
         raise ValueError("No SSH hosts are given to initialize connections with.")
 
@@ -94,9 +95,10 @@ async def initialize_connection_pool(ssh_host_list: List[str]):
         else:
             print(f"Successfully connected to {host}")
             successful_connections += 1
-
+    end_time = time.time()
+    execution_time = end_time - start_time
     print(
-        f"Connection pool initialized: {successful_connections} successful, {failed_connections} failed"
+        f"Connection pool initialized in {execution_time}s: {successful_connections} successful, {failed_connections} failed"
     )
 
 
