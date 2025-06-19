@@ -2,6 +2,7 @@ import asyncio
 import asyncssh
 import time
 import statistics
+import logging
 from scalene import scalene_profiler
 
 from typing import List, Callable, Any, Dict
@@ -19,7 +20,9 @@ SSH_LOGIN_TIMEOUT = 3
 SSH_EXECUTION_TIMEOUT = 1
 MAX_TIMEOUT = 10
 
-
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('asyncssh')
+logger.setLevel(logging.DEBUG)
 async def run_with_adaptive_timeout(
     coro_factory: Callable[..., Any],
     base_timeout: float = 1.0,
