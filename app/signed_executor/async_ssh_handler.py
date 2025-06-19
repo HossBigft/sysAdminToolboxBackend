@@ -21,8 +21,10 @@ SSH_EXECUTION_TIMEOUT = 1
 MAX_TIMEOUT = 10
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('asyncssh')
+logger = logging.getLogger("asyncssh")
 logger.setLevel(logging.DEBUG)
+
+
 async def run_with_adaptive_timeout(
     coro_factory: Callable[..., Any],
     base_timeout: float = 1.0,
@@ -53,11 +55,11 @@ async def _create_connection(host: str):
                 username=settings.SSH_USER,
                 known_hosts=None,
                 login_timeout=SSH_LOGIN_TIMEOUT,
-                config=None
+                config=None,
             ),
             base_timeout=SSH_EXECUTION_TIMEOUT,
             max_timeout=MAX_TIMEOUT,
-            max_retries=3
+            max_retries=3,
         )
         _connection_pool[host] = connection
         return connection
@@ -141,7 +143,7 @@ class SshExecutionError(Exception):
         self.message = message
 
 
-async def _execute_ssh_command(host: str, command: str) :
+async def _execute_ssh_command(host: str, command: str):
     overall_start = time.time()
     try:
         conn_start = time.time()
@@ -249,6 +251,7 @@ async def execute_ssh_commands_in_batch(
                 return await _execute_ssh_command(host, command)
             except Exception as e:
                 return e
+
     gather_start = time.time()
     results = await asyncio.gather(*(worker(host) for host in server_list))
     gather_time = time.time() - gather_start
@@ -256,12 +259,13 @@ async def execute_ssh_commands_in_batch(
     execution_time = end_time - start_time
     print(f"Batch size of {len(server_list)} executed in {execution_time}s.")
     scalene_profiler.stop()
-    
 
     stats = calculate_timing_stats(results)
     outliers = find_outliers(results)
-    
-    print(f"\nBatch execution completed in {execution_time:.2f}s (gather: {gather_time:.2f}s)")
+
+    print(
+        f"\nBatch execution completed in {execution_time:.2f}s (gather: {gather_time:.2f}s)"
+    )
     log_detailed_stats(stats, outliers)
     return results
 
@@ -284,7 +288,9 @@ def calculate_timing_stats(
     total_times = [r["execution_time"] for r in successful_results]
     conn_times = [r["timing_breakdown"]["connection_time"] for r in successful_results]
     cmd_times = [r["timing_breakdown"]["command_time"] for r in successful_results]
-    process_times = [r["timing_breakdown"]["processing_time"] for r in successful_results]
+    process_times = [
+        r["timing_breakdown"]["processing_time"] for r in successful_results
+    ]
 
     def calc_stats(times: List[float], name: str) -> Dict[str, float]:
         return {
@@ -294,7 +300,8 @@ def calculate_timing_stats(
             f"{name}_median": statistics.median(times),
             f"{name}_stdev": statistics.stdev(times) if len(times) > 1 else 0.0,
             f"{name}_p95": sorted(times)[int(len(times) * 0.95)]
-            if len(times) > 1 else times[0],
+            if len(times) > 1
+            else times[0],
         }
 
     stats = {}
@@ -330,28 +337,36 @@ def find_outliers(
     for r in results:
         if isinstance(r, dict):
             if r["execution_time"] > threshold:
-                outliers["slow_hosts"].append({
-                    "host": r["host"],
-                    "time": r["execution_time"],
-                    "breakdown": r["timing_breakdown"],
-                })
+                outliers["slow_hosts"].append(
+                    {
+                        "host": r["host"],
+                        "time": r["execution_time"],
+                        "breakdown": r["timing_breakdown"],
+                    }
+                )
             elif r["execution_time"] < (mean_time - stdev_time):
-                outliers["fast_hosts"].append({
-                    "host": r["host"],
-                    "time": r["execution_time"],
-                })
+                outliers["fast_hosts"].append(
+                    {
+                        "host": r["host"],
+                        "time": r["execution_time"],
+                    }
+                )
         elif isinstance(r, SshExecutionError):
-            outliers["failed_hosts"].append({
-                "host": r.host,
-                "time": None,
-                "error": r.message,
-            })
+            outliers["failed_hosts"].append(
+                {
+                    "host": r.host,
+                    "time": None,
+                    "error": r.message,
+                }
+            )
         elif isinstance(r, Exception):
-            outliers["failed_hosts"].append({
-                "host": "Unknown",
-                "time": None,
-                "error": str(r),
-            })
+            outliers["failed_hosts"].append(
+                {
+                    "host": "Unknown",
+                    "time": None,
+                    "error": str(r),
+                }
+            )
 
     return outliers
 
@@ -372,7 +387,9 @@ def log_detailed_stats(stats: Dict[str, Any], outliers: Dict[str, List]):
     print(f"Total requests: {stats['total_count']}")
     print(f"Successful: {stats['successful_count']}")
     print(f"Failed: {stats['failed_count']}")
-    print(f"Success rate: {stats['successful_count'] / stats['total_count'] * 100:.1f}%")
+    print(
+        f"Success rate: {stats['successful_count'] / stats['total_count'] * 100:.1f}%"
+    )
 
     # Timing breakdown
     categories = ["total", "connection", "command", "processing"]
@@ -398,8 +415,6 @@ def log_detailed_stats(stats: Dict[str, Any], outliers: Dict[str, List]):
     if outliers.get("failed_hosts"):
         print(f"\nFAILED HOSTS ({len(outliers['failed_hosts'])} hosts):")
         for host_info in outliers["failed_hosts"]:
-            print(
-                f"  {host_info['host']}: - {host_info['error']}"
-            )
+            print(f"  {host_info['host']}: - {host_info['error']}")
 
     print("=" * 60)
