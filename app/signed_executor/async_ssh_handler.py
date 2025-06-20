@@ -22,7 +22,7 @@ MAX_TIMEOUT = 10
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("asyncssh")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 async def run_with_adaptive_timeout(
@@ -47,6 +47,7 @@ async def run_with_adaptive_timeout(
 
 
 async def _create_connection(host: str):
+    start = time.time()
     try:
         host_ip = str(HOSTS.resolve_domain(host).ips[0])
         connection = await run_with_adaptive_timeout(
@@ -62,9 +63,10 @@ async def _create_connection(host: str):
             max_retries=3,
         )
         _connection_pool[host] = connection
+        logger.info(f"Connected to {host} in {time.time() - start}s.")
         return connection
     except asyncio.TimeoutError as e:
-        logger.error(f"Connection timed out to {host} in {MAX_TIMEOUT}s.: {e}")
+        logger.error(f"Connection timed out to {host} in {time.time() - start}s.: {e}")
         raise
     except Exception as e:
         logger.error(f"Failed to create connection to {host}: {e}")
@@ -78,9 +80,15 @@ async def initialize_connection_pool(ssh_host_list: List[str]):
 
     print(f"Initializing SSH connection pool for {len(ssh_host_list)} hosts...")
 
+    semaphore = asyncio.Semaphore(2)
+
+    async def _create_connection_with_limit(host):
+        async with semaphore:
+            return await _create_connection(host)
+
     connection_tasks = []
     for host in ssh_host_list:
-        connection_tasks.append(_create_connection(host))
+        connection_tasks.append(_create_connection_with_limit(host))
 
     results = await asyncio.gather(*connection_tasks, return_exceptions=True)
 
@@ -93,7 +101,6 @@ async def initialize_connection_pool(ssh_host_list: List[str]):
             logger.error(f"Failed to connect to {host}: {result}")
             failed_connections += 1
         else:
-            print(f"Successfully connected to {host}")
             successful_connections += 1
     end_time = time.time()
     execution_time = end_time - start_time
