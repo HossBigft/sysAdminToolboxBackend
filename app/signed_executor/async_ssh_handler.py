@@ -3,7 +3,6 @@ import asyncssh
 import time
 import statistics
 import logging
-from scalene import scalene_profiler
 
 from typing import List, Callable, Any, Dict
 
@@ -250,7 +249,6 @@ async def _execute_ssh_command(host: str, command: str):
 async def execute_ssh_commands_in_batch(
     server_list: List[str], command: str
 ) -> List[SshResponse | Exception]:
-    scalene_profiler.start()
     start_time = time.time()
     semaphore = asyncio.Semaphore(10)
 
@@ -267,7 +265,6 @@ async def execute_ssh_commands_in_batch(
     end_time = time.time()
     execution_time = end_time - start_time
     print(f"Batch size of {len(server_list)} executed in {execution_time}s.")
-    scalene_profiler.stop()
 
     stats = calculate_timing_stats(results)
     outliers = find_outliers(results)
