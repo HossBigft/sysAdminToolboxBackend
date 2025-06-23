@@ -18,12 +18,13 @@ _connection_pool = {}
 LOGIN_TIMEOUT = 3
 CONNECTION_TIMEOUT = 15
 MAX_CONNECTION_TIMEOUT = 30
-EXECUTION_TIMEOUT = 1
+EXECUTION_TIMEOUT = 5
 MAX_EXECUTION_TIMEOUT = 10
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("asyncssh")
 logger.setLevel(logging.INFO)
+
 
 
 async def run_with_adaptive_timeout(
@@ -37,7 +38,6 @@ async def run_with_adaptive_timeout(
         tmp = max_timeout
         max_timeout = base_timeout
         base_timeout = tmp
-
     timeout = base_timeout
     attempt = 0
 
@@ -53,7 +53,7 @@ async def run_with_adaptive_timeout(
 
 
 async def _create_connection(host: str):
-    start = time.time()
+    start_time = time.time()
     try:
         host_ip = str(HOSTS.resolve_domain(host).ips[0])
         connection = await run_with_adaptive_timeout(
@@ -74,7 +74,8 @@ async def _create_connection(host: str):
         logger.info(f"Connected to {host} in {time.time() - start}s.")
         return connection
     except asyncio.TimeoutError as e:
-        logger.error(f"Connection timed out to {host} in {time.time() - start}s.: {e}")
+        execution_time = time.time() - start_time
+        logger.error(f"Connection timed out to {host} in {execution_time}s: {e}")
         raise
     except Exception as e:
         logger.error(f"Failed to create connection to {host}: {e}")
@@ -87,6 +88,12 @@ async def initialize_connection_pool(ssh_host_list: List[str]):
         raise ValueError("No SSH hosts are given to initialize connections with.")
 
     print(f"Initializing SSH connection pool for {len(ssh_host_list)} hosts...")
+
+    semaphore = asyncio.Semaphore(100)
+
+    async def _create_connection_with_limit(host):
+        async with semaphore:
+            return await _create_connection(host)
 
     semaphore = asyncio.Semaphore(100)
 
@@ -112,7 +119,7 @@ async def initialize_connection_pool(ssh_host_list: List[str]):
             successful_connections += 1
     end_time = time.time()
     execution_time = end_time - start_time
-    print(
+    logger.info(
         f"Connection pool initialized in {execution_time}s: {successful_connections} successful, {failed_connections} failed"
     )
 
@@ -167,14 +174,7 @@ async def _execute_ssh_command(host: str, command: str):
         conn = await _get_connection(host)
         conn_time = time.time() - conn_start
         start_time = time.time()
-
-        result = await run_with_adaptive_timeout(
-            lambda: conn.run(command),
-            base_timeout=EXECUTION_TIMEOUT,
-            factor=2,
-            max_timeout=MAX_EXECUTION_TIMEOUT,
-            max_retries=2,
-        )
+        result = await asyncio.wait_for(conn.run(command), timeout=EXECUTION_TIMEOUT)
         end_time = time.time()
         execution_time = end_time - start_time
 
