@@ -15,7 +15,7 @@ _connection_pool = {}
 
 SSH_LOGIN_TIMEOUT = 3
 SSH_EXECUTION_TIMEOUT = 1
-MAX_TIMEOUT = 10
+MAX_CONNECTION_TIMEOUT = 30
 
 
 async def run_with_adaptive_timeout(
@@ -51,7 +51,7 @@ async def _create_connection(host: str):
                 login_timeout=SSH_LOGIN_TIMEOUT,
             ),
             base_timeout=SSH_EXECUTION_TIMEOUT,
-            max_timeout=MAX_TIMEOUT,
+            max_timeout=MAX_CONNECTION_TIMEOUT,
             max_retries=3,
         )
         _connection_pool[host] = connection
