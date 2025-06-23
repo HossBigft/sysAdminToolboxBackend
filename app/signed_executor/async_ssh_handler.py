@@ -51,6 +51,7 @@ async def _create_connection(host: str):
             ),
             base_timeout=SSH_EXECUTION_TIMEOUT,
             max_timeout=MAX_TIMEOUT,
+            max_retries=3,
         )
         _connection_pool[host] = connection
         return connection
