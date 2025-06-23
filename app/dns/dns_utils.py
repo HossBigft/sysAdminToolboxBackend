@@ -34,8 +34,14 @@ def resolve_record(record: str, type: str, dns_list="internal"):
                     ipval.to_text().split(" ")[1]
                     for ipval in custom_resolver.resolve(record, "MX")
                 ]
-
             case "NS":
+                custom_resolver.nameservers = GOOGLE_DNS
+                ns_records = [
+                    str(record) for record in custom_resolver.resolve(record, "NS")
+                ]
+                ns_records.sort()
+                return ns_records
+            case "NS_AUTHORITATIVE":
                 custom_resolver.nameservers = GOOGLE_DNS
                 top_level_domain = extract(record).registered_domain
                 soa_record = custom_resolver.resolve(top_level_domain, "SOA")[0].mname  # type: ignore
