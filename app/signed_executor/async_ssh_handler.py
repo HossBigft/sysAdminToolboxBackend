@@ -56,6 +56,8 @@ async def _create_connection(host: str):
                 known_hosts=None,
                 login_timeout=SSH_LOGIN_TIMEOUT,
                 config=None,
+                # optional for tests on wsl
+                # client_keys=["../ssh_agent/ssh_key/priv_ed25519.key"]
             ),
             base_timeout=SSH_EXECUTION_TIMEOUT,
             max_timeout=MAX_TIMEOUT,
