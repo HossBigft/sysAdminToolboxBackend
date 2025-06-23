@@ -69,9 +69,15 @@ async def initialize_connection_pool(ssh_host_list: List[str]):
 
     logger.info(f"Initializing SSH connection pool for {len(ssh_host_list)} hosts...")
 
+    semaphore = asyncio.Semaphore(100)
+
+    async def _create_connection_with_limit(host):
+        async with semaphore:
+            return await _create_connection(host)
+
     connection_tasks = []
     for host in ssh_host_list:
-        connection_tasks.append(_create_connection(host))
+        connection_tasks.append(_create_connection_with_limit(host))
 
     results = await asyncio.gather(*connection_tasks, return_exceptions=True)
 
