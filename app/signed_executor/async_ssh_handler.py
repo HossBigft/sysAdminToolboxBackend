@@ -17,7 +17,7 @@ _connection_pool = {}
 
 SSH_LOGIN_TIMEOUT = 3
 SSH_EXECUTION_TIMEOUT = 1
-MAX_TIMEOUT = 10
+MAX_TIMEOUT = 30
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("asyncssh")
@@ -57,7 +57,7 @@ async def _create_connection(host: str):
                 login_timeout=SSH_LOGIN_TIMEOUT,
                 config=None,
                 # optional for tests on wsl
-                # client_keys=["../ssh_agent/ssh_key/priv_ed25519.key"]
+                # client_keys=["../ssh_agent/ssh_key/priv_ed25519.key"],
             ),
             base_timeout=SSH_EXECUTION_TIMEOUT,
             max_timeout=MAX_TIMEOUT,
@@ -225,7 +225,7 @@ async def _execute_ssh_command(host: str, command: str):
         end_time = time.time()
         execution_time = end_time - overall_start
         raise SshExecutionError(
-            host, f"Execution timed out in {SSH_EXECUTION_TIMEOUT}s: {str(e)}"
+            host, f"Execution timed out in {execution_time}s: {str(e)}"
         )
 
     except asyncssh.Error as e:
