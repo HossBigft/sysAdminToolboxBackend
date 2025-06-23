@@ -257,7 +257,13 @@ async def execute_ssh_commands_in_batch(
     async def worker(host: str):
         async with semaphore:
             try:
-                return await _execute_ssh_command(host, command)
+                return await run_with_adaptive_timeout(
+                    lambda: _execute_ssh_command(host, command),
+                    base_timeout=SSH_EXECUTION_TIMEOUT,
+                    factor=2,
+                    max_timeout=2,
+                    max_retries=2,
+                )
             except Exception as e:
                 return e
 
