@@ -1,7 +1,6 @@
-import asyncio
 import time
 from scalene import scalene_profiler
-
+import uvloop
 
 from app.signed_executor.async_ssh_handler import (
     execute_ssh_commands_in_batch,
@@ -32,4 +31,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    uvloop.run(main())

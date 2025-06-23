@@ -79,7 +79,7 @@ async def initialize_connection_pool(ssh_host_list: List[str]):
 
     print(f"Initializing SSH connection pool for {len(ssh_host_list)} hosts...")
 
-    semaphore = asyncio.Semaphore(2)
+    semaphore = asyncio.Semaphore(100)
 
     async def _create_connection_with_limit(host):
         async with semaphore:
@@ -250,7 +250,7 @@ async def execute_ssh_commands_in_batch(
     server_list: List[str], command: str
 ) -> List[SshResponse | Exception]:
     start_time = time.time()
-    semaphore = asyncio.Semaphore(10)
+    semaphore = asyncio.Semaphore(100)
 
     async def worker(host: str):
         async with semaphore:
