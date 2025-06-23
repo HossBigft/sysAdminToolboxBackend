@@ -235,7 +235,7 @@ async def execute_ssh_commands_in_batch(
     server_list: List[str], command: str
 ) -> List[SshResponse | Exception]:
     start_time = time.time()
-    semaphore = asyncio.Semaphore(10)
+    semaphore = asyncio.Semaphore(100)
 
     async def worker(host: str):
         async with semaphore:
