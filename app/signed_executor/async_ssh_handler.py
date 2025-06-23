@@ -16,8 +16,7 @@ _connection_pool = {}
 LOGIN_TIMEOUT = 3
 CONNECTION_TIMEOUT = 15
 MAX_CONNECTION_TIMEOUT = 30
-EXECUTION_TIMEOUT = 1
-MAX_EXECUTION_TIMEOUT = 10
+EXECUTION_TIMEOUT = 5
 
 
 async def run_with_adaptive_timeout(
@@ -156,13 +155,7 @@ async def _execute_ssh_command(host: str, command: str) -> SshResponse:
     try:
         conn = await _get_connection(host)
         start_time = time.time()
-        result = await run_with_adaptive_timeout(
-            lambda: conn.run(command),
-            base_timeout=EXECUTION_TIMEOUT,
-            factor=2,
-            max_timeout=MAX_EXECUTION_TIMEOUT,
-            max_retries=2,
-        )
+        result = await asyncio.wait_for(conn.run(command), timeout=EXECUTION_TIMEOUT)
         end_time = time.time()
         execution_time = end_time - start_time
 
@@ -250,13 +243,7 @@ async def execute_ssh_commands_in_batch(
     async def worker(host: str):
         async with semaphore:
             try:
-                return await run_with_adaptive_timeout(
-                    lambda: _execute_ssh_command(host, command),
-                    base_timeout=EXECUTION_TIMEOUT,
-                    factor=2,
-                    max_timeout=MAX_EXECUTION_TIMEOUT,
-                    max_retries=2,
-                )
+                return await _execute_ssh_command(host, command)
             except Exception as e:
                 return e
 
