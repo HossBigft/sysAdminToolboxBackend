@@ -40,6 +40,7 @@ async def run_with_adaptive_timeout(
 
 
 async def _create_connection(host: str):
+    start_time = time.time()
     try:
         host_ip = str(HOSTS.resolve_domain(host).ips[0])
         connection = await run_with_adaptive_timeout(
@@ -56,7 +57,8 @@ async def _create_connection(host: str):
         _connection_pool[host] = connection
         return connection
     except asyncio.TimeoutError as e:
-        logger.error(f"Connection timed out to {host} in {MAX_TIMEOUT}: {e}")
+        execution_time = time.time() - start_time
+        logger.error(f"Connection timed out to {host} in {execution_time}s: {e}")
         raise
     except Exception as e:
         logger.error(f"Failed to create connection to {host}: {e}")
@@ -65,7 +67,7 @@ async def _create_connection(host: str):
 
 async def initialize_connection_pool(ssh_host_list: List[str]):
     start_time = time.time()
-    
+
     if not ssh_host_list:
         raise ValueError("No SSH hosts are given to initialize connections with.")
 
@@ -206,7 +208,7 @@ async def _execute_ssh_command(host: str, command: str) -> SshResponse:
         end_time = time.time()
         execution_time = end_time - start_time
         raise SshExecutionError(
-            host, f"Execution timed out in {SSH_EXECUTION_TIMEOUT}s: {str(e)}"
+            host, f"Execution timed out in {execution_time}s: {str(e)}"
         )
 
     except asyncssh.Error as e:
