@@ -4,6 +4,8 @@ from tldextract import extract
 from app.core.DomainMapper import HOSTS
 from app.core.config import settings
 
+GOOGLE_DNS = ["8.8.8.8", "8.8.4.4"]
+
 
 def resolve_record(record: str, type: str, dns_list="internal"):
     custom_resolver = resolver.Resolver()
@@ -13,8 +15,8 @@ def resolve_record(record: str, type: str, dns_list="internal"):
                 str(HOSTS.resolve_domain(nameserver).ips[0])
                 for nameserver in list(settings.DNS_SLAVE_SERVERS.keys())
             ]
-        case "free":
-            custom_resolver.nameservers = ["IP_PLACEHOLDER", "IP_PLACEHOLDER"]
+        case _:
+            custom_resolver.nameservers = GOOGLE_DNS
     try:
         match type:
             case "A":
@@ -34,7 +36,7 @@ def resolve_record(record: str, type: str, dns_list="internal"):
                 ]
 
             case "NS":
-                custom_resolver.nameservers = ["IP_PLACEHOLDER", "IP_PLACEHOLDER"]
+                custom_resolver.nameservers = GOOGLE_DNS
                 top_level_domain = extract(record).registered_domain
                 soa_record = custom_resolver.resolve(top_level_domain, "SOA")[0].mname  # type: ignore
                 primary_ns = str(soa_record).rstrip(".")
