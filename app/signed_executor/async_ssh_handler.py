@@ -15,9 +15,11 @@ logger = get_ssh_logger()
 
 _connection_pool = {}
 
-SSH_LOGIN_TIMEOUT = 3
-SSH_EXECUTION_TIMEOUT = 1
-MAX_TIMEOUT = 30
+LOGIN_TIMEOUT = 3
+CONNECTION_TIMEOUT = 15
+MAX_CONNECTION_TIMEOUT = 30
+EXECUTION_TIMEOUT = 1
+MAX_EXECUTION_TIMEOUT = 10
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("asyncssh")
@@ -31,6 +33,11 @@ async def run_with_adaptive_timeout(
     max_timeout: float = 10.0,
     max_retries: int | None = None,
 ) -> Any:
+    if base_timeout > max_timeout:
+        tmp = max_timeout
+        max_timeout = base_timeout
+        base_timeout = tmp
+
     timeout = base_timeout
     attempt = 0
 
@@ -54,13 +61,13 @@ async def _create_connection(host: str):
                 host_ip,
                 username=settings.SSH_USER,
                 known_hosts=None,
-                login_timeout=SSH_LOGIN_TIMEOUT,
+                login_timeout=LOGIN_TIMEOUT,
                 config=None,
                 # optional for tests on wsl
                 # client_keys=["../ssh_agent/ssh_key/priv_ed25519.key"],
             ),
-            base_timeout=SSH_EXECUTION_TIMEOUT,
-            max_timeout=MAX_TIMEOUT,
+            base_timeout=CONNECTION_TIMEOUT,
+            max_timeout=MAX_CONNECTION_TIMEOUT,
             max_retries=3,
         )
         _connection_pool[host] = connection
@@ -160,8 +167,13 @@ async def _execute_ssh_command(host: str, command: str):
         conn = await _get_connection(host)
         conn_time = time.time() - conn_start
         start_time = time.time()
-        result = await asyncio.wait_for(
-            conn.run(command), timeout=SSH_EXECUTION_TIMEOUT
+
+        result = await run_with_adaptive_timeout(
+            lambda: conn.run(command),
+            base_timeout=EXECUTION_TIMEOUT,
+            factor=2,
+            max_timeout=MAX_EXECUTION_TIMEOUT,
+            max_retries=2,
         )
         end_time = time.time()
         execution_time = end_time - start_time
@@ -259,9 +271,9 @@ async def execute_ssh_commands_in_batch(
             try:
                 return await run_with_adaptive_timeout(
                     lambda: _execute_ssh_command(host, command),
-                    base_timeout=SSH_EXECUTION_TIMEOUT,
+                    base_timeout=EXECUTION_TIMEOUT,
                     factor=2,
-                    max_timeout=2,
+                    max_timeout=MAX_EXECUTION_TIMEOUT,
                     max_retries=2,
                 )
             except Exception as e:
