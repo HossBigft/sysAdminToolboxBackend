@@ -2,7 +2,11 @@ from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query, R
 from typing import Annotated
 
 from app.dns.dns_models import ZoneMasterResponse
-from app.dns.dns_utils import resolve_record
+from app.dns.dns_utils import (
+    get_google_resolver,
+    get_internal_resolver,
+    resolve_authoritative_ns_record,
+)
 from app.core.dependencies import CurrentUser, SessionDep, RoleChecker
 from app.schemas import (
     UserRoles,
@@ -21,16 +25,18 @@ from app.dns.dns_service import DNSService
 from app.core_utils.loggers import log_dns_remove_zone, log_dns_get_zonemaster
 
 router = APIRouter(tags=["dns"], prefix="/dns")
+internal_resolver = get_internal_resolver()
+google_resolver = get_google_resolver()
 
 
 @router.get(
-    "/internal/resolve/a/",
+    "/resolve/internal/a/",
     dependencies=[
         Depends(RoleChecker([UserRoles.USER, UserRoles.SUPERUSER, UserRoles.ADMIN]))
     ],
 )
 async def get_a_record(domain: Annotated[DomainName, Query()]) -> DomainARecordResponse:
-    a_records = resolve_record(domain.name, "A")
+    a_records = internal_resolver.resolve_a(domain.name)
     if not a_records:
         raise HTTPException(status_code=404, detail=f"A record for {domain} not found.")
     records = [IPv4Address(ip=ip) for ip in a_records]
@@ -44,7 +50,7 @@ async def get_a_record(domain: Annotated[DomainName, Query()]) -> DomainARecordR
     ],
 )
 async def get_ptr_record(ip: Annotated[IPv4Address, Query()]):
-    ptr_records = resolve_record(str(ip), "PTR")
+    ptr_records = google_resolver.resolve_ptr(str(ip))
     if not ptr_records:
         raise HTTPException(status_code=404, detail=f"PTR record for {ip} not found.")
     records = [DomainName(name=domain) for domain in ptr_records]
@@ -80,7 +86,7 @@ async def get_zone_master_from_dns_servers(
 
 
 @router.get(
-    "/internal/resolve/mx/",
+    "/resolve/internal/mx/",
     dependencies=[
         Depends(RoleChecker([UserRoles.USER, UserRoles.SUPERUSER, UserRoles.ADMIN]))
     ],
@@ -89,7 +95,7 @@ async def get_mx_record(
     domain: Annotated[DomainName, Query()],
 ) -> DomainMxRecordResponse:
     domain_str = domain.name
-    mx_records = resolve_record(domain_str, "MX")
+    mx_records = internal_resolver.resolve_mx(domain_str)
     if not mx_records:
         raise HTTPException(
             status_code=404, detail=f"MX record for {domain} not found."
@@ -108,7 +114,7 @@ async def get_ns_records_google(
     domain: Annotated[DomainName, Query()],
 ) -> DomainNsRecordResponse:
     domain_str = domain.name
-    ns_records = resolve_record(domain_str, "NS")
+    ns_records = google_resolver.resolve_ns(domain_str)
     if not ns_records:
         raise HTTPException(
             status_code=404, detail=f"NS record for {domain} not found."
@@ -182,7 +188,7 @@ async def resolve_host_by_ip(
 
 
 @router.get(
-    "/internal/resolve/google/a/",
+    "/resolve/google/a/",
     dependencies=[
         Depends(RoleChecker([UserRoles.USER, UserRoles.SUPERUSER, UserRoles.ADMIN]))
     ],
@@ -190,7 +196,7 @@ async def resolve_host_by_ip(
 async def get_a_record_google(
     domain: Annotated[DomainName, Query()],
 ) -> DomainARecordResponse:
-    a_records = resolve_record(domain.name, "A", dns_list="google")
+    a_records = google_resolver.resolve_a(domain.name)
     if not a_records:
         raise HTTPException(status_code=404, detail=f"A record for {domain} not found.")
     records = [IPv4Address(ip=ip) for ip in a_records]
@@ -198,7 +204,7 @@ async def get_a_record_google(
 
 
 @router.get(
-    "/internal/resolve/mx/",
+    "/resolve/google/mx/",
     dependencies=[
         Depends(RoleChecker([UserRoles.USER, UserRoles.SUPERUSER, UserRoles.ADMIN]))
     ],
@@ -207,7 +213,7 @@ async def get_mx_record_google(
     domain: Annotated[DomainName, Query()],
 ) -> DomainMxRecordResponse:
     domain_str = domain.name
-    mx_records = resolve_record(domain_str, "MX", dns_list="google")
+    mx_records = google_resolver.resolve_mx(domain_str)
     if not mx_records:
         raise HTTPException(
             status_code=404, detail=f"MX record for {domain} not found."
@@ -222,11 +228,11 @@ async def get_mx_record_google(
         Depends(RoleChecker([UserRoles.USER, UserRoles.SUPERUSER, UserRoles.ADMIN]))
     ],
 )
-async def get_ns_records(
+async def get_authoritative_ns_records(
     domain: Annotated[DomainName, Query()],
 ) -> DomainNsRecordResponse:
     domain_str = domain.name
-    ns_records = resolve_record(domain_str, "NS_AUTHORITATIVE")
+    ns_records = resolve_authoritative_ns_record(domain_str)
     if not ns_records:
         raise HTTPException(
             status_code=404, detail=f"NS record for {domain} not found."
