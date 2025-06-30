@@ -51,7 +51,7 @@ async def get_a_record(domain: Annotated[DomainName, Query()]) -> DomainARecordR
     ],
 )
 async def get_ptr_record(ip: Annotated[IPv4Address, Query()]):
-    ptr_records = google_resolver.resolve_ptr(str(ip))
+    ptr_records = await google_resolver.resolve_ptr(str(ip))
     if not ptr_records:
         raise HTTPException(status_code=404, detail=f"PTR record for {ip} not found.")
     records = [DomainName(name=domain) for domain in ptr_records]
@@ -96,7 +96,7 @@ async def get_mx_record(
     domain: Annotated[DomainName, Query()],
 ) -> DomainMxRecordResponse:
     domain_str = domain.name
-    mx_records = internal_resolver.resolve_mx(domain_str)
+    mx_records = await internal_resolver.resolve_mx(domain_str)
     if not mx_records:
         raise HTTPException(
             status_code=404, detail=f"MX record for {domain} not found."
@@ -198,7 +198,7 @@ async def resolve_host_by_ip(
 async def get_a_record_google(
     domain: Annotated[DomainName, Query()],
 ) -> DomainARecordResponse:
-    a_records = google_resolver.resolve_a(domain.name)
+    a_records = await google_resolver.resolve_a(domain.name)
     if not a_records:
         raise HTTPException(status_code=404, detail=f"A record for {domain} not found.")
     records = [IPv4Address(ip=ip) for ip in a_records]
@@ -215,7 +215,7 @@ async def get_mx_record_google(
     domain: Annotated[DomainName, Query()],
 ) -> DomainMxRecordResponse:
     domain_str = domain.name
-    mx_records = google_resolver.resolve_mx(domain_str)
+    mx_records = await google_resolver.resolve_mx(domain_str)
     if not mx_records:
         raise HTTPException(
             status_code=404, detail=f"MX record for {domain} not found."
@@ -234,7 +234,7 @@ async def get_authoritative_ns_records(
     domain: Annotated[DomainName, Query()],
 ) -> DomainNsRecordResponse:
     domain_str = domain.name
-    ns_records = resolve_authoritative_ns_record(domain_str)
+    ns_records = await resolve_authoritative_ns_record(domain_str)
     if not ns_records:
         raise HTTPException(
             status_code=404, detail=f"NS record for {domain} not found."

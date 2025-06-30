@@ -1,10 +1,10 @@
 import aiodns
 import asyncio
-from dns import resolver, reversename
+
 from tldextract import extract
 
 from typing import List
-from collections import defaultdict
+
 from app.core.DomainMapper import HOSTS
 from app.core.config import settings
 
@@ -52,32 +52,28 @@ class DNSResolver:
         try:
             result = await self.resolver.query(domain, "A")
             return [str(r.host) for r in result]
-        except (aiodns.error.DNSError, Exception):
+        except (aiodns.error.DNSError):
             return None
 
-    async def resolve_ptr(self, domain: str) -> List[str] | None:
+    async def resolve_ptr(self, ip_address: str) -> List[str] | None:
         try:
-            addr_record = reversename.from_address(domain)
-            return [ip.to_text() for ip in self.resolver.query(addr_record, "PTR")]
-        except (resolver.NoAnswer, resolver.NXDOMAIN, resolver.NoNameservers):
+            result = await self.resolver.gethostbyaddr(ip_address)
+            return [result.name] if result.name else None
+        except aiodns.error.DNSError:
             return None
 
     async def resolve_mx(self, domain: str) -> List[str] | None:
         try:
-            return [
-                mx.to_text().split(" ", 1)[1]
-                for mx in self.resolver.query(domain, "MX")
-            ]
-        except (resolver.NoAnswer, resolver.NXDOMAIN, resolver.NoNameservers):
+            result = await self.resolver.query(domain, 'MX')
+            return [r.host for r in result]
+        except aiodns.error.DNSError:
             return None
 
     async def resolve_ns(self, domain: str) -> List[str] | None:
         try:
-            ns_records = [
-                str(ns_record) for ns_record in self.resolver.query(domain, "NS")
-            ]
-            return sorted(ns_records)
-        except (resolver.NoAnswer, resolver.NXDOMAIN, resolver.NoNameservers):
+            result = await self.resolver.query(domain, 'NS')
+            return sorted([r.host for r in result])
+        except aiodns.error.DNSError:
             return None
 
 
@@ -96,34 +92,34 @@ def get_google_resolver() -> DNSResolver:
     return DNSResolver(GOOGLE_DNS)
 
 
-def resolve_authoritative_ns_record(domain: str) -> List[str] | None:
+async def resolve_authoritative_ns_record( domain: str) -> List[str] | None:
     try:
-        google_resolver = resolver.Resolver()
-        google_resolver.nameservers = GOOGLE_DNS
+        google_resolver = aiodns.DNSResolver(nameservers=GOOGLE_DNS)
 
         top_level_domain = extract(domain).registered_domain
-        soa_record = google_resolver.query(top_level_domain, "SOA")[0].mname
-        primary_ns = str(soa_record).rstrip(".")
-        primary_ns_ip = str(google_resolver.query(primary_ns, "A")[0])
+        if not top_level_domain:
+            return None
 
-        auth_resolver = resolver.Resolver()
-        auth_resolver.nameservers = [primary_ns_ip]
+        soa_record = await google_resolver.query(top_level_domain, "SOA")
+        primary_ns = soa_record.host.rstrip(".")
 
-        ns_records = [
-            str(ns_record) for ns_record in auth_resolver.query(domain, "NS")
-        ]
-        return sorted(ns_records)
-    except (resolver.NoAnswer, resolver.NXDOMAIN, resolver.NoNameservers):
+        ns_ip_result = await google_resolver.query(primary_ns, "A")
+        primary_ns_ip = ns_ip_result[0].host
+
+        auth_resolver = aiodns.DNSResolver(nameservers=[primary_ns_ip])
+        ns_records = await auth_resolver.query(domain, "NS")
+        return sorted([r.host for r in ns_records])
+
+    except aiodns.error.DNSError:
         return None
 
 
 async def get_ns_records(domain: str, dns_server: str):
 
-    resolver = aiodns.DNSResolver(timeout=2)
+    rlsvr = aiodns.DNSResolver(timeout=2)
     try:
-        # Set custom nameserver
-        resolver.nameservers = [dns_server]
-        result = await resolver.query(domain, 'NS')
+        rlsvr.nameservers = [dns_server]
+        result = await rlsvr.query(domain, 'NS')
         return dns_server, sorted(r.host.rstrip('.') for r in result)
     except Exception as e:
         return dns_server, f"Error: {e}"
