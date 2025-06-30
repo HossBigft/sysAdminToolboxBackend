@@ -106,23 +106,21 @@ async def get_mx_record(
 
 
 @router.get(
-    "/resolve/google/ns/",
+    "/resolve/public/ns/propagation",
     dependencies=[
         Depends(RoleChecker([UserRoles.USER, UserRoles.SUPERUSER, UserRoles.ADMIN]))
     ],
 )
-async def get_ns_records_google(
+async def get_ns_records_from_global_dns(
     domain: Annotated[DomainName, Query()],
-) -> DomainNsRecordResponse:
+) :
     domain_str = domain.name
     ns_records = await collect_all_ns(domain_str)
-    print(ns_records)
     if not ns_records:
         raise HTTPException(
             status_code=404, detail=f"NS record for {domain} not found."
         )
-    records = [DomainName(name=domain) for domain in ns_records]
-    return DomainNsRecordResponse(domain=DomainName(name=domain_str), records=records)
+    return ns_records
 
 
 @router.delete(
