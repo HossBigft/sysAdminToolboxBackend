@@ -117,17 +117,22 @@ async def resolve_authoritative_ns_record( domain: str) -> List[str] | None:
 async def get_ns_records(domain: str, dns_server: str):
 
     rlsvr = aiodns.DNSResolver(timeout=2)
-    try:
-        rlsvr.nameservers = [dns_server]
-        result = await rlsvr.query(domain, 'NS')
-        return dns_server, sorted(r.host.rstrip('.') for r in result)
-    except Exception as e:
-        return dns_server, f"Error: {e}"
+    rlsvr.nameservers = [dns_server]
+    result = await rlsvr.query(domain, 'NS')
+    return dns_server, sorted(r.host.rstrip('.') for r in result)
+
 
 
 ALL_DNS = GOOGLE_DNS + PUBLIC_DNS
 
 async def collect_all_ns(domain: str):
     tasks = [get_ns_records(domain, dns_ip) for dns_ip in ALL_DNS]
-    results = await asyncio.gather(*tasks)
-    return dict(results)
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    ns_dict = {}
+    for dns_ip, result in zip(ALL_DNS, results):
+        if isinstance(result, Exception):
+            continue  
+        ns_dict[dns_ip] = result
+
+    return ns_dict
