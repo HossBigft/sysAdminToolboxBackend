@@ -37,7 +37,7 @@ google_resolver = get_google_resolver()
     ],
 )
 async def get_a_record(domain: Annotated[DomainName, Query()]) -> DomainARecordResponse:
-    a_records = internal_resolver.resolve_a(domain.name)
+    a_records = await internal_resolver.resolve_a(domain.name)
     if not a_records:
         raise HTTPException(status_code=404, detail=f"A record for {domain} not found.")
     records = [IPv4Address(ip=ip) for ip in a_records]
