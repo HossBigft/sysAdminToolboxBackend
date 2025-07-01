@@ -1,7 +1,7 @@
 from fastapi import HTTPException
-from typing import Dict, Any, List
+from typing import  List
 
-from app.dns.dns_models import ZoneMasterResponse, ZoneMaster
+from app.dns.dns_models import  ZoneMaster
 from app.schemas import (
     DNS_SERVER_LIST,
     ExecutionStatus,

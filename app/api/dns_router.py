@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query, R
 from typing import Annotated
 
 from app.dns.dns_models import ZoneMasterResponse
-from app.dns.dns_utils import (
+from app.dns.dns_resolver import (
     get_google_resolver,
     get_internal_resolver,
     resolve_authoritative_ns_record,
