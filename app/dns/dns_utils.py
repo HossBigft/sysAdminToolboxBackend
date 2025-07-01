@@ -114,25 +114,21 @@ async def resolve_authoritative_ns_record( domain: str) -> List[str] | None:
         return None
 
 
-async def get_ns_records(domain: str, dns_server: str):
-
-    rlsvr = aiodns.DNSResolver(timeout=2)
-    rlsvr.nameservers = [dns_server]
-    result = await rlsvr.query(domain, 'NS')
-    return dns_server, sorted(r.host.rstrip('.') for r in result)
+async def get_ns_records(domain: str, ns_resolver: aiodns.DNSResolver, ns_ip:str):
+    ns_resolver.nameservers=[ns_ip]
+    result = await ns_resolver.query(domain, 'NS')
+    return ns_ip, sorted(r.host.rstrip('.') for r in result)
 
 
 
 PUBLIC_DNS = GOOGLE_DNS + PUBLIC_DNS
 
 async def get_ns_records_from_public_ns(domain: str):
-    tasks = [get_ns_records(domain, dns_ip) for dns_ip in PUBLIC_DNS]
+    rlsvr = aiodns.DNSResolver(timeout=2)
+    tasks = [get_ns_records(domain, rlsvr, dns_ip) for dns_ip in PUBLIC_DNS]
     results = await asyncio.gather(*tasks, return_exceptions=True)
-
     ns_dict = {}
     for dns_ip, result in zip(PUBLIC_DNS, results):
-        if isinstance(result, Exception):
-            continue  
         ns_dict[dns_ip] = result
 
     return ns_dict
