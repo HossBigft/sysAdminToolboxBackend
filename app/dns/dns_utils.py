@@ -10,36 +10,37 @@ from app.core.config import settings
 
 GOOGLE_DNS = ["8.8.8.8", "8.8.4.4"]
 
+
 PUBLIC_DNS = [
-    "208.67.222.220",
-    "9.9.9.9",
-    "216.146.35.35",
-    "204.12.225.227",
-    "207.177.68.4",
-    "156.154.70.64",
-    "208.91.112.53",
-    "195.46.39.39",
-    "5.11.11.11",
-    "87.213.100.113",
-    "83.145.86.7",
-    "212.230.255.1",
-    "83.137.41.9",
-    "194.145.240.6",
-    "195.243.214.4",
-    "200.52.177.186",
-    "200.248.178.54",
-    "211.25.206.147",
-    "1.1.1.1",
-    "61.8.0.113",
-    "122.56.107.86",
-    "139.59.219.245",
-    "164.124.101.2",
-    "114.114.115.115",
-    "31.7.37.37",
-    "115.178.96.2",
-    "209.150.154.1",
-    "194.125.133.10",
-    "103.80.1.2",
+    {"name": "Google", "ip": "8.8.8.8"},
+    {"name": "OpenDNS", "ip": "208.67.222.220"},
+    {"name": "OpenDNS", "ip": "208.67.222.220"},
+    {"name": "Quad9", "ip": "9.9.9.9"},
+    {"name": "Oracle Corporation", "ip": "216.146.35.35"},
+    {"name": "WholeSale Internet, Inc.", "ip": "204.12.225.227"},
+    {"name": "Aureon Network Services", "ip": "207.177.68.4"},
+    {"name": "NeuStar", "ip": "156.154.70.64"},
+    {"name": "Fortinet Inc", "ip": "208.91.112.53"},
+    {"name": "Skydns", "ip": "195.46.39.39"},
+    {"name": "Liquid Telecommunications Ltd", "ip": "5.11.11.11"},
+    {"name": "Tele2 Nederland B.V.", "ip": "87.213.100.113"},
+    {"name": "Completel SAS", "ip": "83.145.86.7"},
+    {"name": "Prioritytelecom Spain S.A", "ip": "212.230.255.1"},
+    {"name": "nemox.net", "ip": "83.137.41.9"},
+    {"name": "Deutsche Telekom AG", "ip": "195.243.214.4"},
+    {"name": "Marcatel Com", "ip": "200.56.224.11"},
+    {"name": "Claro S.A", "ip": "200.248.178.54"},
+    {"name": "TT Dotcom Sdn Bhd", "ip": "211.25.206.147"},
+    {"name": "Cloudflare Inc", "ip": "1.1.1.1"},
+    {"name": "Pacific Internet", "ip": "61.8.0.113"},
+    {"name": "Global-Gateway Interne", "ip": "122.56.107.86"},
+    {"name": "DigitalOcean LLC", "ip": "139.59.219.245"},
+    {"name": "LG Dacom Corporation", "ip": "164.124.101.2"},
+    {"name": "Teknet Yazlim", "ip": "31.7.37.37"},
+    {"name": "Kappa Internet Services Private Limited", "ip": "115.178.96.2"},
+    {"name": "CMPak Limited", "ip": "209.150.154.1"},
+    {"name": "Indigo", "ip": "194.125.133.10"},
+    {"name": "SS Online", "ip": "103.80.1.2"},
 ]
 
 
@@ -52,7 +53,7 @@ class DNSResolver:
         try:
             result = await self.resolver.query(domain, "A")
             return [str(r.host) for r in result]
-        except (aiodns.error.DNSError):
+        except aiodns.error.DNSError:
             return None
 
     async def resolve_ptr(self, ip_address: str) -> List[str] | None:
@@ -64,14 +65,14 @@ class DNSResolver:
 
     async def resolve_mx(self, domain: str) -> List[str] | None:
         try:
-            result = await self.resolver.query(domain, 'MX')
+            result = await self.resolver.query(domain, "MX")
             return [r.host for r in result]
         except aiodns.error.DNSError:
             return None
 
     async def resolve_ns(self, domain: str) -> List[str] | None:
         try:
-            result = await self.resolver.query(domain, 'NS')
+            result = await self.resolver.query(domain, "NS")
             return sorted([r.host for r in result])
         except aiodns.error.DNSError:
             return None
@@ -92,7 +93,7 @@ def get_google_resolver() -> DNSResolver:
     return DNSResolver(GOOGLE_DNS)
 
 
-async def resolve_authoritative_ns_record( domain: str) -> List[str] | None:
+async def resolve_authoritative_ns_record(domain: str) -> List[str] | None:
     try:
         google_resolver = aiodns.DNSResolver(nameservers=GOOGLE_DNS)
 
@@ -114,21 +115,25 @@ async def resolve_authoritative_ns_record( domain: str) -> List[str] | None:
         return None
 
 
-async def get_ns_records(domain: str, ns_resolver: aiodns.DNSResolver, ns_ip:str):
-    ns_resolver.nameservers=[ns_ip]
-    result = await ns_resolver.query(domain, 'NS')
-    return ns_ip, sorted(r.host.rstrip('.') for r in result)
+async def get_ns_records(
+    domain: str, ns_resolver: aiodns.DNSResolver, ns_name: str, ns_ip: str
+):
+    ns_resolver.nameservers = [ns_ip]
+    result = await ns_resolver.query(domain, "NS")
+    return sorted(r.host.rstrip(".") for r in result)
 
-
-
-PUBLIC_DNS = GOOGLE_DNS + PUBLIC_DNS
 
 async def get_ns_records_from_public_ns(domain: str):
     rlsvr = aiodns.DNSResolver(timeout=2)
-    tasks = [get_ns_records(domain, rlsvr, dns_ip) for dns_ip in PUBLIC_DNS]
+    tasks = [
+        get_ns_records(
+            domain, rlsvr, ns_name=nameserver["name"], ns_ip=nameserver["ip"]
+        )
+        for nameserver in PUBLIC_DNS
+    ]
     results = await asyncio.gather(*tasks, return_exceptions=True)
     ns_dict = {}
-    for dns_ip, result in zip(PUBLIC_DNS, results):
-        ns_dict[dns_ip] = result
+    for nameserver, result in zip(PUBLIC_DNS, results):
+        ns_dict[nameserver["name"]] = result
 
     return ns_dict
