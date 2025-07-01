@@ -2,12 +2,6 @@ from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query, R
 from typing import Annotated
 
 from app.dns.dns_models import ZoneMasterResponse
-from app.dns.dns_resolver import (
-    get_google_resolver,
-    get_internal_resolver,
-    resolve_authoritative_ns_record,
-    get_ns_records_from_public_ns
-)
 from app.core.dependencies import CurrentUser, SessionDep, RoleChecker
 from app.schemas import (
     UserRoles,
@@ -26,8 +20,9 @@ from app.dns.dns_service import DNSService
 from app.core_utils.loggers import log_dns_remove_zone, log_dns_get_zonemaster
 
 router = APIRouter(tags=["dns"], prefix="/dns")
-internal_resolver = get_internal_resolver()
-google_resolver = get_google_resolver()
+dnsService = DNSService()
+internal_resolver = dnsService.internal_resolver
+google_resolver = dnsService.google_resolver
 
 
 @router.get(
@@ -113,9 +108,9 @@ async def get_mx_record(
 )
 async def get_ns_records_from_global_dns(
     domain: Annotated[DomainName, Query()],
-) :
+):
     domain_str = domain.name
-    ns_records = await get_ns_records_from_public_ns(domain_str)
+    ns_records = await dnsService.get_ns_records_from_public_ns(domain_str)
     if not ns_records:
         raise HTTPException(
             status_code=404, detail=f"NS record for {domain} not found."
@@ -232,7 +227,7 @@ async def get_authoritative_ns_records(
     domain: Annotated[DomainName, Query()],
 ) -> DomainNsRecordResponse:
     domain_str = domain.name
-    ns_records = await resolve_authoritative_ns_record(domain_str)
+    ns_records = await dnsService.resolve_authoritative_ns_record(domain_str)
     if not ns_records:
         raise HTTPException(
             status_code=404, detail=f"NS record for {domain} not found."
