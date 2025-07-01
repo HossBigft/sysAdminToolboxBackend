@@ -2,7 +2,7 @@ import asyncio
 import aiodns
 
 from fastapi import HTTPException
-from typing import List
+from typing import List, Dict
 from tldextract import extract
 
 from app.dns.dns_models import ZoneMaster
@@ -123,8 +123,8 @@ class DNSService:
         except aiodns.error.DNSError:
             return None
 
-    async def get_ns_records_from_public_ns(self, domain: str):
-        async def get_ns_records(domain: str, ns_ip: str):
+    async def get_ns_records_from_public_ns(self, domain: str) -> List[Dict[str, str]]:
+        async def get_ns_records(domain: str, ns_ip: str) -> List[str]:
             ns_resolver = aiodns.DNSResolver(timeout=2)
             ns_resolver.nameservers = [ns_ip]
             result = await ns_resolver.query(domain, "NS")
