@@ -2,7 +2,6 @@ import asyncio
 import aiodns
 
 from fastapi import HTTPException
-from typing import List, Dict
 from tldextract import extract
 
 from app.dns.dns_models import ZoneMaster
@@ -54,7 +53,7 @@ PUBLIC_DNS = [
 ]
 
 
-def _get_internal_nameservers() -> List[str]:
+def _get_internal_nameservers() -> list[str]:
     return [
         str(HOSTS.resolve_domain(nameserver).ips[0])
         for nameserver in settings.DNS_SLAVE_SERVERS.keys()
@@ -79,7 +78,7 @@ class DNSService:
         command = DNSOperation.remove_zone()
         await self.client.execute_on_servers(self.server_list, command, domain.name)
 
-    async def get_zone_masters(self, domain: DomainName) -> List[ZoneMaster]:
+    async def get_zone_masters(self, domain: DomainName) -> list[ZoneMaster]:
         command = DNSOperation.get_zone_master()
         responses = await self.client.execute_on_servers(
             self.server_list, command, domain.name
@@ -87,7 +86,7 @@ class DNSService:
         responses = [
             response for response in responses if response.status == ExecutionStatus.OK
         ]
-        zone_masters: List[ZoneMaster] = []
+        zone_masters: list[ZoneMaster] = []
         for response in responses:
             if response.payload:
                 zone_masters.append(
@@ -102,7 +101,7 @@ class DNSService:
 
         return zone_masters
 
-    async def resolve_authoritative_ns_record(self, domain: str) -> List[str] | None:
+    async def resolve_authoritative_ns_record(self, domain: str) -> list[str] | None:
         try:
             google_resolver = aiodns.DNSResolver(nameservers=GOOGLE_DNS)
 
@@ -123,8 +122,10 @@ class DNSService:
         except aiodns.error.DNSError:
             return None
 
-    async def get_ns_records_from_public_ns(self, domain: str) -> List[Dict[str, str]]:
-        async def get_ns_records(domain: str, ns_ip: str) -> List[str]:
+    async def get_ns_records_from_public_ns(
+        self, domain: str
+    ) -> dict[str, dict[str, list[str]]]:
+        async def get_ns_records(domain: str, ns_ip: str) -> list[str]:
             ns_resolver = aiodns.DNSResolver(timeout=2)
             ns_resolver.nameservers = [ns_ip]
             result = await ns_resolver.query(domain, "NS")
