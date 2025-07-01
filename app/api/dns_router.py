@@ -6,7 +6,7 @@ from app.dns.dns_utils import (
     get_google_resolver,
     get_internal_resolver,
     resolve_authoritative_ns_record,
-    collect_all_ns
+    get_ns_records_from_public_ns
 )
 from app.core.dependencies import CurrentUser, SessionDep, RoleChecker
 from app.schemas import (
@@ -115,7 +115,7 @@ async def get_ns_records_from_global_dns(
     domain: Annotated[DomainName, Query()],
 ) :
     domain_str = domain.name
-    ns_records = await collect_all_ns(domain_str)
+    ns_records = await get_ns_records_from_public_ns(domain_str)
     if not ns_records:
         raise HTTPException(
             status_code=404, detail=f"NS record for {domain} not found."

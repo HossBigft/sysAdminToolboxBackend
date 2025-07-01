@@ -123,14 +123,14 @@ async def get_ns_records(domain: str, dns_server: str):
 
 
 
-ALL_DNS = GOOGLE_DNS + PUBLIC_DNS
+PUBLIC_DNS = GOOGLE_DNS + PUBLIC_DNS
 
-async def collect_all_ns(domain: str):
-    tasks = [get_ns_records(domain, dns_ip) for dns_ip in ALL_DNS]
+async def get_ns_records_from_public_ns(domain: str):
+    tasks = [get_ns_records(domain, dns_ip) for dns_ip in PUBLIC_DNS]
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     ns_dict = {}
-    for dns_ip, result in zip(ALL_DNS, results):
+    for dns_ip, result in zip(PUBLIC_DNS, results):
         if isinstance(result, Exception):
             continue  
         ns_dict[dns_ip] = result
