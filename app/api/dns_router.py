@@ -110,7 +110,7 @@ async def get_public_ns_propagation(
     domain: Annotated[DomainName, Query()],
 ):
     domain_str = domain.name
-    ns_records = await dnsService.get_ns_records_from_public_ns(domain_str) + [{"name":"test", "records":"test"}]
+    ns_records = await dnsService.get_ns_records_from_public_ns(domain_str)
     if not ns_records:
         raise HTTPException(
             status_code=404, detail=f"NS record for {domain} not found."
