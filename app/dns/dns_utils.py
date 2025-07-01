@@ -60,21 +60,21 @@ class DNSResolver:
     async def resolve_ptr(self, ip_address: str) -> List[str] | None:
         try:
             result = await self.resolver.gethostbyaddr(ip_address)
-            return [result.name] if result.name else None
+            return [str(result.name)] if result.name else None
         except aiodns.error.DNSError:
             return None
 
     async def resolve_mx(self, domain: str) -> List[str] | None:
         try:
             result = await self.resolver.query(domain, "MX")
-            return [r.host for r in result]
+            return [str(r.host) for r in result]
         except aiodns.error.DNSError:
             return None
 
     async def resolve_ns(self, domain: str) -> List[str] | None:
         try:
             result = await self.resolver.query(domain, "NS")
-            return sorted([r.host for r in result])
+            return sorted([str(r.host) for r in result])
         except aiodns.error.DNSError:
             return None
 
@@ -103,14 +103,14 @@ async def resolve_authoritative_ns_record(domain: str) -> List[str] | None:
             return None
 
         soa_record = await google_resolver.query(top_level_domain, "SOA")
-        primary_ns = soa_record.host.rstrip(".")
+        primary_ns = str(soa_record.nsname).rstrip(".")
 
         ns_ip_result = await google_resolver.query(primary_ns, "A")
-        primary_ns_ip = ns_ip_result[0].host
+        primary_ns_ip = str(ns_ip_result[0].host)
 
         auth_resolver = aiodns.DNSResolver(nameservers=[primary_ns_ip])
         ns_records = await auth_resolver.query(domain, "NS")
-        return sorted([r.host for r in ns_records])
+        return sorted([str(r.host) for r in ns_records])
 
     except aiodns.error.DNSError:
         return None
@@ -120,7 +120,7 @@ async def get_ns_records(domain: str, ns_ip: str):
     ns_resolver = aiodns.DNSResolver(timeout=2)
     ns_resolver.nameservers = [ns_ip]
     result = await ns_resolver.query(domain, "NS")
-    return sorted(r.host.rstrip(".") for r in result)
+    return sorted(str(r.host).rstrip(".") for r in result)
 
 
 async def get_ns_records_from_public_ns(domain: str):
