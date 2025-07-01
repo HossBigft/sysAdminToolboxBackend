@@ -48,6 +48,7 @@ class DNSResolver:
     def __init__(self, nameservers: List[str]):
         self.resolver = aiodns.DNSResolver(timeout=2)
         self.resolver.nameservers = nameservers
+        self.nameservers = nameservers
 
     async def resolve_a(self, domain: str) -> List[str] | None:
         try:
@@ -115,21 +116,16 @@ async def resolve_authoritative_ns_record(domain: str) -> List[str] | None:
         return None
 
 
-async def get_ns_records(
-    domain: str, ns_resolver: aiodns.DNSResolver, ns_name: str, ns_ip: str
-):
+async def get_ns_records(domain: str, ns_ip: str):
+    ns_resolver = aiodns.DNSResolver(timeout=2)
     ns_resolver.nameservers = [ns_ip]
     result = await ns_resolver.query(domain, "NS")
     return sorted(r.host.rstrip(".") for r in result)
 
 
 async def get_ns_records_from_public_ns(domain: str):
-    rlsvr = aiodns.DNSResolver(timeout=2)
     tasks = [
-        get_ns_records(
-            domain, rlsvr, ns_name=nameserver["name"], ns_ip=nameserver["ip"]
-        )
-        for nameserver in PUBLIC_DNS
+        get_ns_records(domain, ns_ip=nameserver["ip"]) for nameserver in PUBLIC_DNS
     ]
     results = await asyncio.gather(*tasks, return_exceptions=True)
     ns_dict = {}
