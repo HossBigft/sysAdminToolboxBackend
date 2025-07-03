@@ -16,7 +16,8 @@ from app.core.db import engine
 from app.schemas import TokenPayload, UserRoles, UserPublic
 from typing import List
 import app.db.models
-from app.core.token_signer import ToKenSigner
+from app.dns.dns_service import DNSService
+from app.signed_executor.signed_executor_client import SignedExecutorClient
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"
@@ -81,8 +82,12 @@ class RoleChecker:
             )
 
 
-_token_signer= ToKenSigner()
+async def get_dns_service() -> DNSService:
+    return DNSService()
 
-def get_token_signer()->ToKenSigner:
-    return _token_signer
+DNSResolver = Annotated[DNSService, Depends(get_dns_service)]
 
+def get_signed_executor_client() -> SignedExecutorClient:
+    return SignedExecutorClient()
+
+SignedExecutorClientDep = Annotated[SignedExecutorClient, Depends(get_signed_executor_client)]

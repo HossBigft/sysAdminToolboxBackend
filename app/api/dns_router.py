@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query, R
 from typing import Annotated
 
 from app.dns.dns_models import ZoneMasterResponse
-from app.core.dependencies import CurrentUser, SessionDep, RoleChecker
+from app.core.dependencies import CurrentUser, SessionDep, RoleChecker, DNSResolver
 from app.schemas import (
     UserRoles,
     DomainName,
@@ -16,13 +16,10 @@ from app.schemas import (
     HostIpData,
 )
 from app.core.DomainMapper import HOSTS
-from app.dns.dns_service import DNSService
+
 from app.core_utils.loggers import log_dns_remove_zone, log_dns_get_zonemaster
 
 router = APIRouter(tags=["dns"], prefix="/dns")
-dnsService = DNSService()
-internal_resolver = dnsService.internal_resolver
-google_resolver = dnsService.google_resolver
 
 
 @router.get(
@@ -31,8 +28,10 @@ google_resolver = dnsService.google_resolver
         Depends(RoleChecker([UserRoles.USER, UserRoles.SUPERUSER, UserRoles.ADMIN]))
     ],
 )
-async def get_a_record(domain: Annotated[DomainName, Query()]) -> DomainARecordResponse:
-    a_records = await internal_resolver.resolve_a(domain.name)
+async def get_a_record(
+    domain: Annotated[DomainName, Query()], dns_service: DNSResolver
+) -> DomainARecordResponse:
+    a_records = await dns_service.internal_resolver.resolve_a(domain.name)
     if not a_records:
         raise HTTPException(status_code=404, detail=f"A record for {domain} not found.")
     records = [IPv4Address(ip=ip) for ip in a_records]
@@ -45,8 +44,8 @@ async def get_a_record(domain: Annotated[DomainName, Query()]) -> DomainARecordR
         Depends(RoleChecker([UserRoles.USER, UserRoles.SUPERUSER, UserRoles.ADMIN]))
     ],
 )
-async def get_ptr_record(ip: Annotated[IPv4Address, Query()]):
-    ptr_records = await google_resolver.resolve_ptr(str(ip))
+async def get_ptr_record(ip: Annotated[IPv4Address, Query()], dns_service: DNSResolver):
+    ptr_records = await dns_service.google_resolver.resolve_ptr(str(ip))
     if not ptr_records:
         raise HTTPException(status_code=404, detail=f"PTR record for {ip} not found.")
     records = [DomainName(name=domain) for domain in ptr_records]
@@ -63,8 +62,9 @@ async def get_zone_master_from_dns_servers(
     current_user: CurrentUser,
     domain: Annotated[SubscriptionName, Depends()],
     request: Request,
+    dns_service: DNSResolver,
 ):
-    zone_masters = await DNSService().get_zone_masters(domain)
+    zone_masters = await dns_service.get_zone_masters(domain)
     if not zone_masters:
         raise HTTPException(
             status_code=404,
@@ -88,10 +88,10 @@ async def get_zone_master_from_dns_servers(
     ],
 )
 async def get_mx_record(
-    domain: Annotated[DomainName, Query()],
+    domain: Annotated[DomainName, Query()], dns_service: DNSResolver
 ) -> DomainMxRecordResponse:
     domain_str = domain.name
-    mx_records = await internal_resolver.resolve_mx(domain_str)
+    mx_records = await dns_service.internal_resolver.resolve_mx(domain_str)
     if not mx_records:
         raise HTTPException(
             status_code=404, detail=f"MX record for {domain} not found."
@@ -107,11 +107,11 @@ async def get_mx_record(
     ],
 )
 async def get_public_ns_propagation(
-    domain: Annotated[DomainName, Query()],
+    domain: Annotated[DomainName, Query()], dns_service: DNSResolver
 ):
     domain_str = domain.name
 
-    ns_records = await dnsService.get_ns_records_from_public_ns(domain_str) 
+    ns_records = await dns_service.get_ns_records_from_public_ns(domain_str)
     if not ns_records:
         raise HTTPException(
             status_code=404, detail=f"NS record for {domain} not found."
@@ -129,12 +129,13 @@ async def delete_zone_file_for_domain(
     current_user: CurrentUser,
     domain: Annotated[DomainName, Query()],
     request: Request,
+    dns_service: DNSResolver,
 ):
     try:
-        zone_masters = await DNSService().get_zone_masters(domain)
+        zone_masters = await dns_service.get_zone_masters(domain)
         curr_zonemaster = ", ".join([entry["ns"] for entry in zone_masters["answers"]])
 
-        await DNSService().remove_zone(domain)
+        await dns_service.remove_zone(domain)
 
         background_tasks.add_task(
             log_dns_remove_zone,
@@ -190,9 +191,9 @@ async def resolve_host_by_ip(
     ],
 )
 async def get_a_record_google(
-    domain: Annotated[DomainName, Query()],
+    domain: Annotated[DomainName, Query()], dns_service: DNSResolver
 ) -> DomainARecordResponse:
-    a_records = await google_resolver.resolve_a(domain.name)
+    a_records = await dns_service.google_resolver.resolve_a(domain.name)
     if not a_records:
         raise HTTPException(status_code=404, detail=f"A record for {domain} not found.")
     records = [IPv4Address(ip=ip) for ip in a_records]
@@ -206,10 +207,10 @@ async def get_a_record_google(
     ],
 )
 async def get_mx_record_google(
-    domain: Annotated[DomainName, Query()],
+    domain: Annotated[DomainName, Query()], dns_service: DNSResolver
 ) -> DomainMxRecordResponse:
     domain_str = domain.name
-    mx_records = await google_resolver.resolve_mx(domain_str)
+    mx_records = await dns_service.google_resolver.resolve_mx(domain_str)
     if not mx_records:
         raise HTTPException(
             status_code=404, detail=f"MX record for {domain} not found."
@@ -225,10 +226,10 @@ async def get_mx_record_google(
     ],
 )
 async def get_authoritative_ns_records(
-    domain: Annotated[DomainName, Query()],
+    domain: Annotated[DomainName, Query()], dns_service: DNSResolver
 ) -> DomainNsRecordResponse:
     domain_str = domain.name
-    ns_records = await dnsService.resolve_authoritative_ns_record(domain_str)
+    ns_records = await dns_service.resolve_authoritative_ns_record(domain_str)
     if not ns_records:
         raise HTTPException(
             status_code=404, detail=f"NS record for {domain} not found."

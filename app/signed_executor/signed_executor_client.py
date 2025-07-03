@@ -1,5 +1,5 @@
 from typing import List
-from app.core.dependencies import get_token_signer
+
 from app.schemas import SignedExecutorResponse, ExecutionStatus
 from app.signed_executor.commands.signed_operation import SignedOperation
 from app.signed_executor.async_ssh_handler import (
@@ -8,10 +8,15 @@ from app.signed_executor.async_ssh_handler import (
 )
 from app.core_utils.loggers import log_ssh_response, log_ssh_request
 
+from app.core.token_signer import ToKenSigner
+
 
 class SignedExecutorClient:
+    _token_signer_instance: ToKenSigner | None = None
     def __init__(self):
-        self._token_signer = get_token_signer()
+        if SignedExecutorClient._token_signer_instance is None:
+            SignedExecutorClient._token_signer_instance = ToKenSigner()
+        self._token_signer = SignedExecutorClient._token_signer_instance
 
     def _sign_operation(self, command_str: str) -> str:
         return "execute " + self._token_signer.create_signed_token(command_str)
@@ -77,3 +82,5 @@ class SignedExecutorClient:
                 executor_responses.append(response)
 
         return executor_responses
+    async def get_public_key_base64(self):
+        return self._token_signer.get_public_key_base64()

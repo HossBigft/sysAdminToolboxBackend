@@ -26,14 +26,13 @@ from app.schemas import (
     ValidatedDomainName,
     ValidatedPleskServerDomain,
 )
-from app.core.dependencies import CurrentUser, SessionDep, RoleChecker
+from app.core.dependencies import CurrentUser, SessionDep, RoleChecker, SignedExecutorClientDep
 
 from app.core_utils.loggers import log_plesk_login_link_get, log_dns_zone_master_set, log_plesk_mail_test_get
-from app.core.dependencies import get_token_signer
 from app.plesk.plesk_service import PleskService
 from app.dns.dns_service import DNSService
 
-_token_signer = get_token_signer()
+
 router = APIRouter(tags=["plesk"], prefix="/plesk")
 
 
@@ -161,9 +160,9 @@ async def create_testmail_for_domain(
 @router.get(
     "/publickey",
 )
-async def share_public_key():
+async def share_public_key(signed_executor: SignedExecutorClientDep):
     return Response(
-        content=_token_signer.get_public_key_base64(), media_type="text/plain"
+        content=await signed_executor.get_public_key_base64(), media_type="text/plain"
     )
 
 
