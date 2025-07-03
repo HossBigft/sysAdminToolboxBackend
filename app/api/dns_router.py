@@ -112,7 +112,6 @@ async def get_public_ns_propagation(
     domain_str = domain.name
 
     ns_records = await dnsService.get_ns_records_from_public_ns(domain_str) 
-    ns_records.append({"name":"test", "records":"dummy"})
     if not ns_records:
         raise HTTPException(
             status_code=404, detail=f"NS record for {domain} not found."
