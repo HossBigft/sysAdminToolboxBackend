@@ -152,9 +152,9 @@ class SshExecutionError(Exception):
 
 
 async def _execute_ssh_command(host: str, command: str) -> SshResponse:
+    start_time = time.time()
     try:
         conn = await _get_connection(host)
-        start_time = time.time()
         result = await asyncio.wait_for(conn.run(command), timeout=EXECUTION_TIMEOUT)
         end_time = time.time()
         execution_time = end_time - start_time
