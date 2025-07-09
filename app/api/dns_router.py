@@ -179,7 +179,7 @@ async def resolve_host_by_ip(
 
     if not resolved_host:
         raise HTTPException(
-            status_code=404, detail=f"No host found with domain [{ip.ip}]."
+            status_code=404, detail=f"No host found with IP [{ip.ip}]."
         )
     return resolved_host
 
